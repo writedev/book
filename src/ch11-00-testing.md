@@ -1,34 +1,11 @@
-# Writing Automated Tests
+# Écriture de Tests Automatisés
 
-In his 1972 essay “The Humble Programmer,” Edsger W. Dijkstra said that “program
-testing can be a very effective way to show the presence of bugs, but it is
-hopelessly inadequate for showing their absence.” That doesn’t mean we shouldn’t
-try to test as much as we can!
+Dans son essai de 1972 « Le Programmeur Humble », Edsger W. Dijkstra a déclaré que « le test de programmes peut être un moyen très efficace de montrer la présence de bugs, mais il est désespérément inadéquat pour montrer leur absence. » Cela ne veut pas dire que nous ne devrions pas essayer de tester autant que possible !
 
-_Correctness_ in our programs is the extent to which our code does what we
-intend it to do. Rust is designed with a high degree of concern about the
-correctness of programs, but correctness is complex and not easy to prove.
-Rust’s type system shoulders a huge part of this burden, but the type system
-cannot catch everything. As such, Rust includes support for writing automated
-software tests.
+La _correction_ de nos programmes est l'étendue à laquelle notre code fait ce que nous avons l'intention qu'il fasse. Rust est conçu avec un grand souci de la correction des programmes, mais la correction est complexe et difficile à prouver. Le système de types de Rust porte une grande partie de ce fardeau, mais le système de types ne peut pas tout attraper. En tant que tel, Rust inclut un support pour l'écriture de tests automatisés.
 
-Say we write a function `add_two` that adds 2 to whatever number is passed to
-it. This function’s signature accepts an integer as a parameter and returns an
-integer as a result. When we implement and compile that function, Rust does all
-the type checking and borrow checking that you’ve learned so far to ensure
-that, for instance, we aren’t passing a `String` value or an invalid reference
-to this function. But Rust _can’t_ check that this function will do precisely
-what we intend, which is return the parameter plus 2 rather than, say, the
-parameter plus 10 or the parameter minus 50! That’s where tests come in.
+Disons que nous écrivons une fonction `add_two` qui ajoute 2 à tout nombre qui lui est passé. La signature de cette fonction accepte un entier comme paramètre et renvoie un entier comme résultat. Lorsque nous implémentons et compilons cette fonction, Rust effectue toutes les vérifications de type et de prêt que vous avez apprises jusqu'à présent pour garantir que, par exemple, nous ne passons pas une valeur `String` ou une référence invalide à cette fonction. Mais Rust _ne peut pas_ vérifier que cette fonction fera exactement ce que nous voulons, c'est-à-dire renvoyer le paramètre plus 2 plutôt que, disons, le paramètre plus 10 ou le paramètre moins 50 ! C'est là que les tests interviennent.
 
-We can write tests that assert, for example, that when we pass `3` to the
-`add_two` function, the returned value is `5`. We can run these tests whenever
-we make changes to our code to make sure any existing correct behavior has not
-changed.
+Nous pouvons écrire des tests qui affirment, par exemple, que lorsque nous passons `3` à la fonction `add_two`, la valeur renvoyée est `5`. Nous pouvons exécuter ces tests chaque fois que nous apportons des modifications à notre code pour nous assurer que tout comportement correct existant n'a pas changé.
 
-Testing is a complex skill: Although we can’t cover in one chapter every detail
-about how to write good tests, in this chapter we will discuss the mechanics of
-Rust’s testing facilities. We’ll talk about the annotations and macros
-available to you when writing your tests, the default behavior and options
-provided for running your tests, and how to organize tests into unit tests and
-integration tests.
+Tester est une compétence complexe : bien que nous ne puissions pas couvrir dans un chapitre tous les détails sur la façon d'écrire de bons tests, dans ce chapitre, nous allons discuter des mécanismes des installations de test de Rust. Nous aborderons les annotations et les macros disponibles lors de l'écriture de vos tests, le comportement par défaut et les options fournies pour exécuter vos tests, ainsi que la façon d'organiser les tests en tests unitaires et tests d'intégration.

@@ -1,70 +1,58 @@
-## Appendix A: Keywords
+## Annexe A : Mots-clés
 
-The following lists contain keywords that are reserved for current or future
-use by the Rust language. As such, they cannot be used as identifiers (except
-as raw identifiers, as we discuss in the [“Raw
-Identifiers”][raw-identifiers]<!-- ignore --> section). _Identifiers_ are names
-of functions, variables, parameters, struct fields, modules, crates, constants,
-macros, static values, attributes, types, traits, or lifetimes.
+Les listes suivantes contiennent des mots-clés réservés pour l'utilisation actuelle ou future par le langage Rust. En tant que tels, ils ne peuvent pas être utilisés comme identifiants (sauf en tant qu'identifiants bruts, comme nous l'aborderons dans la section [« Identifiants Bruts »][raw-identifiers]<!-- ignore -->). Les _identifiants_ sont des noms de fonctions, variables, paramètres, champs de structure, modules, crates, constantes, macros, valeurs statiques, attributs, types, traits ou durées de vie.
 
 [raw-identifiers]: #raw-identifiers
 
-### Keywords Currently in Use
+### Mots-clés Actuellement en Utilisation
 
-The following is a list of keywords currently in use, with their functionality
-described.
+Voici une liste de mots-clés actuellement en usage, avec leur fonctionnalité décrite.
 
-- **`as`**: Perform primitive casting, disambiguate the specific trait
-  containing an item, or rename items in `use` statements.
-- **`async`**: Return a `Future` instead of blocking the current thread.
-- **`await`**: Suspend execution until the result of a `Future` is ready.
-- **`break`**: Exit a loop immediately.
-- **`const`**: Define constant items or constant raw pointers.
-- **`continue`**: Continue to the next loop iteration.
-- **`crate`**: In a module path, refers to the crate root.
-- **`dyn`**: Dynamic dispatch to a trait object.
-- **`else`**: Fallback for `if` and `if let` control flow constructs.
-- **`enum`**: Define an enumeration.
-- **`extern`**: Link an external function or variable.
-- **`false`**: Boolean false literal.
-- **`fn`**: Define a function or the function pointer type.
-- **`for`**: Loop over items from an iterator, implement a trait, or specify a
-  higher ranked lifetime.
-- **`if`**: Branch based on the result of a conditional expression.
-- **`impl`**: Implement inherent or trait functionality.
-- **`in`**: Part of `for` loop syntax.
-- **`let`**: Bind a variable.
-- **`loop`**: Loop unconditionally.
-- **`match`**: Match a value to patterns.
-- **`mod`**: Define a module.
-- **`move`**: Make a closure take ownership of all its captures.
-- **`mut`**: Denote mutability in references, raw pointers, or pattern bindings.
-- **`pub`**: Denote public visibility in struct fields, `impl` blocks, or
-  modules.
-- **`ref`**: Bind by reference.
-- **`return`**: Return from function.
-- **`Self`**: A type alias for the type we are defining or implementing.
-- **`self`**: Method subject or current module.
-- **`static`**: Global variable or lifetime lasting the entire program
-  execution.
-- **`struct`**: Define a structure.
-- **`super`**: Parent module of the current module.
-- **`trait`**: Define a trait.
-- **`true`**: Boolean true literal.
-- **`type`**: Define a type alias or associated type.
-- **`union`**: Define a [union][union]<!-- ignore -->; is a keyword only when
-  used in a union declaration.
-- **`unsafe`**: Denote unsafe code, functions, traits, or implementations.
-- **`use`**: Bring symbols into scope.
-- **`where`**: Denote clauses that constrain a type.
-- **`while`**: Loop conditionally based on the result of an expression.
+- **`as`** : Effectuer un casting primitif, désambiguïser le trait spécifique contenant un élément ou renommer des éléments dans les instructions `use`.
+- **`async`** : Retourner un `Future` au lieu de bloquer le fil d'exécution actuel.
+- **`await`** : Suspendre l'exécution jusqu'à ce que le résultat d'un `Future` soit prêt.
+- **`break`** : Sortir d'une boucle immédiatement.
+- **`const`** : Définir des éléments constants ou des pointeurs bruts constants.
+- **`continue`** : Passer à l'itération suivante de la boucle.
+- **`crate`** : Dans un chemin de module, désigne la racine de la crate.
+- **`dyn`** : Dispatch dynamique vers un objet trait.
+- **`else`** : Solution de repli pour les constructions de contrôle `if` et `if let`.
+- **`enum`** : Définir une énumération.
+- **`extern`** : Lier une fonction ou une variable externe.
+- **`false`** : Littéral booléen faux.
+- **`fn`** : Définir une fonction ou le type d'un pointeur de fonction.
+- **`for`** : Boucler sur des éléments d'un itérateur, implémenter un trait ou spécifier une durée de vie à classement supérieur.
+- **`if`** : Brancher en fonction du résultat d'une expression conditionnelle.
+- **`impl`** : Implémenter une fonctionnalité inhérente ou de trait.
+- **`in`** : Partie de la syntaxe de boucle `for`.
+- **`let`** : Lier une variable.
+- **`loop`** : Boucler de manière inconditionnelle.
+- **`match`** : Appariement d'une valeur à des motifs.
+- **`mod`** : Définir un module.
+- **`move`** : Faire en sorte qu'une fermeture prenne possession de toutes ses captures.
+- **`mut`** : Indiquer la mutabilité dans les références, pointeurs bruts ou liaisons de motifs.
+- **`pub`** : Indiquer une visibilité publique dans les champs de structure, blocs `impl` ou modules.
+- **`ref`** : Lier par référence.
+- **`return`** : Retourner d'une fonction.
+- **`Self`** : Un alias de type pour le type que nous définissons ou implémentons.
+- **`self`** : Sujet de la méthode ou module courant.
+- **`static`** : Variable globale ou durée de vie durant toute l'exécution du programme.
+- **`struct`** : Définir une structure.
+- **`super`** : Module parent du module actuel.
+- **`trait`** : Définir un trait.
+- **`true`** : Littéral booléen vrai.
+- **`type`** : Définir un alias de type ou un type associé.
+- **`union`** : Définir une [union][union]<!-- ignore --> ; est un mot-clé seulement lorsqu'il est utilisé dans une déclaration d'union.
+- **`unsafe`** : Indiquer du code, des fonctions, des traits ou des implémentations non sûrs.
+- **`use`** : Amener des symboles dans le scope.
+- **`where`** : Indiquer des clauses qui contraignent un type.
+- **`while`** : Boucler de manière conditionnelle en fonction du résultat d'une expression.
 
 [union]: ../reference/items/unions.html
 
-### Keywords Reserved for Future Use
+### Mots-clés Réservés pour une Utilisation Future
 
-The following keywords do not yet have any functionality but are reserved by
-Rust for potential future use:
+Les mots-clés suivants n'ont pas encore de fonctionnalité mais sont réservés par Rust pour une utilisation future potentielle :
 
 - `abstract`
 - `become`
@@ -81,15 +69,13 @@ Rust for potential future use:
 - `virtual`
 - `yield`
 
-### Raw Identifiers
+### Identifiants Bruts
 
-_Raw identifiers_ are the syntax that lets you use keywords where they wouldn’t
-normally be allowed. You use a raw identifier by prefixing a keyword with `r#`.
+Les _identifiants bruts_ sont la syntaxe qui vous permet d'utiliser des mots-clés là où ils ne seraient normalement pas autorisés. Vous utilisez un identifiant brut en préfixant un mot-clé avec `r#`.
 
-For example, `match` is a keyword. If you try to compile the following function
-that uses `match` as its name:
+Par exemple, `match` est un mot-clé. Si vous essayez de compiler la fonction suivante qui utilise `match` comme son nom :
 
-<span class="filename">Filename: src/main.rs</span>
+<span class="filename">Nom de fichier : src/main.rs</span>
 
 ```rust,ignore,does_not_compile
 fn match(needle: &str, haystack: &str) -> bool {
@@ -97,7 +83,7 @@ fn match(needle: &str, haystack: &str) -> bool {
 }
 ```
 
-you’ll get this error:
+vous obtiendrez cette erreur :
 
 ```text
 error: expected identifier, found keyword `match`
@@ -107,11 +93,9 @@ error: expected identifier, found keyword `match`
   |    ^^^^^ expected identifier, found keyword
 ```
 
-The error shows that you can’t use the keyword `match` as the function
-identifier. To use `match` as a function name, you need to use the raw
-identifier syntax, like this:
+L'erreur montre que vous ne pouvez pas utiliser le mot-clé `match` comme identifiant de fonction. Pour utiliser `match` comme nom de fonction, vous devez utiliser la syntaxe d'identifiant brut, comme ceci :
 
-<span class="filename">Filename: src/main.rs</span>
+<span class="filename">Nom de fichier : src/main.rs</span>
 
 ```rust
 fn r#match(needle: &str, haystack: &str) -> bool {
@@ -123,18 +107,8 @@ fn main() {
 }
 ```
 
-This code will compile without any errors. Note the `r#` prefix on the function
-name in its definition as well as where the function is called in `main`.
+Ce code se compilera sans erreurs. Notez le préfixe `r#` sur le nom de la fonction dans sa définition ainsi que là où la fonction est appelée dans `main`.
 
-Raw identifiers allow you to use any word you choose as an identifier, even if
-that word happens to be a reserved keyword. This gives us more freedom to choose
-identifier names, as well as lets us integrate with programs written in a
-language where these words aren’t keywords. In addition, raw identifiers allow
-you to use libraries written in a different Rust edition than your crate uses.
-For example, `try` isn’t a keyword in the 2015 edition but is in the 2018, 2021,
-and 2024 editions. If you depend on a library that is written using the 2015
-edition and has a `try` function, you’ll need to use the raw identifier syntax,
-`r#try` in this case, to call that function from your code on later editions.
-See [Appendix E][appendix-e]<!-- ignore --> for more information on editions.
+Les identifiants bruts vous permettent d'utiliser n'importe quel mot de votre choix comme identifiant, même si ce mot est un mot-clé réservé. Cela nous donne plus de liberté pour choisir des noms d'identifiants, ainsi que nous permet de nous intégrer avec des programmes écrits dans un langage où ces mots ne sont pas des mots-clés. De plus, les identifiants bruts vous permettent d'utiliser des bibliothèques écrites dans une édition Rust différente de celle utilisée par votre crate. Par exemple, `try` n'est pas un mot-clé dans l'édition 2015 mais l'est dans les éditions 2018, 2021 et 2024. Si vous dépendez d'une bibliothèque écrite en utilisant l'édition 2015 et qu'elle a une fonction `try`, vous devrez utiliser la syntaxe d'identifiant brut, `r#try` dans ce cas, pour appeler cette fonction depuis votre code dans les éditions ultérieures. Voir [Annexe E][appendix-e]<!-- ignore --> pour plus d'informations sur les éditions.
 
 [appendix-e]: appendix-05-editions.html

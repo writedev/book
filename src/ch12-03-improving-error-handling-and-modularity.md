@@ -1,513 +1,154 @@
-## Refactoring to Improve Modularity and Error Handling
+## Refactorisation pour Améliorer la Modularité et la Gestion des Erreurs
 
-To improve our program, we’ll fix four problems that have to do with the
-program’s structure and how it’s handling potential errors. First, our `main`
-function now performs two tasks: It parses arguments and reads files. As our
-program grows, the number of separate tasks the `main` function handles will
-increase. As a function gains responsibilities, it becomes more difficult to
-reason about, harder to test, and harder to change without breaking one of its
-parts. It’s best to separate functionality so that each function is responsible
-for one task.
+Pour améliorer notre programme, nous allons résoudre quatre problèmes liés à la structure du programme et à la gestion des erreurs potentielles. Tout d'abord, notre fonction `main` effectue désormais deux tâches : elle analyse les arguments et lit les fichiers. À mesure que notre programme se développe, le nombre de tâches distinctes gérées par la fonction `main` augmentera. Lorsqu'une fonction accumule des responsabilités, elle devient plus difficile à comprendre, plus difficile à tester et plus difficile à modifier sans casser une de ses parties. Il est préférable de séparer les fonctionnalités afin que chaque fonction soit responsable d'une seule tâche.
 
-This issue also ties into the second problem: Although `query` and `file_path`
-are configuration variables to our program, variables like `contents` are used
-to perform the program’s logic. The longer `main` becomes, the more variables
-we’ll need to bring into scope; the more variables we have in scope, the harder
-it will be to keep track of the purpose of each. It’s best to group the
-configuration variables into one structure to make their purpose clear.
+Ce problème est également lié au deuxième : bien que `query` et `file_path` soient des variables de configuration pour notre programme, des variables comme `contents` sont utilisées pour exécuter la logique du programme. Plus la fonction `main` devient longue, plus nous aurons besoin d'inclure de variables dans le contexte ; plus nous avons de variables dans le contexte, plus il sera difficile de garder une trace de leur but. Il est préférable de regrouper les variables de configuration dans une seule structure pour clarifier leur objectif.
 
-The third problem is that we’ve used `expect` to print an error message when
-reading the file fails, but the error message just prints `Should have been
-able to read the file`. Reading a file can fail in a number of ways: For
-example, the file could be missing, or we might not have permission to open it.
-Right now, regardless of the situation, we’d print the same error message for
-everything, which wouldn’t give the user any information!
+Le troisième problème est que nous utilisons `expect` pour afficher un message d'erreur lorsque la lecture du fichier échoue, mais le message d'erreur indique seulement `Should have been able to read the file`. La lecture d'un fichier peut échouer de plusieurs manières : par exemple, le fichier peut être manquant ou nous n'avons peut-être pas la permission de l'ouvrir. En ce moment, peu importe la situation, nous afficherions le même message d'erreur pour tout, ce qui ne donnerait aucune information à l'utilisateur !
 
-Fourth, we use `expect` to handle an error, and if the user runs our program
-without specifying enough arguments, they’ll get an `index out of bounds` error
-from Rust that doesn’t clearly explain the problem. It would be best if all the
-error-handling code were in one place so that future maintainers had only one
-place to consult the code if the error-handling logic needed to change. Having
-all the error-handling code in one place will also ensure that we’re printing
-messages that will be meaningful to our end users.
+Quatrièmement, nous utilisons `expect` pour gérer une erreur, et si l'utilisateur exécute notre programme sans spécifier suffisamment d'arguments, il obtiendra une erreur `index out of bounds` de Rust qui n'explique pas clairement le problème. Il serait préférable que tout le code de gestion des erreurs soit regroupé au même endroit afin que les futurs mainteneurs n'aient qu'un seul endroit à consulter si la logique de gestion des erreurs devait changer. Avoir tout le code de gestion des erreurs au même endroit garantira également que nous affichons des messages significatifs pour nos utilisateurs finaux.
 
-Let’s address these four problems by refactoring our project.
+Abordons ces quatre problèmes en refactorisant notre projet.
 
-<!-- Old headings. Do not remove or links may break. -->
+### Séparation des Préoccupations dans les Projets Binaires
 
-<a id="separation-of-concerns-for-binary-projects"></a>
+Le problème organisationnel d'allocation de responsabilités pour plusieurs tâches à la fonction `main` est commun à de nombreux projets binaires. En conséquence, de nombreux programmeurs Rust trouvent utile de séparer les préoccupations d'un programme binaire lorsque la fonction `main` commence à devenir grande. Ce processus comporte les étapes suivantes :
 
-### Separating Concerns in Binary Projects
+- Divisez votre programme en un fichier _main.rs_ et un fichier _lib.rs_ et déplacez la logique de votre programme vers _lib.rs_.
+- Tant que votre logique d'analyse des commandes est petite, elle peut rester dans la fonction `main`.
+- Lorsque la logique d'analyse des commandes devient compliquée, extrayez-la de la fonction `main` dans d'autres fonctions ou types.
 
-The organizational problem of allocating responsibility for multiple tasks to
-the `main` function is common to many binary projects. As a result, many Rust
-programmers find it useful to split up the separate concerns of a binary
-program when the `main` function starts getting large. This process has the
-following steps:
+Les responsabilités qui restent dans la fonction `main` après ce processus devraient être limitées aux éléments suivants :
 
-- Split your program into a _main.rs_ file and a _lib.rs_ file and move your
-  program’s logic to _lib.rs_.
-- As long as your command line parsing logic is small, it can remain in
-  the `main` function.
-- When the command line parsing logic starts getting complicated, extract it
-  from the `main` function into other functions or types.
+- Appeler la logique d'analyse des commandes avec les valeurs des arguments
+- Mettre en place toute autre configuration
+- Appeler une fonction `run` dans _lib.rs_
+- Gérer l'erreur si `run` renvoie une erreur
 
-The responsibilities that remain in the `main` function after this process
-should be limited to the following:
+Ce modèle vise à séparer les préoccupations : _main.rs_ gère l'exécution du programme et _lib.rs_ gère toute la logique de la tâche en cours. Comme vous ne pouvez pas tester la fonction `main` directement, cette structure vous permet de tester toute la logique de votre programme en la déplaçant hors de la fonction `main`. Le code restant dans la fonction `main` sera assez petit pour que sa correction puisse être vérifiée en le lisant. Retravaillons notre programme en suivant ce processus.
 
-- Calling the command line parsing logic with the argument values
-- Setting up any other configuration
-- Calling a `run` function in _lib.rs_
-- Handling the error if `run` returns an error
+#### Extraction du Parser d'Arguments
 
-This pattern is about separating concerns: _main.rs_ handles running the
-program and _lib.rs_ handles all the logic of the task at hand. Because you
-can’t test the `main` function directly, this structure lets you test all of
-your program’s logic by moving it out of the `main` function. The code that
-remains in the `main` function will be small enough to verify its correctness
-by reading it. Let’s rework our program by following this process.
+Nous allons extraire la fonctionnalité d'analyse des arguments dans une fonction que `main` appellera. La Liste 12-5 montre le nouveau début de la fonction `main` qui appelle une nouvelle fonction `parse_config`, que nous définirons dans _src/main.rs_.
 
-#### Extracting the Argument Parser
+Nous collectons toujours les arguments de ligne de commande dans un vecteur, mais au lieu d'assigner la valeur de l'argument à l'index 1 à la variable `query` et la valeur de l'argument à l'index 2 à la variable `file_path` au sein de la fonction `main`, nous passons tout le vecteur à la fonction `parse_config`. La fonction `parse_config` contient alors la logique qui détermine quel argument va dans quelle variable et renvoie les valeurs à `main`. Nous créons toujours les variables `query` et `file_path` dans `main`, mais `main` n'a plus la responsabilité de déterminer comment les arguments de ligne de commande et les variables correspondent.
 
-We’ll extract the functionality for parsing arguments into a function that
-`main` will call. Listing 12-5 shows the new start of the `main` function that
-calls a new function `parse_config`, which we’ll define in _src/main.rs_.
+Cette refonte peut sembler excessive pour notre petit programme, mais nous refactorisons par petites étapes incrémentales. Après avoir effectué ce changement, exécutez à nouveau le programme pour vérifier que l'analyse des arguments fonctionne toujours. Il est bon de vérifier vos progrès souvent, afin d'aider à identifier la cause des problèmes lorsqu'ils surviennent.
 
-<Listing number="12-5" file-name="src/main.rs" caption="Extracting a `parse_config` function from `main`">
+#### Regroupement des Valeurs de Configuration
 
-```rust,ignore
-{{#rustdoc_include ../listings/ch12-an-io-project/listing-12-05/src/main.rs:here}}
-```
+Nous pouvons faire un autre petit pas pour améliorer la fonction `parse_config` davantage. Pour l'instant, nous renvoyons un tuple, mais ensuite nous décomposons immédiatement ce tuple en parties individuelles. C'est un signe qu'il y a peut-être une mauvaise abstraction.
 
-</Listing>
+Un autre indicateur qui montre qu'il y a une marge d'amélioration est la partie `config` de `parse_config`, qui implique que les deux valeurs que nous renvoyons sont liées et font toutes deux partie d'une seule valeur de configuration. Nous ne transmettons pas actuellement ce sens dans la structure des données, sinon en regroupant les deux valeurs dans un tuple ; nous allons donc plutôt mettre les deux valeurs dans une seule structure et donner à chaque champ de la structure un nom significatif. Cela facilitera la compréhension par les futurs mainteneurs de ce code de la relation entre les différentes valeurs et de leur objectif.
 
-We’re still collecting the command line arguments into a vector, but instead of
-assigning the argument value at index 1 to the variable `query` and the
-argument value at index 2 to the variable `file_path` within the `main`
-function, we pass the whole vector to the `parse_config` function. The
-`parse_config` function then holds the logic that determines which argument
-goes in which variable and passes the values back to `main`. We still create
-the `query` and `file_path` variables in `main`, but `main` no longer has the
-responsibility of determining how the command line arguments and variables
-correspond.
+La Liste 12-6 montre les améliorations apportées à la fonction `parse_config`.
 
-This rework may seem like overkill for our small program, but we’re refactoring
-in small, incremental steps. After making this change, run the program again to
-verify that the argument parsing still works. It’s good to check your progress
-often, to help identify the cause of problems when they occur.
+Nous avons ajouté une structure nommée `Config` définie pour avoir des champs nommés `query` et `file_path`. La signature de `parse_config` indique désormais qu'elle renvoie une valeur `Config`. Dans le corps de `parse_config`, où nous utilisions auparavant des tranches de chaînes qui font référence aux valeurs `String` dans `args`, nous définissons maintenant `Config` pour contenir des valeurs `String` possédées. La variable `args` dans `main` est le propriétaire des valeurs des arguments et ne laisse que la fonction `parse_config` y accéder, ce qui signifie que nous violerions les règles d'emprunt de Rust si `Config` essayait de prendre possession des valeurs dans `args`.
 
-#### Grouping Configuration Values
+Il existe plusieurs façons de gérer les données `String` ; la plus simple, bien que quelque peu inefficace, consiste à appeler la méthode `clone` sur les valeurs. Cela fera une copie complète des données pour que l'instance de `Config` en prenne possession, ce qui nécessite plus de temps et de mémoire que le stockage d'une référence aux données de chaîne. Cependant, cloner les données rend également notre code très simple car nous n'avons pas à gérer la durée de vie des références ; dans ce cas, renoncer à un peu de performance pour gagner en simplicité est un compromis précieux.
 
-We can take another small step to improve the `parse_config` function further.
-At the moment, we’re returning a tuple, but then we immediately break that
-tuple into individual parts again. This is a sign that perhaps we don’t have
-the right abstraction yet.
-
-Another indicator that shows there’s room for improvement is the `config` part
-of `parse_config`, which implies that the two values we return are related and
-are both part of one configuration value. We’re not currently conveying this
-meaning in the structure of the data other than by grouping the two values into
-a tuple; we’ll instead put the two values into one struct and give each of the
-struct fields a meaningful name. Doing so will make it easier for future
-maintainers of this code to understand how the different values relate to each
-other and what their purpose is.
-
-Listing 12-6 shows the improvements to the `parse_config` function.
-
-<Listing number="12-6" file-name="src/main.rs" caption="Refactoring `parse_config` to return an instance of a `Config` struct">
-
-```rust,should_panic,noplayground
-{{#rustdoc_include ../listings/ch12-an-io-project/listing-12-06/src/main.rs:here}}
-```
-
-</Listing>
-
-We’ve added a struct named `Config` defined to have fields named `query` and
-`file_path`. The signature of `parse_config` now indicates that it returns a
-`Config` value. In the body of `parse_config`, where we used to return
-string slices that reference `String` values in `args`, we now define `Config`
-to contain owned `String` values. The `args` variable in `main` is the owner of
-the argument values and is only letting the `parse_config` function borrow
-them, which means we’d violate Rust’s borrowing rules if `Config` tried to take
-ownership of the values in `args`.
-
-There are a number of ways we could manage the `String` data; the easiest,
-though somewhat inefficient, route is to call the `clone` method on the values.
-This will make a full copy of the data for the `Config` instance to own, which
-takes more time and memory than storing a reference to the string data.
-However, cloning the data also makes our code very straightforward because we
-don’t have to manage the lifetimes of the references; in this circumstance,
-giving up a little performance to gain simplicity is a worthwhile trade-off.
-
-> ### The Trade-Offs of Using `clone`
+> ### Les Compromis de l'Utilisation de `clone`
 >
-> There’s a tendency among many Rustaceans to avoid using `clone` to fix
-> ownership problems because of its runtime cost. In
-> [Chapter 13][ch13]<!-- ignore -->, you’ll learn how to use more efficient
-> methods in this type of situation. But for now, it’s okay to copy a few
-> strings to continue making progress because you’ll make these copies only
-> once and your file path and query string are very small. It’s better to have
-> a working program that’s a bit inefficient than to try to hyperoptimize code
-> on your first pass. As you become more experienced with Rust, it’ll be
-> easier to start with the most efficient solution, but for now, it’s
-> perfectly acceptable to call `clone`.
-
-We’ve updated `main` so that it places the instance of `Config` returned by
-`parse_config` into a variable named `config`, and we updated the code that
-previously used the separate `query` and `file_path` variables so that it now
-uses the fields on the `Config` struct instead.
-
-Now our code more clearly conveys that `query` and `file_path` are related and
-that their purpose is to configure how the program will work. Any code that
-uses these values knows to find them in the `config` instance in the fields
-named for their purpose.
-
-#### Creating a Constructor for `Config`
-
-So far, we’ve extracted the logic responsible for parsing the command line
-arguments from `main` and placed it in the `parse_config` function. Doing so
-helped us see that the `query` and `file_path` values were related, and that
-relationship should be conveyed in our code. We then added a `Config` struct to
-name the related purpose of `query` and `file_path` and to be able to return the
-values’ names as struct field names from the `parse_config` function.
-
-So, now that the purpose of the `parse_config` function is to create a `Config`
-instance, we can change `parse_config` from a plain function to a function
-named `new` that is associated with the `Config` struct. Making this change
-will make the code more idiomatic. We can create instances of types in the
-standard library, such as `String`, by calling `String::new`. Similarly, by
-changing `parse_config` into a `new` function associated with `Config`, we’ll
-be able to create instances of `Config` by calling `Config::new`. Listing 12-7
-shows the changes we need to make.
-
-<Listing number="12-7" file-name="src/main.rs" caption="Changing `parse_config` into `Config::new`">
-
-```rust,should_panic,noplayground
-{{#rustdoc_include ../listings/ch12-an-io-project/listing-12-07/src/main.rs:here}}
-```
-
-</Listing>
-
-We’ve updated `main` where we were calling `parse_config` to instead call
-`Config::new`. We’ve changed the name of `parse_config` to `new` and moved it
-within an `impl` block, which associates the `new` function with `Config`. Try
-compiling this code again to make sure it works.
-
-### Fixing the Error Handling
-
-Now we’ll work on fixing our error handling. Recall that attempting to access
-the values in the `args` vector at index 1 or index 2 will cause the program to
-panic if the vector contains fewer than three items. Try running the program
-without any arguments; it will look like this:
-
-```console
-{{#include ../listings/ch12-an-io-project/listing-12-07/output.txt}}
-```
-
-The line `index out of bounds: the len is 1 but the index is 1` is an error
-message intended for programmers. It won’t help our end users understand what
-they should do instead. Let’s fix that now.
-
-#### Improving the Error Message
-
-In Listing 12-8, we add a check in the `new` function that will verify that the
-slice is long enough before accessing index 1 and index 2. If the slice isn’t
-long enough, the program panics and displays a better error message.
-
-<Listing number="12-8" file-name="src/main.rs" caption="Adding a check for the number of arguments">
-
-```rust,ignore
-{{#rustdoc_include ../listings/ch12-an-io-project/listing-12-08/src/main.rs:here}}
-```
-
-</Listing>
-
-This code is similar to [the `Guess::new` function we wrote in Listing
-9-13][ch9-custom-types]<!-- ignore -->, where we called `panic!` when the
-`value` argument was out of the range of valid values. Instead of checking for
-a range of values here, we’re checking that the length of `args` is at least
-`3` and the rest of the function can operate under the assumption that this
-condition has been met. If `args` has fewer than three items, this condition
-will be `true`, and we call the `panic!` macro to end the program immediately.
-
-With these extra few lines of code in `new`, let’s run the program without any
-arguments again to see what the error looks like now:
-
-```console
-{{#include ../listings/ch12-an-io-project/listing-12-08/output.txt}}
-```
-
-This output is better: We now have a reasonable error message. However, we also
-have extraneous information we don’t want to give to our users. Perhaps the
-technique we used in Listing 9-13 isn’t the best one to use here: A call to
-`panic!` is more appropriate for a programming problem than a usage problem,
-[as discussed in Chapter 9][ch9-error-guidelines]<!-- ignore -->. Instead,
-we’ll use the other technique you learned about in Chapter 9—[returning a
-`Result`][ch9-result]<!-- ignore --> that indicates either success or an error.
+> Il existe une tendance parmi de nombreux Rustaceans à éviter d'utiliser `clone` pour résoudre des problèmes de propriété en raison de son coût d'exécution. Dans [le Chapitre 13][ch13], vous apprendrez à utiliser des méthodes plus efficaces dans ce type de situation. Mais pour l'instant, il est acceptable de copier quelques chaînes pour continuer à progresser car vous ne ferez ces copies qu'une seule fois et votre chemin de fichier et votre chaîne de requête sont très petits. Il est préférable d'avoir un programme fonctionnel qui est un peu inefficace que d'essayer d'hyper-optimiser le code dès le premier essai. À mesure que vous gagnerez en expérience avec Rust, il sera plus facile de commencer avec la solution la plus efficace, mais pour l'instant, il est parfaitement acceptable d'appeler `clone`.
 
-<!-- Old headings. Do not remove or links may break. -->
-
-<a id="returning-a-result-from-new-instead-of-calling-panic"></a>
-
-#### Returning a `Result` Instead of Calling `panic!`
-
-We can instead return a `Result` value that will contain a `Config` instance in
-the successful case and will describe the problem in the error case. We’re also
-going to change the function name from `new` to `build` because many
-programmers expect `new` functions to never fail. When `Config::build` is
-communicating to `main`, we can use the `Result` type to signal there was a
-problem. Then, we can change `main` to convert an `Err` variant into a more
-practical error for our users without the surrounding text about `thread
-'main'` and `RUST_BACKTRACE` that a call to `panic!` causes.
+Nous avons mis à jour `main` afin qu'il place l'instance de `Config` renvoyée par `parse_config` dans une variable nommée `config`, et nous avons mis à jour le code qui utilisait auparavant les variables séparées `query` et `file_path` pour qu'il utilise désormais les champs de la structure `Config à la place.
 
-Listing 12-9 shows the changes we need to make to the return value of the
-function we’re now calling `Config::build` and the body of the function needed
-to return a `Result`. Note that this won’t compile until we update `main` as
-well, which we’ll do in the next listing.
+Maintenant, notre code indique plus clairement que `query` et `file_path` sont liés et que leur objectif est de configurer le fonctionnement du programme. Tout code utilisant ces valeurs sait où les trouver dans l'instance `config` dans les champs nommés en fonction de leur objectif.
 
-<Listing number="12-9" file-name="src/main.rs" caption="Returning a `Result` from `Config::build`">
+#### Création d'un Constructeur pour `Config`
 
-```rust,ignore,does_not_compile
-{{#rustdoc_include ../listings/ch12-an-io-project/listing-12-09/src/main.rs:here}}
-```
+Jusqu'à présent, nous avons extrait la logique responsable de l'analyse des arguments de la fonction `main` et l'avons placée dans la fonction `parse_config`. Ce faisant, nous avons constaté que les valeurs `query` et `file_path` étaient liées, et que cette relation devait être transmise dans notre code. Nous avons ensuite ajouté une structure `Config` pour nommer le but lié de `query` et `file_path` et pouvoir renvoyer les noms des valeurs sous forme de noms de champs de la structure depuis la fonction `parse_config`.
 
-</Listing>
+Désormais que l'objectif de la fonction `parse_config` est de créer une instance `Config`, nous pouvons changer `parse_config` d'une fonction ordinaire en une fonction nommée `new` qui est associée à la structure `Config`. Ce changement rendra le code plus idiomatique. Nous pouvons créer des instances de types dans la bibliothèque standard, comme `String`, en appelant `String::new`. De même, en changeant `parse_config` en une fonction `new` associée à `Config`, nous pourrons créer des instances de `Config` en appelant `Config::new`. La Liste 12-7 montre les changements que nous devons apporter.
 
-Our `build` function returns a `Result` with a `Config` instance in the success
-case and a string literal in the error case. Our error values will always be
-string literals that have the `'static` lifetime.
+Nous avons mis à jour `main` où nous appelions `parse_config` pour appeler à la place `Config::new`. Nous avons changé le nom de `parse_config` en `new` et l'avons déplacé dans un bloc `impl`, ce qui associe la fonction `new` à `Config`. Essayez de compiler ce code à nouveau pour vous assurer qu'il fonctionne.
 
-We’ve made two changes in the body of the function: Instead of calling `panic!`
-when the user doesn’t pass enough arguments, we now return an `Err` value, and
-we’ve wrapped the `Config` return value in an `Ok`. These changes make the
-function conform to its new type signature.
+### Correction de la Gestion des Erreurs
 
-Returning an `Err` value from `Config::build` allows the `main` function to
-handle the `Result` value returned from the `build` function and exit the
-process more cleanly in the error case.
+Maintenant, nous allons travailler à corriger notre gestion des erreurs. Rappelons que tenter d'accéder aux valeurs dans le vecteur `args` à l'index 1 ou à l'index 2 entraînera un plantage du programme si le vecteur contient moins de trois éléments. Essayez d'exécuter le programme sans arguments ; il aura un aspect comme celui-ci :
 
-<!-- Old headings. Do not remove or links may break. -->
+La ligne `index out of bounds: the len is 1 but the index is 1` est un message d'erreur destiné aux programmeurs. Cela n'aidera pas nos utilisateurs à comprendre ce qu'ils devraient faire à la place. Corrigeons cela maintenant.
 
-<a id="calling-confignew-and-handling-errors"></a>
+#### Amélioration du Message d'Erreur
 
-#### Calling `Config::build` and Handling Errors
+Dans la Liste 12-8, nous ajoutons une vérification dans la fonction `new` qui vérifiera que la tranche est suffisamment longue avant d'accéder à l'index 1 et à l'index 2. Si la tranche n'est pas suffisamment longue, le programme se bloque et affiche un meilleur message d'erreur.
 
-To handle the error case and print a user-friendly message, we need to update
-`main` to handle the `Result` being returned by `Config::build`, as shown in
-Listing 12-10. We’ll also take the responsibility of exiting the command line
-tool with a nonzero error code away from `panic!` and instead implement it by
-hand. A nonzero exit status is a convention to signal to the process that
-called our program that the program exited with an error state.
+Ce code est similaire à la fonction `Guess::new` que nous avons écrite dans la Liste 9-13, où nous avons appelé `panic!` lorsque l'argument `value` était en dehors de la plage de valeurs valides. Au lieu de vérifier une plage de valeurs ici, nous vérifions que la longueur de `args` est au moins `3`, et le reste de la fonction peut fonctionner dans l'hypothèse que cette condition a été respectée. Si `args` a moins de trois éléments, cette condition sera `true`, et nous appelons la macro `panic!` pour mettre fin au programme immédiatement.
 
-<Listing number="12-10" file-name="src/main.rs" caption="Exiting with an error code if building a `Config` fails">
+Avec ces quelques lignes supplémentaires de code dans `new`, exécutons à nouveau le programme sans arguments pour voir quel aspect a maintenant le message d'erreur :
 
-```rust,ignore
-{{#rustdoc_include ../listings/ch12-an-io-project/listing-12-10/src/main.rs:here}}
-```
+Cette sortie est mieux : nous avons maintenant un message d'erreur raisonnable. Cependant, nous avons également des informations superflues que nous ne souhaitons pas communiquer à nos utilisateurs. Peut-être que la technique que nous avons utilisée dans la Liste 9-13 n'est-elle pas la meilleure pour nous ici : un appel à `panic!` est plus approprié pour un problème de programmation qu'un problème d'utilisation. Au lieu de cela, nous allons utiliser l'autre technique que vous avez apprise au Chapitre 9 : [renvoyer un `Result`] qui indique soit un succès soit une erreur.
 
-</Listing>
+#### Retourner un `Result` au Lieu d'Appeler `panic!`
 
-In this listing, we’ve used a method we haven’t covered in detail yet:
-`unwrap_or_else`, which is defined on `Result<T, E>` by the standard library.
-Using `unwrap_or_else` allows us to define some custom, non-`panic!` error
-handling. If the `Result` is an `Ok` value, this method’s behavior is similar
-to `unwrap`: It returns the inner value that `Ok` is wrapping. However, if the
-value is an `Err` value, this method calls the code in the closure, which is
-an anonymous function we define and pass as an argument to `unwrap_or_else`.
-We’ll cover closures in more detail in [Chapter 13][ch13]<!-- ignore -->. For
-now, you just need to know that `unwrap_or_else` will pass the inner value of
-the `Err`, which in this case is the static string `"not enough arguments"`
-that we added in Listing 12-9, to our closure in the argument `err` that
-appears between the vertical pipes. The code in the closure can then use the
-`err` value when it runs.
+Nous pouvons plutôt renvoyer une valeur `Result` qui contiendra une instance de `Config` en cas de succès et décrira le problème en cas d'erreur. Nous changeons également le nom de la fonction de `new` à `build` car de nombreux programmeurs s'attendent à ce que les fonctions `new` ne rencontrent jamais d'échec. Lorsque `Config::build` communique avec `main`, nous pouvons utiliser le type `Result` pour signaler qu'il y a eu un problème. Nous pouvons ensuite modifier `main` pour convertir un variant `Err` en une erreur plus pratique pour nos utilisateurs sans le texte environnant sur `thread 'main'` et `RUST_BACKTRACE` qu'un appel à `panic!` entraîne.
 
-We’ve added a new `use` line to bring `process` from the standard library into
-scope. The code in the closure that will be run in the error case is only two
-lines: We print the `err` value and then call `process::exit`. The
-`process::exit` function will stop the program immediately and return the
-number that was passed as the exit status code. This is similar to the
-`panic!`-based handling we used in Listing 12-8, but we no longer get all the
-extra output. Let’s try it:
+La Liste 12-9 montre les modifications que nous devons apporter à la valeur de retour de la fonction que nous appelons maintenant `Config::build` et au corps de la fonction nécessaire pour renvoyer un `Result`. Notez que cela ne compilera pas jusqu'à ce que nous mettions également à jour `main`, ce que nous ferons dans la prochaine liste.
 
-```console
-{{#include ../listings/ch12-an-io-project/listing-12-10/output.txt}}
-```
+Notre fonction `build` renvoie un `Result` avec une instance de `Config` dans le cas de succès et une chaîne littérale dans le cas d'erreur. Nos valeurs d'erreur seront toujours des chaînes littérales qui ont la durée de vie `'static`.
 
-Great! This output is much friendlier for our users.
+Nous avons apporté deux changements dans le corps de la fonction : au lieu d'appeler `panic!` lorsque l'utilisateur ne passe pas assez d'arguments, nous renvoyons maintenant une valeur `Err`, et nous avons enveloppé la valeur de retour `Config` dans un `Ok`. Ces modifications rendent la fonction conforme à sa nouvelle signature de type.
 
-<!-- Old headings. Do not remove or links may break. -->
+Retourner une valeur `Err` de `Config::build` permet à la fonction `main` de gérer la valeur `Result` renvoyée par la fonction `build` et de quitter le processus plus proprement en cas d'erreur.
 
-<a id="extracting-logic-from-the-main-function"></a>
+#### Appel de `Config::build` et Gestion des Erreurs
 
-### Extracting Logic from `main`
+Pour gérer le cas d'erreur et afficher un message convivial, nous devons mettre à jour `main` pour gérer le `Result` étant renvoyé par `Config::build`, comme montré dans la Liste 12-10. Nous allons également retirer la responsabilité de quitter l'outil de ligne de commande avec un code d'erreur non nul d'`panic!` et la mettre en œuvre manuellement. Un code de sortie non nul est une convention pour signaler au processus qui a appelé notre programme que le programme s'est terminé dans un état d'erreur.
 
-Now that we’ve finished refactoring the configuration parsing, let’s turn to
-the program’s logic. As we stated in [“Separating Concerns in Binary
-Projects”](#separation-of-concerns-for-binary-projects)<!-- ignore -->, we’ll
-extract a function named `run` that will hold all the logic currently in the
-`main` function that isn’t involved with setting up configuration or handling
-errors. When we’re done, the `main` function will be concise and easy to verify
-by inspection, and we’ll be able to write tests for all the other logic.
+Dans cette liste, nous avons utilisé une méthode que nous n'avons pas encore couverte en détail : `unwrap_or_else`, qui est définie sur `Result<T, E>` par la bibliothèque standard. Utiliser `unwrap_or_else` nous permet de définir une gestion des erreurs personnalisée, non `panic!`. Si le `Result` est une valeur `Ok`, le comportement de cette méthode est similaire à `unwrap` : elle renvoie la valeur interne que `Ok` enveloppe. Cependant, si la valeur est une `Err`, cette méthode appelle le code de la fermeture, qui est une fonction anonyme que nous définissons et passons comme argument à `unwrap_or_else`. Nous couvrirons les fermetures en détail dans [le Chapitre 13]. Pour l'instant, vous devez simplement savoir que `unwrap_or_else` passera la valeur interne de `Err`, qui dans ce cas est la chaîne statique `"not enough arguments"` que nous avons ajoutée dans la Liste 12-9, à notre fermeture dans l'argument `err` qui apparaît entre les barres verticales. Le code dans la fermeture peut ensuite utiliser la valeur `err` lorsqu'il s'exécute.
 
-Listing 12-11 shows the small, incremental improvement of extracting a `run`
-function.
+Nous avons ajouté une nouvelle ligne `use` pour amener `process` de la bibliothèque standard dans le scope. Le code dans la fermeture qui sera exécuté en cas d'erreur ne comporte que deux lignes : nous imprimons la valeur `err` puis appelons `process::exit`. La fonction `process::exit` arrêtera le programme immédiatement et renverra le nombre passé comme code de statut de sortie. C'est similaire à la gestion basée sur `panic!` que nous avons utilisée dans la Liste 12-8, mais nous n'obtenons plus toute la sortie supplémentaire. Essayons :
 
-<Listing number="12-11" file-name="src/main.rs" caption="Extracting a `run` function containing the rest of the program logic">
+Super ! Cette sortie est beaucoup plus amicale pour nos utilisateurs.
 
-```rust,ignore
-{{#rustdoc_include ../listings/ch12-an-io-project/listing-12-11/src/main.rs:here}}
-```
+### Extraction de la Logique de la Fonction `main`
 
-</Listing>
+Maintenant que nous avons terminé de refactoriser l'analyse de la configuration, tournons-nous vers la logique du programme. Comme nous l'avons déclaré dans [« Séparation des Préoccupations dans les Projets Binaires »], nous allons extraire une fonction nommée `run` qui contiendra toute la logique actuelle de la fonction `main` qui n'est pas impliquée dans la mise en place de la configuration ou la gestion des erreurs. Une fois que nous aurons terminé, la fonction `main` sera concise et facile à vérifier par inspection, et nous pourrons écrire des tests pour toute la logique restante.
 
-The `run` function now contains all the remaining logic from `main`, starting
-from reading the file. The `run` function takes the `Config` instance as an
-argument.
+La Liste 12-11 montre l'amélioration incrémentale et petite de l'extraction d'une fonction `run`.
 
-<!-- Old headings. Do not remove or links may break. -->
+La fonction `run` contient désormais toute la logique restante de `main`, à partir de la lecture du fichier. La fonction `run` prend l'instance de `Config` comme argument.
 
-<a id="returning-errors-from-the-run-function"></a>
+#### Retourner des Erreurs de la Fonction `run`
 
-#### Returning Errors from `run`
+Avec la logique restante du programme séparée dans la fonction `run`, nous pouvons améliorer la gestion des erreurs, comme nous l'avons fait avec `Config::build` dans la Liste 12-9. Au lieu de permettre au programme de planter en appelant `expect`, la fonction `run` renverra un `Result<T, E>` lorsqu'un problème survient. Cela nous permettra de consolider davantage la logique autour de la gestion des erreurs dans `main` de manière conviviale. La Liste 12-12 montre les changements que nous devons apporter à la signature et au corps de `run`.
 
-With the remaining program logic separated into the `run` function, we can
-improve the error handling, as we did with `Config::build` in Listing 12-9.
-Instead of allowing the program to panic by calling `expect`, the `run`
-function will return a `Result<T, E>` when something goes wrong. This will let
-us further consolidate the logic around handling errors into `main` in a
-user-friendly way. Listing 12-12 shows the changes we need to make to the
-signature and body of `run`.
+Nous avons effectué trois changements significatifs ici. Tout d'abord, nous avons changé le type de retour de la fonction `run` en `Result<(), Box<dyn Error>>`. Cette fonction renvoyait auparavant le type unitaire `()`, et nous le conservons comme la valeur renvoyée dans le cas de succès.
 
-<Listing number="12-12" file-name="src/main.rs" caption="Changing the `run` function to return `Result`">
+Pour le type d'erreur, nous avons utilisé l'objet de trait `Box<dyn Error>` (et nous avons amené `std::error::Error` dans le scope avec une ligne `use` au sommet). Nous couvrirons les objets de trait dans [le Chapitre 18]. Pour l'instant, sachez simplement que `Box<dyn Error>` signifie que la fonction renverra un type qui implémente le trait `Error`, mais nous n'avons pas à spécifier quel type particulier la valeur de retour sera. Cela nous donne la flexibilité de renvoyer des valeurs d'erreur qui peuvent être de différents types dans différents cas d'erreur. Le mot-clé `dyn` est une abrégé pour _dynamique_.
 
-```rust,ignore
-{{#rustdoc_include ../listings/ch12-an-io-project/listing-12-12/src/main.rs:here}}
-```
+Deuxièmement, nous avons supprimé l'appel à `expect` en faveur de l'opérateur `?`, comme nous l'avons mentionné dans [le Chapitre 9]. Plutôt que de faire un `panic!` sur une erreur, `?` renverra la valeur d'erreur de la fonction actuelle pour que l'appelant puisse la gérer.
 
-</Listing>
+Troisièmement, la fonction `run` renvoie désormais une valeur `Ok` en cas de succès. Nous avons déclaré le type de succès de la fonction `run` comme `()` dans la signature, ce qui signifie que nous devons envelopper la valeur de type unitaire dans la valeur `Ok`. Cette syntaxe `Ok(())` peut sembler un peu étrange au début. Mais utiliser `()` de cette manière est la façon idiomatique d'indiquer que nous appelons `run` uniquement pour ses effets secondaires ; elle ne renvoie pas une valeur dont nous avons besoin.
 
-We’ve made three significant changes here. First, we changed the return type of
-the `run` function to `Result<(), Box<dyn Error>>`. This function previously
-returned the unit type, `()`, and we keep that as the value returned in the
-`Ok` case.
+Lorsque vous exécutez ce code, il compilera mais affichera un avertissement :
 
-For the error type, we used the trait object `Box<dyn Error>` (and we brought
-`std::error::Error` into scope with a `use` statement at the top). We’ll cover
-trait objects in [Chapter 18][ch18]<!-- ignore -->. For now, just know that
-`Box<dyn Error>` means the function will return a type that implements the
-`Error` trait, but we don’t have to specify what particular type the return
-value will be. This gives us flexibility to return error values that may be of
-different types in different error cases. The `dyn` keyword is short for
-_dynamic_.
+Rust nous dit que notre code a ignoré la valeur `Result` et que cette valeur pourrait indiquer qu'une erreur s'est produite. Mais nous ne vérifions pas si une erreur s'est produite ou non, et le compilateur nous rappelle que nous voulions probablement avoir du code de gestion des erreurs ici ! Corrigeons ce problème maintenant.
 
-Second, we’ve removed the call to `expect` in favor of the `?` operator, as we
-talked about in [Chapter 9][ch9-question-mark]<!-- ignore -->. Rather than
-`panic!` on an error, `?` will return the error value from the current function
-for the caller to handle.
+#### Gestion des Erreurs Renvoyées par `run` dans `main`
 
-Third, the `run` function now returns an `Ok` value in the success case.
-We’ve declared the `run` function’s success type as `()` in the signature,
-which means we need to wrap the unit type value in the `Ok` value. This
-`Ok(())` syntax might look a bit strange at first. But using `()` like this is
-the idiomatic way to indicate that we’re calling `run` for its side effects
-only; it doesn’t return a value we need.
+Nous allons vérifier les erreurs et les gérer à l'aide d'une technique similaire à celle que nous avons utilisée avec `Config::build` dans la Liste 12-10, mais avec une légère différence :
 
-When you run this code, it will compile but will display a warning:
+Nous utilisons `if let` plutôt qu`'unwrap_or_else` pour vérifier si `run` renvoie une valeur `Err` et appeler `process::exit(1)` si c'est le cas. La fonction `run` ne renvoie pas une valeur que nous voulons `unwrap` de la même manière que `Config::build` renvoie l'instance de `Config`. Étant donné que `run` renvoie `()` dans le cas de succès, nous ne nous soucions que de détecter une erreur, donc nous n'avons pas besoin d'utiliser `unwrap_or_else` pour renvoyer la valeur décompressée, qui serait uniquement `()`.
 
-```console
-{{#include ../listings/ch12-an-io-project/listing-12-12/output.txt}}
-```
+Les corps des fonctions `if let` et `unwrap_or_else` sont identiques dans les deux cas : nous imprimons l'erreur et sortons.
 
-Rust tells us that our code ignored the `Result` value and the `Result` value
-might indicate that an error occurred. But we’re not checking to see whether or
-not there was an error, and the compiler reminds us that we probably meant to
-have some error-handling code here! Let’s rectify that problem now.
+### Division du Code en un Crate de Bibliothèque
 
-#### Handling Errors Returned from `run` in `main`
+Notre projet `minigrep` est encore meilleur jusqu'à présent ! Maintenant, nous allons diviser le fichier _src/main.rs_ et déplacer du code dans le fichier _src/lib.rs_. De cette façon, nous pourrons tester le code et avoir un fichier _src/main.rs_ avec moins de responsabilités.
 
-We’ll check for errors and handle them using a technique similar to one we used
-with `Config::build` in Listing 12-10, but with a slight difference:
+Définissons la fonction `search` responsable de la recherche de texte dans _src/lib.rs_ plutôt que dans _src/main.rs_, ce qui nous permettra (ou à quiconque utilisant notre bibliothèque `minigrep`) d'appeler la fonction de recherche depuis plus de contextes que notre binaire `minigrep`.
 
-<span class="filename">Filename: src/main.rs</span>
+D'abord, définissons la signature de la fonction `search` dans _src/lib.rs_ comme montré dans la Liste 12-13, avec un corps qui appelle la macro `unimplemented!`. Nous expliquerons la signature plus en détail lorsque nous remplirons l'implémentation.
 
-```rust,ignore
-{{#rustdoc_include ../listings/ch12-an-io-project/no-listing-01-handling-errors-in-main/src/main.rs:here}}
-```
+Nous avons utilisé le mot-clé `pub` dans la définition de la fonction pour désigner `search` comme faisant partie de l'API publique de notre crate de bibliothèque. Nous avons maintenant une crate de bibliothèque que nous pouvons utiliser depuis notre crate binaire et que nous pouvons tester !
 
-We use `if let` rather than `unwrap_or_else` to check whether `run` returns an
-`Err` value and to call `process::exit(1)` if it does. The `run` function
-doesn’t return a value that we want to `unwrap` in the same way that
-`Config::build` returns the `Config` instance. Because `run` returns `()` in
-the success case, we only care about detecting an error, so we don’t need
-`unwrap_or_else` to return the unwrapped value, which would only be `()`.
+Maintenant, nous devons amener le code défini dans _src/lib.rs_ dans le scope de la crate binaire dans _src/main.rs_ et l'appeler, comme montré dans la Liste 12-14.
 
-The bodies of the `if let` and the `unwrap_or_else` functions are the same in
-both cases: We print the error and exit.
+Nous ajoutons une ligne `use minigrep::search` pour amener la fonction `search` de la crate de bibliothèque dans le scope de la crate binaire. Ensuite, dans la fonction `run`, au lieu d'afficher le contenu du fichier, nous appelons la fonction `search` et transmettons les valeurs `config.query` et `contents` comme arguments. La fonction `run` utilisera ensuite une boucle `for` pour imprimer chaque ligne renvoyée par `search` qui correspond à la requête. C'est aussi un bon moment pour supprimer les appels `println!` dans la fonction `main` qui affichent la requête et le chemin de fichier afin que notre programme n'affiche que les résultats de recherche (si aucune erreur ne se produit).
 
-### Splitting Code into a Library Crate
+Notez que la fonction de recherche collectera tous les résultats dans un vecteur qu'elle renvoie avant que n'importe quelle impression ne se produise. Cette implémentation pourrait être lente pour afficher des résultats lors de recherches dans de grands fichiers, car les résultats ne sont pas imprimés à mesure qu'ils sont trouvés ; nous discuterons d'un moyen possible de corriger cela en utilisant des itérateurs dans le Chapitre 13.
 
-Our `minigrep` project is looking good so far! Now we’ll split the
-_src/main.rs_ file and put some code into the _src/lib.rs_ file. That way, we
-can test the code and have a _src/main.rs_ file with fewer responsibilities.
+Ouf ! Cela a été beaucoup de travail, mais nous nous sommes mis en bonne position pour réussir à l'avenir. Désormais, il est beaucoup plus facile de gérer les erreurs, et nous avons rendu le code plus modulaire. Presque tout notre travail se fera dans _src/lib.rs_ à partir de maintenant.
 
-Let’s define the code responsible for searching text in _src/lib.rs_ rather
-than in _src/main.rs_, which will let us (or anyone else using our
-`minigrep` library) call the searching function from more contexts than our
-`minigrep` binary.
-
-First, let’s define the `search` function signature in _src/lib.rs_ as shown in
-Listing 12-13, with a body that calls the `unimplemented!` macro. We’ll explain
-the signature in more detail when we fill in the implementation.
-
-<Listing number="12-13" file-name="src/lib.rs" caption="Defining the `search` function in *src/lib.rs*">
-
-```rust,ignore,does_not_compile
-{{#rustdoc_include ../listings/ch12-an-io-project/listing-12-13/src/lib.rs}}
-```
-
-</Listing>
-
-We’ve used the `pub` keyword on the function definition to designate `search`
-as part of our library crate’s public API. We now have a library crate that we
-can use from our binary crate and that we can test!
-
-Now we need to bring the code defined in _src/lib.rs_ into the scope of the
-binary crate in _src/main.rs_ and call it, as shown in Listing 12-14.
-
-<Listing number="12-14" file-name="src/main.rs" caption="Using the `minigrep` library crate’s `search` function in *src/main.rs*">
-
-```rust,ignore
-{{#rustdoc_include ../listings/ch12-an-io-project/listing-12-14/src/main.rs:here}}
-```
-
-</Listing>
-
-We add a `use minigrep::search` line to bring the `search` function from
-the library crate into the binary crate’s scope. Then, in the `run` function,
-rather than printing out the contents of the file, we call the `search`
-function and pass the `config.query` value and `contents` as arguments. Then,
-`run` will use a `for` loop to print each line returned from `search` that
-matched the query. This is also a good time to remove the `println!` calls in
-the `main` function that displayed the query and the file path so that our
-program only prints the search results (if no errors occur).
-
-Note that the search function will be collecting all the results into a vector
-it returns before any printing happens. This implementation could be slow to
-display results when searching large files, because results aren’t printed as
-they’re found; we’ll discuss a possible way to fix this using iterators in
-Chapter 13.
-
-Whew! That was a lot of work, but we’ve set ourselves up for success in the
-future. Now it’s much easier to handle errors, and we’ve made the code more
-modular. Almost all of our work will be done in _src/lib.rs_ from here on out.
-
-Let’s take advantage of this newfound modularity by doing something that would
-have been difficult with the old code but is easy with the new code: We’ll
-write some tests!
-
-[ch13]: ch13-00-functional-features.html
-[ch9-custom-types]: ch09-03-to-panic-or-not-to-panic.html#creating-custom-types-for-validation
-[ch9-error-guidelines]: ch09-03-to-panic-or-not-to-panic.html#guidelines-for-error-handling
-[ch9-result]: ch09-02-recoverable-errors-with-result.html
-[ch18]: ch18-00-oop.html
-[ch9-question-mark]: ch09-02-recoverable-errors-with-result.html#a-shortcut-for-propagating-errors-the--operator
+Profitons de cette nouvelle modularité en faisant quelque chose qui aurait été difficile avec l'ancien code mais qui est facile avec le nouveau code : nous allons écrire quelques tests !

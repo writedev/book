@@ -1,71 +1,42 @@
-<!-- Old headings. Do not remove or links may break. -->
+<!-- Anciennes en-têtes. Ne pas supprimer ou les liens peuvent se briser. -->
 
 <a id="defining-modules-to-control-scope-and-privacy"></a>
 
-## Control Scope and Privacy with Modules
+## Contrôler la portée et la confidentialité avec des modules
 
-In this section, we’ll talk about modules and other parts of the module system,
-namely _paths_, which allow you to name items; the `use` keyword that brings a
-path into scope; and the `pub` keyword to make items public. We’ll also discuss
-the `as` keyword, external packages, and the glob operator.
+Dans cette section, nous allons parler des modules et d'autres parties du système de modules, à savoir les _chemins_, qui permettent de nommer les éléments ; le mot-clé `use` qui fait entrer un chemin dans la portée ; et le mot-clé `pub` pour rendre les éléments publics. Nous aborderons également le mot-clé `as`, les packages externes et l'opérateur glob.
 
-### Modules Cheat Sheet
+### Fiche de triche sur les modules
 
-Before we get to the details of modules and paths, here we provide a quick
-reference on how modules, paths, the `use` keyword, and the `pub` keyword work
-in the compiler, and how most developers organize their code. We’ll be going
-through examples of each of these rules throughout this chapter, but this is a
-great place to refer to as a reminder of how modules work.
+Avant d'entrer dans les détails des modules et des chemins, nous fournissons ici une référence rapide sur le fonctionnement des modules, des chemins, du mot-clé `use` et du mot-clé `pub` dans le compilateur, et sur la façon dont la plupart des développeurs organisent leur code. Nous présenterons des exemples de chacune de ces règles tout au long de ce chapitre, mais c'est un excellent endroit pour se référer comme rappel du fonctionnement des modules.
 
-- **Start from the crate root**: When compiling a crate, the compiler first
-  looks in the crate root file (usually _src/lib.rs_ for a library crate and
-  _src/main.rs_ for a binary crate) for code to compile.
-- **Declaring modules**: In the crate root file, you can declare new modules;
-  say you declare a “garden” module with `mod garden;`. The compiler will look
-  for the module’s code in these places:
-  - Inline, within curly brackets that replace the semicolon following `mod
-    garden`
-  - In the file _src/garden.rs_
-  - In the file _src/garden/mod.rs_
-- **Declaring submodules**: In any file other than the crate root, you can
-  declare submodules. For example, you might declare `mod vegetables;` in
-  _src/garden.rs_. The compiler will look for the submodule’s code within the
-  directory named for the parent module in these places:
-  - Inline, directly following `mod vegetables`, within curly brackets instead
-    of the semicolon
-  - In the file _src/garden/vegetables.rs_
-  - In the file _src/garden/vegetables/mod.rs_
-- **Paths to code in modules**: Once a module is part of your crate, you can
-  refer to code in that module from anywhere else in that same crate, as long
-  as the privacy rules allow, using the path to the code. For example, an
-  `Asparagus` type in the garden vegetables module would be found at
-  `crate::garden::vegetables::Asparagus`.
-- **Private vs. public**: Code within a module is private from its parent
-  modules by default. To make a module public, declare it with `pub mod`
-  instead of `mod`. To make items within a public module public as well, use
-  `pub` before their declarations.
-- **The `use` keyword**: Within a scope, the `use` keyword creates shortcuts to
-  items to reduce repetition of long paths. In any scope that can refer to
-  `crate::garden::vegetables::Asparagus`, you can create a shortcut with `use
-  crate::garden::vegetables::Asparagus;`, and from then on you only need to
-  write `Asparagus` to make use of that type in the scope.
+- **Partir de la racine du crate** : Lors de la compilation d'un crate, le compilateur commence par rechercher dans le fichier racine du crate (généralement _src/lib.rs_ pour un crate de bibliothèque et _src/main.rs_ pour un crate binaire) le code à compiler.
+- **Déclaration des modules** : Dans le fichier racine du crate, vous pouvez déclarer de nouveaux modules ; par exemple, vous déclarez un module « garden » avec `mod garden;`. Le compilateur recherchera le code du module à ces endroits :
+  - En ligne, à l'intérieur d'accolades qui remplacent le point-virgule suivant `mod garden`
+  - Dans le fichier _src/garden.rs_
+  - Dans le fichier _src/garden/mod.rs_
+- **Déclaration des sous-modules** : Dans tout fichier autre que le fichier racine du crate, vous pouvez déclarer des sous-modules. Par exemple, vous pourriez déclarer `mod vegetables;` dans _src/garden.rs_. Le compilateur recherchera le code de la sous-module dans le répertoire nommé d'après le module parent à ces endroits :
+  - En ligne, directement après `mod vegetables`, à l'intérieur d'accolades au lieu du point-virgule
+  - Dans le fichier _src/garden/vegetables.rs_
+  - Dans le fichier _src/garden/vegetables/mod.rs_
+- **Chemins vers le code dans les modules** : Une fois qu'un module fait partie de votre crate, vous pouvez faire référence au code de ce module depuis n'importe où dans ce même crate, tant que les règles de confidentialité le permettent, en utilisant le chemin vers le code. Par exemple, un type `Asperge` dans le module des vegetables du garden se trouverait à `crate::garden::vegetables::Asperge`.
+- **Privé vs. public** : Le code à l'intérieur d'un module est privé de ses modules parents par défaut. Pour rendre un module public, déclarez-le avec `pub mod` au lieu de `mod`. Pour rendre les éléments d'un module public également publics, utilisez `pub` avant leurs déclarations.
+- **Le mot-clé `use`** : À l'intérieur d'une portée, le mot-clé `use` crée des raccourcis vers des éléments pour réduire la répétition de longs chemins. Dans toute portée qui peut faire référence à `crate::garden::vegetables::Asperge`, vous pouvez créer un raccourci avec `use crate::garden::vegetables::Asperge;`, et à partir de là, vous n'avez besoin d'écrire que `Asperge` pour utiliser ce type dans la portée.
 
-Here, we create a binary crate named `backyard` that illustrates these rules.
-The crate’s directory, also named _backyard_, contains these files and
-directories:
+Ici, nous créons un crate binaire nommé `garden` qui illustre ces règles. Le répertoire du crate, également nommé _garden_, contient ces fichiers et répertoires :
 
 ```text
-backyard
+garden
 ├── Cargo.lock
 ├── Cargo.toml
 └── src
     ├── garden
-    │   └── vegetables.rs
+    │   └── vegetables.rs
     ├── garden.rs
     └── main.rs
 ```
 
-The crate root file in this case is _src/main.rs_, and it contains:
+Le fichier racine du crate dans ce cas est _src/main.rs_, et il contient :
 
 <Listing file-name="src/main.rs">
 
@@ -75,8 +46,7 @@ The crate root file in this case is _src/main.rs_, and it contains:
 
 </Listing>
 
-The `pub mod garden;` line tells the compiler to include the code it finds in
-_src/garden.rs_, which is:
+La ligne `pub mod garden;` indique au compilateur d'inclure le code qu'il trouve dans _src/garden.rs_, qui est :
 
 <Listing file-name="src/garden.rs">
 
@@ -86,43 +56,25 @@ _src/garden.rs_, which is:
 
 </Listing>
 
-Here, `pub mod vegetables;` means the code in _src/garden/vegetables.rs_ is
-included too. That code is:
+Ici, `pub mod vegetables;` signifie que le code dans _src/garden/vegetables.rs_ est inclus aussi. Ce code est :
 
 ```rust,noplayground,ignore
 {{#rustdoc_include ../listings/ch07-managing-growing-projects/quick-reference-example/src/garden/vegetables.rs}}
 ```
 
-Now let’s get into the details of these rules and demonstrate them in action!
+Maintenant, entrons dans les détails de ces règles et démontrons-les en action !
 
-### Grouping Related Code in Modules
+### Regrouper le code connexe dans des modules
 
-_Modules_ let us organize code within a crate for readability and easy reuse.
-Modules also allow us to control the _privacy_ of items because code within a
-module is private by default. Private items are internal implementation details
-not available for outside use. We can choose to make modules and the items
-within them public, which exposes them to allow external code to use and depend
-on them.
+_Les modules_ nous permettent d'organiser le code à l'intérieur d'un crate pour une meilleure lisibilité et réutilisation. Les modules nous permettent également de contrôler la _confidentialité_ des éléments car le code à l'intérieur d'un module est privé par défaut. Les éléments privés sont des détails d'implémentation internes non disponibles pour un usage extérieur. Nous pouvons choisir de rendre les modules et les éléments qui y sont inclus publics, ce qui les expose pour permettre à un code externe de les utiliser et d'en dépendre.
 
-As an example, let’s write a library crate that provides the functionality of a
-restaurant. We’ll define the signatures of functions but leave their bodies
-empty to concentrate on the organization of the code rather than the
-implementation of a restaurant.
+Par exemple, écrivons un crate de bibliothèque qui fournit la fonctionnalité d'un restaurant. Nous définirons les signatures des fonctions mais laisserons leurs corps vides pour nous concentrer sur l'organisation du code plutôt que sur l'implémentation d'un restaurant.
 
-In the restaurant industry, some parts of a restaurant are referred to as front
-of house and others as back of house. _Front of house_ is where customers are;
-this encompasses where the hosts seat customers, servers take orders and
-payment, and bartenders make drinks. _Back of house_ is where the chefs and
-cooks work in the kitchen, dishwashers clean up, and managers do administrative
-work.
+Dans l'industrie de la restauration, certaines parties d'un restaurant sont appelées avant de salle et d'autres arrière de salle. _Avant de salle_ est l'endroit où se trouvent les clients ; cela englobe les lieux où les hôtes placent les clients, les serveurs prennent des commandes et des paiements, et les barmans préparent des boissons. _Arrière de salle_ est l'endroit où les chefs et les cuisiniers travaillent dans la cuisine, les plongeurs nettoient, et les managers effectuent des tâches administratives.
 
-To structure our crate in this way, we can organize its functions into nested
-modules. Create a new library named `restaurant` by running `cargo new
-restaurant --lib`. Then, enter the code in Listing 7-1 into _src/lib.rs_ to
-define some modules and function signatures; this code is the front of house
-section.
+Pour structurer notre crate de cette manière, nous pouvons organiser ses fonctions en modules imbriqués. Créez une nouvelle bibliothèque nommée `restaurant` en exécutant `cargo new restaurant --lib`. Ensuite, entrez le code dans la Liste 7-1 dans _src/lib.rs_ pour définir quelques modules et signatures de fonction ; ce code est la section avant de salle.
 
-<Listing number="7-1" file-name="src/lib.rs" caption="A `front_of_house` module containing other modules that then contain functions">
+<Listing number="7-1" file-name="src/lib.rs" caption="Un module `avant_de_salle` contenant d'autres modules qui contiennent ensuite des fonctions">
 
 ```rust,noplayground
 {{#rustdoc_include ../listings/ch07-managing-growing-projects/listing-07-01/src/lib.rs}}
@@ -130,51 +82,30 @@ section.
 
 </Listing>
 
-We define a module with the `mod` keyword followed by the name of the module
-(in this case, `front_of_house`). The body of the module then goes inside curly
-brackets. Inside modules, we can place other modules, as in this case with the
-modules `hosting` and `serving`. Modules can also hold definitions for other
-items, such as structs, enums, constants, traits, and as in Listing 7-1,
-functions.
+Nous définissons un module avec le mot-clé `mod` suivi du nom du module (dans ce cas, `avant_de_salle`). Le corps du module va ensuite à l'intérieur d'accolades. À l'intérieur des modules, nous pouvons placer d'autres modules, comme dans ce cas avec les modules `accueil` et `service`. Les modules peuvent également contenir des définitions d'autres éléments, tels que des structures, des énumérations, des constantes, des traits, et comme dans la Liste 7-1, des fonctions.
 
-By using modules, we can group related definitions together and name why
-they’re related. Programmers using this code can navigate the code based on the
-groups rather than having to read through all the definitions, making it easier
-to find the definitions relevant to them. Programmers adding new functionality
-to this code would know where to place the code to keep the program organized.
+En utilisant des modules, nous pouvons regrouper des définitions connexes et nommer leur raison de relation. Les programmeurs utilisant ce code peuvent naviguer dans le code en se basant sur les groupes plutôt qu'en ayant à lire toutes les définitions, facilitant ainsi la recherche des définitions pertinentes pour eux. Les programmeurs ajoutant de nouvelles fonctionnalités à ce code sauraient où placer le code pour maintenir l'organisation du programme.
 
-Earlier, we mentioned that _src/main.rs_ and _src/lib.rs_ are called _crate
-roots_. The reason for their name is that the contents of either of these two
-files form a module named `crate` at the root of the crate’s module structure,
-known as the _module tree_.
+Auparavant, nous avons mentionné que _src/main.rs_ et _src/lib.rs_ sont appelés _racines du crate_. La raison de leur nom est que le contenu de l'un ou l'autre de ces deux fichiers forme un module nommé `crate` à la racine de la structure de modules du crate, appelée l'_arbre des modules_.
 
-Listing 7-2 shows the module tree for the structure in Listing 7-1.
+La Liste 7-2 montre l'arbre des modules pour la structure de la Liste 7-1.
 
-<Listing number="7-2" caption="The module tree for the code in Listing 7-1">
+<Listing number="7-2" caption="L'arbre des modules pour le code de la Liste 7-1">
 
 ```text
 crate
- └── front_of_house
-     ├── hosting
-     │   ├── add_to_waitlist
-     │   └── seat_at_table
-     └── serving
-         ├── take_order
-         ├── serve_order
-         └── take_payment
+ └── avant_de_salle
+     ├── accueil
+     │   ├── ajouter_à_la_liste_d'attente
+     │   └── placer_à_la_table
+     └── service
+         ├── prendre_commande
+         ├── servir_commande
+         └── prendre_paiement
 ```
 
 </Listing>
 
-This tree shows how some of the modules nest inside other modules; for example,
-`hosting` nests inside `front_of_house`. The tree also shows that some modules
-are _siblings_, meaning they’re defined in the same module; `hosting` and
-`serving` are siblings defined within `front_of_house`. If module A is
-contained inside module B, we say that module A is the _child_ of module B and
-that module B is the _parent_ of module A. Notice that the entire module tree
-is rooted under the implicit module named `crate`.
+Cet arbre montre comment certains modules s'imbriquent dans d'autres modules ; par exemple, `accueil` s'imbrique dans `avant_de_salle`. L'arbre montre également que certains modules sont des _cousins_, ce qui signifie qu'ils sont définis dans le même module ; `accueil` et `service` sont des cousins définis dans `avant_de_salle`. Si le module A est contenu dans le module B, nous disons que le module A est le _child_ du module B et que le module B est le _parent_ du module A. Remarquez que l'ensemble de l'arbre des modules est ancré sous le module implicite nommé `crate`.
 
-The module tree might remind you of the filesystem’s directory tree on your
-computer; this is a very apt comparison! Just like directories in a filesystem,
-you use modules to organize your code. And just like files in a directory, we
-need a way to find our modules.
+L'arbre des modules pourrait vous rappeler l'arbre des répertoires de votre système d'exploitation ; c'est une comparaison très pertinente ! Tout comme les répertoires dans un système de fichiers, vous utilisez des modules pour organiser votre code. Et tout comme les fichiers dans un répertoire, nous avons besoin d'un moyen de trouver nos modules.

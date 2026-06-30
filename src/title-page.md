@@ -1,23 +1,20 @@
-# The Rust Programming Language
+# Le langage de programmation Rust
 
-_by Steve Klabnik, Carol Nichols, and Chris Krycho, with contributions from the
-Rust Community_
+_par Steve Klabnik, Carol Nichols et Chris Krycho, avec des contributions de la
+communauté Rust_
 
-This version of the text assumes you’re using Rust 1.96.0 (released 2026-05-28)
-or later with `edition = "2024"` in the *Cargo.toml* file of all projects to
-configure them to use Rust 2024 Edition idioms. See the [“Installation” section
-of Chapter 1][install]<!-- ignore --> for instructions on installing or
-updating Rust, and see [Appendix E][appendix-e]<!-- ignore --> for information
-on editions.
+Cette version du texte suppose que vous utilisez Rust 1.90.0 (publiée le 18 septembre 2025)
+ou une version ultérieure avec `edition = "2024"` dans le fichier *Cargo.toml* de tous les projets pour
+les configurer afin d'utiliser les idiomes de l'édition Rust 2024. Consultez la section [« Installation » du chapitre 1][install]<!-- ignore --> pour des instructions sur l'installation ou la mise à jour de Rust, et voir [annexe E][appendix-e]<!-- ignore --> pour des informations sur les éditions.
 
-The HTML format is available online at
+Le format HTML est disponible en ligne à
 [https://doc.rust-lang.org/stable/book/](https://doc.rust-lang.org/stable/book/)
-and offline with installations of Rust made with `rustup`; run `rustup doc
---book` to open.
+et hors ligne avec les installations de Rust effectuées avec `rustup` ; exécutez `rustup doc
+--book` pour l'ouvrir.
 
-Several community [translations] are also available.
+Plusieurs [traductions] de la communauté sont également disponibles.
 
-This text is available in [paperback and ebook format from No Starch
+Ce texte est disponible en [version papier et format ebook chez No Starch
 Press][nsprust].
 
 [install]: ch01-01-installation.html
@@ -25,6 +22,5 @@ Press][nsprust].
 [nsprust]: https://nostarch.com/rust-programming-language-3rd-edition
 [translations]: appendix-06-translation.html
 
-> **🚨 Want a more interactive learning experience? Try out a different version
-> of the Rust Book, featuring: quizzes, highlighting, visualizations, and
-> more**: <https://rust-book.cs.brown.edu>
+> **🚨 Vous souhaitez une expérience d'apprentissage plus interactive ? Essayez une version différente
+> du livre Rust, comprenant : des quiz, des surlignages, des visualisations, et plus encore** : <https://rust-book.cs.brown.edu>

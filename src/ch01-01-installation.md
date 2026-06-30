@@ -1,182 +1,122 @@
 ## Installation
 
-The first step is to install Rust. We’ll download Rust through `rustup`, a
-command line tool for managing Rust versions and associated tools. You’ll need
-an internet connection for the download.
+La première étape consiste à installer Rust. Nous téléchargerons Rust via `rustup`, un outil en ligne de commande pour gérer les versions de Rust et les outils associés. Vous aurez besoin d'une connexion Internet pour le téléchargement.
 
-> Note: If you prefer not to use `rustup` for some reason, please see the
-> [Other Rust Installation Methods page][otherinstall] for more options.
+> Remarque : Si vous préférez ne pas utiliser `rustup` pour une raison quelconque, consultez la page [Autres méthodes d'installation de Rust][otherinstall] pour plus d'options.
 
-The following steps install the latest stable version of the Rust compiler.
-Rust’s stability guarantees ensure that all the examples in the book that
-compile will continue to compile with newer Rust versions. The output might
-differ slightly between versions because Rust often improves error messages and
-warnings. In other words, any newer, stable version of Rust you install using
-these steps should work as expected with the content of this book.
+Les étapes suivantes installent la dernière version stable du compilateur Rust. Les garanties de stabilité de Rust assurent que tous les exemples du livre qui se compilent continueront de se compiler avec des versions Rust plus récentes. La sortie peut légèrement différer entre les versions, car Rust améliore souvent les messages d'erreur et les avertissements. En d'autres termes, toute version stable plus récente de Rust que vous installerez en suivant ces étapes devrait fonctionner comme prévu avec le contenu de ce livre.
 
-> ### Command Line Notation
+> ### Notation en ligne de commande
 >
-> In this chapter and throughout the book, we’ll show some commands used in the
-> terminal. Lines that you should enter in a terminal all start with `$`. You
-> don’t need to type the `$` character; it’s the command line prompt shown to
-> indicate the start of each command. Lines that don’t start with `$` typically
-> show the output of the previous command. Additionally, PowerShell-specific
-> examples will use `>` rather than `$`.
+> Dans ce chapitre et tout au long du livre, nous montrerons certaines commandes utilisées dans le terminal. Les lignes que vous devez entrer dans un terminal commencent toutes par `$`. Vous n'avez pas besoin de taper le caractère `$` ; c'est l'invite de commande affichée pour indiquer le début de chaque commande. Les lignes qui ne commencent pas par `$` montrent généralement la sortie de la commande précédente. De plus, les exemples spécifiques à PowerShell utiliseront `>` plutôt que `$`.
 
-### Installing `rustup` on Linux or macOS
+### Installation de `rustup` sur Linux ou macOS
 
-If you’re using Linux or macOS, open a terminal and enter the following command:
+Si vous utilisez Linux ou macOS, ouvrez un terminal et entrez la commande suivante :
 
 ```console
 $ curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh
 ```
 
-The command downloads a script and starts the installation of the `rustup`
-tool, which installs the latest stable version of Rust. You might be prompted
-for your password. If the install is successful, the following line will appear:
+Cette commande télécharge un script et commence l'installation de l'outil `rustup`, qui installe la dernière version stable de Rust. Il se peut que vous soyez invité à entrer votre mot de passe. Si l'installation réussit, la ligne suivante apparaîtra :
 
 ```text
 Rust is installed now. Great!
 ```
 
-You will also need a _linker_, which is a program that Rust uses to join its
-compiled outputs into one file. It is likely you already have one. If you get
-linker errors, you should install a C compiler, which will typically include a
-linker. A C compiler is also useful because some common Rust packages depend on
-C code and will need a C compiler.
+Vous aurez également besoin d'un _linker_, qui est un programme que Rust utilise pour joindre ses sorties compilées en un seul fichier. Il est probable que vous en ayez déjà un. Si vous obtenez des erreurs de linker, vous devez installer un compilateur C, qui inclura généralement un linker. Un compilateur C est également utile car certains packages courants de Rust dépendent du code C et auront besoin d'un compilateur C.
 
-On macOS, you can get a C compiler by running:
+Sur macOS, vous pouvez obtenir un compilateur C en exécutant :
 
 ```console
 $ xcode-select --install
 ```
 
-Linux users should generally install GCC or Clang, according to their
-distribution’s documentation. For example, if you use Ubuntu, you can install
-the `build-essential` package.
+Les utilisateurs de Linux devraient généralement installer GCC ou Clang, selon la documentation de leur distribution. Par exemple, si vous utilisez Ubuntu, vous pouvez installer le paquet `build-essential`.
 
-### Installing `rustup` on Windows
+### Installation de `rustup` sur Windows
 
-On Windows, go to [https://www.rust-lang.org/tools/install][install]<!-- ignore
---> and follow the instructions for installing Rust. At some point in the
-installation, you’ll be prompted to install Visual Studio. This provides a
-linker and the native libraries needed to compile programs. If you need more
-help with this step, see
-[https://rust-lang.github.io/rustup/installation/windows-msvc.html][msvc]<!--
-ignore -->.
+Sur Windows, allez sur [https://www.rust-lang.org/tools/install][install] et suivez les instructions pour installer Rust. À un moment donné de l'installation, il vous sera demandé d'installer Visual Studio. Cela fournit un linker et les bibliothèques natives nécessaires pour compiler des programmes. Si vous avez besoin de plus d'aide à ce sujet, consultez [https://rust-lang.github.io/rustup/installation/windows-msvc.html][msvc].
 
-The rest of this book uses commands that work in both _cmd.exe_ and PowerShell.
-If there are specific differences, we’ll explain which to use.
+Le reste de ce livre utilise des commandes qui fonctionnent à la fois dans _cmd.exe_ et PowerShell. Si des différences spécifiques existent, nous expliquerons lesquels utiliser.
 
-### Troubleshooting
+### Dépannage
 
-To check whether you have Rust installed correctly, open a shell and enter this
-line:
+Pour vérifier si vous avez bien installé Rust, ouvrez un shell et entrez cette ligne :
 
 ```console
 $ rustc --version
 ```
 
-You should see the version number, commit hash, and commit date for the latest
-stable version that has been released, in the following format:
+Vous devriez voir le numéro de version, le hash de commit et la date de commit pour la dernière version stable qui a été publiée, au format suivant :
 
 ```text
 rustc x.y.z (abcabcabc yyyy-mm-dd)
 ```
 
-If you see this information, you have installed Rust successfully! If you don’t
-see this information, check that Rust is in your `%PATH%` system variable as
-follows.
+Si vous voyez cette information, vous avez installé Rust avec succès ! Si vous ne voyez pas cette information, vérifiez que Rust est dans votre variable système `%PATH%` comme suit.
 
-In Windows CMD, use:
+Dans CMD Windows, utilisez :
 
 ```console
 > echo %PATH%
 ```
 
-In PowerShell, use:
+Dans PowerShell, utilisez :
 
 ```powershell
 > echo $env:Path
 ```
 
-In Linux and macOS, use:
+Sur Linux et macOS, utilisez :
 
 ```console
 $ echo $PATH
 ```
 
-If that’s all correct and Rust still isn’t working, there are a number of
-places you can get help. Find out how to get in touch with other Rustaceans (a
-silly nickname we call ourselves) on [the community page][community].
+Si tout cela est correct et que Rust ne fonctionne toujours pas, il existe plusieurs endroits où vous pouvez obtenir de l'aide. Découvrez comment entrer en contact avec d'autres Rustaceans (un surnom amusant que nous nous donnons) sur [la page de la communauté][community].
 
-### Updating and Uninstalling
+### Mise à jour et désinstallation
 
-Once Rust is installed via `rustup`, updating to a newly released version is
-easy. From your shell, run the following update script:
+Une fois Rust installé via `rustup`, il est facile de mettre à jour vers une version nouvellement publiée. Depuis votre shell, exécutez le script de mise à jour suivant :
 
 ```console
 $ rustup update
 ```
 
-To uninstall Rust and `rustup`, run the following uninstall script from your
-shell:
+Pour désinstaller Rust et `rustup`, exécutez le script de désinstallation suivant depuis votre shell :
 
 ```console
 $ rustup self uninstall
 ```
 
-<!-- Old headings. Do not remove or links may break. -->
+<!-- Ancien titres. Ne pas supprimer ou les liens peuvent cesser de fonctionner. -->
 <a id="local-documentation"></a>
 
-### Reading the Local Documentation
+### Lecture de la documentation locale
 
-The installation of Rust also includes a local copy of the documentation so
-that you can read it offline. Run `rustup doc` to open the local documentation
-in your browser.
+L'installation de Rust inclut également une copie locale de la documentation afin que vous puissiez la lire hors ligne. Exécutez `rustup doc` pour ouvrir la documentation locale dans votre navigateur.
 
-Any time a type or function is provided by the standard library and you’re not
-sure what it does or how to use it, use the application programming interface
-(API) documentation to find out!
+Chaque fois qu'un type ou une fonction est fourni par la bibliothèque standard et que vous n'êtes pas sûr de son fonctionnement ou de son utilisation, utilisez la documentation de l'interface de programmation d'application (API) pour le découvrir !
 
-<!-- Old headings. Do not remove or links may break. -->
+<!-- Ancien titres. Ne pas supprimer ou les liens peuvent cesser de fonctionner. -->
 <a id="text-editors-and-integrated-development-environments"></a>
 
-### Using Text Editors and IDEs
+### Utilisation des éditeurs de texte et des IDE
 
-This book makes no assumptions about what tools you use to author Rust code.
-Just about any text editor will get the job done! However, many text editors and
-integrated development environments (IDEs) have built-in support for Rust. You
-can always find a fairly current list of many editors and IDEs on [the tools
-page][tools] on the Rust website.
+Ce livre ne fait aucune supposition sur les outils que vous utilisez pour rédiger du code Rust. Presque n'importe quel éditeur de texte fera l'affaire ! Cependant, de nombreux éditeurs de texte et environnements de développement intégrés (EDI) ont un support intégré pour Rust. Vous pouvez toujours trouver une liste assez actuelle de nombreux éditeurs et EDI sur [la page des outils][tools] du site web de Rust.
 
-### Working Offline with This Book
+### Travailler hors ligne avec ce livre
 
-In several examples, we will use Rust packages beyond the standard library. To
-work through those examples, you will either need to have an internet connection
-or to have downloaded those dependencies ahead of time. To download the
-dependencies ahead of time, you can run the following commands. (We’ll explain
-what `cargo` is and what each of these commands does in detail later.)
-
-<!-- When updating the version of `rand` used, also update the version of
-`rand` used in these files so they all match:
-
-* ch02-00-guessing-game-tutorial.md
-* ch07-04-bringing-paths-into-scope-with-the-use-keyword.md
-* ch14-03-cargo-workspaces.md
--->
+Dans plusieurs exemples, nous utiliserons des packages Rust au-delà de la bibliothèque standard. Pour traiter ces exemples, vous aurez besoin d'une connexion Internet ou d'avoir téléchargé ces dépendances à l'avance. Pour télécharger les dépendances à l'avance, vous pouvez exécuter les commandes suivantes. (Nous expliquerons ce qu'est `cargo` et ce que fait chacune de ces commandes en détail plus tard.)
 
 ```console
 $ cargo new get-dependencies
 $ cd get-dependencies
-$ cargo add rand@0.10.1 trpl@0.2.0
+$ cargo add rand@0.8.5 trpl@0.2.0
 ```
 
-This will cache the downloads for these packages so you will not need to
-download them later. Once you have run this command, you do not need to keep the
-`get-dependencies` folder. If you have run this command, you can use the
-`--offline` flag with all `cargo` commands in the rest of the book to use these
-cached versions instead of attempting to use the network.
+Cela mettra en cache les téléchargements de ces packages afin que vous n'ayez pas à les télécharger plus tard. Une fois que vous avez exécuté cette commande, vous n'avez pas besoin de conserver le dossier `get-dependencies`. Si vous avez exécuté cette commande, vous pouvez utiliser le drapeau `--offline` avec toutes les commandes `cargo` dans le reste du livre pour utiliser ces versions mises en cache au lieu d'essayer d'utiliser le réseau.
 
 [otherinstall]: https://forge.rust-lang.org/infra/other-installation-methods.html
 [install]: https://www.rust-lang.org/tools/install

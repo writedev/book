@@ -1,49 +1,16 @@
-# Fearless Concurrency
+# Concurrence Sans Peur
 
-Handling concurrent programming safely and efficiently is another of Rust’s
-major goals. _Concurrent programming_, in which different parts of a program
-execute independently, and _parallel programming_, in which different parts of
-a program execute at the same time, are becoming increasingly important as more
-computers take advantage of their multiple processors. Historically,
-programming in these contexts has been difficult and error-prone. Rust hopes to
-change that.
+Gérer la programmation concurrente de manière sûre et efficace est l'un des principaux objectifs de Rust. La _programmation concurrente_, où différentes parties d'un programme s'exécutent indépendamment, et la _programmation parallèle_, où différentes parties d'un programme s'exécutent en même temps, deviennent de plus en plus importantes à mesure que les ordinateurs tirent parti de leurs processeurs multiples. Historiquement, la programmation dans ces contextes a été difficile et sujette à erreurs. Rust espère changer cela.
 
-Initially, the Rust team thought that ensuring memory safety and preventing
-concurrency problems were two separate challenges to be solved with different
-methods. Over time, the team discovered that the ownership and type systems are
-a powerful set of tools to help manage memory safety _and_ concurrency
-problems! By leveraging ownership and type checking, many concurrency errors
-are compile-time errors in Rust rather than runtime errors. Therefore, rather
-than making you spend lots of time trying to reproduce the exact circumstances
-under which a runtime concurrency bug occurs, incorrect code will refuse to
-compile and present an error explaining the problem. As a result, you can fix
-your code while you’re working on it rather than potentially after it has been
-shipped to production. We’ve nicknamed this aspect of Rust _fearless
-concurrency_. Fearless concurrency allows you to write code that is free of
-subtle bugs and is easy to refactor without introducing new bugs.
+Au départ, l'équipe de Rust pensait que garantir la sécurité mémoire et prévenir les problèmes de concurrence étaient deux défis distincts à résoudre par des méthodes différentes. Au fil du temps, l'équipe a découvert que les systèmes de possession et de types sont un puissant ensemble d'outils pour aider à gérer à la fois la sécurité mémoire _et_ les problèmes de concurrence ! En s'appuyant sur la possession et la vérification de types, de nombreuses erreurs de concurrence sont des erreurs de compilation dans Rust plutôt que des erreurs d'exécution. Par conséquent, plutôt que de vous faire passer beaucoup de temps à tenter de reproduire les circonstances exactes sous lesquelles un bogue de concurrence d'exécution se produit, un code incorrect refusant de se compiler présentera une erreur expliquant le problème. En conséquence, vous pouvez corriger votre code pendant que vous travaillez dessus plutôt qu'éventuellement après qu'il a été mis en production. Nous avons surnommé cet aspect de Rust _concurrence sans peur_. La concurrence sans peur vous permet d'écrire du code exempt de bogues subtils et est facile à refactoriser sans introduire de nouveaux bogues.
 
-> Note: For simplicity’s sake, we’ll refer to many of the problems as
-> _concurrent_ rather than being more precise by saying _concurrent and/or
-> parallel_. For this chapter, please mentally substitute _concurrent and/or
-> parallel_ whenever we use _concurrent_. In the next chapter, where the
-> distinction matters more, we’ll be more specific.
+> Remarque : Pour des raisons de simplicité, nous nous référerons à de nombreux problèmes comme _concurrents_ plutôt que d'être plus précis en disant _concurrents et/ou parallèles_. Pour ce chapitre, veuillez mentalement substituer _concurrents et/ou parallèles_ chaque fois que nous utilisons _concurrents_. Dans le chapitre suivant, où la distinction est plus significative, nous serons plus spécifiques.
 
-Many languages are dogmatic about the solutions they offer for handling
-concurrent problems. For example, Erlang has elegant functionality for
-message-passing concurrency but has only obscure ways to share state between
-threads. Supporting only a subset of possible solutions is a reasonable
-strategy for higher-level languages because a higher-level language promises
-benefits from giving up some control to gain abstractions. However, lower-level
-languages are expected to provide the solution with the best performance in any
-given situation and have fewer abstractions over the hardware. Therefore, Rust
-offers a variety of tools for modeling problems in whatever way is appropriate
-for your situation and requirements.
+De nombreux langages sont dogmatiques quant aux solutions qu'ils offrent pour gérer les problèmes de concurrence. Par exemple, Erlang dispose d'une fonctionnalité élégante pour la concurrence par passage de messages mais a seulement des moyens obscurs de partager l'état entre les threads. Soutenir seulement un sous-ensemble de solutions possibles est une stratégie raisonnable pour les langages de plus haut niveau, car un langage de haut niveau promet des avantages en cédant un certain contrôle pour obtenir des abstractions. Cependant, les langages de bas niveau sont censés fournir la solution avec la meilleure performance dans n'importe quelle situation donnée et ont moins d'abstractions sur le matériel. Par conséquent, Rust offre une variété d'outils pour modéliser les problèmes de la manière qui convient le mieux à votre situation et à vos exigences.
 
-Here are the topics we’ll cover in this chapter:
+Voici les sujets que nous couvrirons dans ce chapitre :
 
-- How to create threads to run multiple pieces of code at the same time
-- _Message-passing_ concurrency, where channels send messages between threads
-- _Shared-state_ concurrency, where multiple threads have access to some piece
-  of data
-- The `Sync` and `Send` traits, which extend Rust’s concurrency guarantees to
-  user-defined types as well as types provided by the standard library
+- Comment créer des threads pour exécuter plusieurs morceaux de code en même temps
+- La concurrence par _passage de messages_, où des canaux envoient des messages entre les threads
+- La concurrence à _état partagé_, où plusieurs threads ont accès à une certaine portion de données
+- Les traits `Sync` et `Send`, qui étendent les garanties de concurrence de Rust aux types définis par l'utilisateur ainsi qu'aux types fournis par la bibliothèque standard

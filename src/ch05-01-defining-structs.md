@@ -1,19 +1,10 @@
-## Defining and Instantiating Structs
+## Définir et instancier des structs
 
-Structs are similar to tuples, discussed in [“The Tuple Type”][tuples]<!--
-ignore --> section, in that both hold multiple related values. Like tuples, the
-pieces of a struct can be different types. Unlike with tuples, in a struct
-you’ll name each piece of data so it’s clear what the values mean. Adding these
-names means that structs are more flexible than tuples: You don’t have to rely
-on the order of the data to specify or access the values of an instance.
+Les structs sont similaires aux tuples, discutés dans la section [« Le type Tuple »][tuples]<!-- ignore -->, en ce sens qu'ils contiennent tous deux plusieurs valeurs connexes. Comme les tuples, les éléments d'un struct peuvent être de types différents. Contrairement aux tuples, dans un struct, vous nommez chaque élément de données, ce qui rend clair ce que signifient les valeurs. L'ajout de ces noms signifie que les structs sont plus flexibles que les tuples : vous n'avez pas à vous fier à l'ordre des données pour spécifier ou accéder aux valeurs d'une instance.
 
-To define a struct, we enter the keyword `struct` and name the entire struct. A
-struct’s name should describe the significance of the pieces of data being
-grouped together. Then, inside curly brackets, we define the names and types of
-the pieces of data, which we call _fields_. For example, Listing 5-1 shows a
-struct that stores information about a user account.
+Pour définir un struct, nous saisissons le mot-clé `struct` et nommons l'ensemble du struct. Le nom d'un struct doit décrire la signification des données regroupées. Ensuite, à l'intérieur des accolades, nous définissons les noms et les types des éléments de données, que nous appelons _champs_. Par exemple, la liste 5-1 montre un struct qui stocke des informations sur un compte utilisateur.
 
-<Listing number="5-1" file-name="src/main.rs" caption="A `User` struct definition">
+<Listing number="5-1" file-name="src/main.rs" caption="Une définition de struct `User`">
 
 ```rust
 {{#rustdoc_include ../listings/ch05-using-structs-to-structure-related-data/listing-05-01/src/main.rs:here}}
@@ -21,17 +12,9 @@ struct that stores information about a user account.
 
 </Listing>
 
-To use a struct after we’ve defined it, we create an _instance_ of that struct
-by specifying concrete values for each of the fields. We create an instance by
-stating the name of the struct and then add curly brackets containing _`key:
-value`_ pairs, where the keys are the names of the fields and the values are the
-data we want to store in those fields. We don’t have to specify the fields in
-the same order in which we declared them in the struct. In other words, the
-struct definition is like a general template for the type, and instances fill
-in that template with particular data to create values of the type. For
-example, we can declare a particular user as shown in Listing 5-2.
+Pour utiliser un struct après l'avoir défini, nous créons une _instance_ de ce struct en spécifiant des valeurs concrètes pour chacun des champs. Nous créons une instance en indiquant le nom du struct, puis en ajoutant des accolades contenant des paires _`clé: valeur`_, où les clés sont les noms des champs et les valeurs sont les données que nous souhaitons stocker dans ces champs. Nous ne sommes pas tenus de spécifier les champs dans le même ordre que celui dans lequel nous les avons déclarés dans le struct. En d'autres termes, la définition du struct est comme un modèle général pour le type, et les instances le remplissent avec des données particulières pour créer des valeurs de ce type. Par exemple, nous pouvons déclarer un utilisateur particulier comme le montre la liste 5-2.
 
-<Listing number="5-2" file-name="src/main.rs" caption="Creating an instance of the `User` struct">
+<Listing number="5-2" file-name="src/main.rs" caption="Création d'une instance du struct `User`">
 
 ```rust
 {{#rustdoc_include ../listings/ch05-using-structs-to-structure-related-data/listing-05-02/src/main.rs:here}}
@@ -39,13 +22,9 @@ example, we can declare a particular user as shown in Listing 5-2.
 
 </Listing>
 
-To get a specific value from a struct, we use dot notation. For example, to
-access this user’s email address, we use `user1.email`. If the instance is
-mutable, we can change a value by using the dot notation and assigning into a
-particular field. Listing 5-3 shows how to change the value in the `email`
-field of a mutable `User` instance.
+Pour obtenir une valeur spécifique d'un struct, nous utilisons la notation par points. Par exemple, pour accéder à l'adresse e-mail de cet utilisateur, nous utilisons `user1.email`. Si l'instance est mutable, nous pouvons changer une valeur en utilisant la notation par points et en assignant à un champ particulier. La liste 5-3 montre comment changer la valeur dans le champ `email` d'une instance mutable `User`.
 
-<Listing number="5-3" file-name="src/main.rs" caption="Changing the value in the `email` field of a `User` instance">
+<Listing number="5-3" file-name="src/main.rs" caption="Changement de la valeur dans le champ `email` d'une instance `User`">
 
 ```rust
 {{#rustdoc_include ../listings/ch05-using-structs-to-structure-related-data/listing-05-03/src/main.rs:here}}
@@ -53,16 +32,11 @@ field of a mutable `User` instance.
 
 </Listing>
 
-Note that the entire instance must be mutable; Rust doesn’t allow us to mark
-only certain fields as mutable. As with any expression, we can construct a new
-instance of the struct as the last expression in the function body to
-implicitly return that new instance.
+Notez que l'ensemble de l'instance doit être mutable ; Rust ne nous permet pas de marquer uniquement certains champs comme mutables. Comme pour toute expression, nous pouvons construire une nouvelle instance du struct comme dernière expression dans le corps de la fonction pour retourner implicitement cette nouvelle instance.
 
-Listing 5-4 shows a `build_user` function that returns a `User` instance with
-the given email and username. The `active` field gets the value `true`, and the
-`sign_in_count` gets a value of `1`.
+La liste 5-4 montre une fonction `build_user` qui retourne une instance `User` avec l'e-mail et le nom d'utilisateur donnés. Le champ `active` reçoit la valeur `true`, et le champ `sign_in_count` reçoit une valeur de `1`.
 
-<Listing number="5-4" file-name="src/main.rs" caption="A `build_user` function that takes an email and username and returns a `User` instance">
+<Listing number="5-4" file-name="src/main.rs" caption="Une fonction `build_user` qui prend un e-mail et un nom d'utilisateur et retourne une instance `User`">
 
 ```rust
 {{#rustdoc_include ../listings/ch05-using-structs-to-structure-related-data/listing-05-04/src/main.rs:here}}
@@ -70,23 +44,13 @@ the given email and username. The `active` field gets the value `true`, and the
 
 </Listing>
 
-It makes sense to name the function parameters with the same name as the struct
-fields, but having to repeat the `email` and `username` field names and
-variables is a bit tedious. If the struct had more fields, repeating each name
-would get even more annoying. Luckily, there’s a convenient shorthand!
+Il est logique de nommer les paramètres de la fonction avec le même nom que les champs du struct, mais avoir à répéter les noms des champs `email` et `username` ainsi que les variables est un peu fastidieux. Si le struct avait plus de champs, répéter chaque nom deviendrait encore plus ennuyeux. Heureusement, il existe un raccourci pratique !
 
-<!-- Old headings. Do not remove or links may break. -->
+### Utiliser le raccourci d'initialisation des champs
 
-<a id="using-the-field-init-shorthand-when-variables-and-fields-have-the-same-name"></a>
+Étant donné que les noms de paramètres et les noms de champs du struct sont exactement les mêmes dans la liste 5-4, nous pouvons utiliser la syntaxe _raccourci d'initialisation des champs_ pour réécrire `build_user` afin qu'elle se comporte exactement de la même manière mais sans la répétition de `username` et `email`, comme le montre la liste 5-5.
 
-### Using the Field Init Shorthand
-
-Because the parameter names and the struct field names are exactly the same in
-Listing 5-4, we can use the _field init shorthand_ syntax to rewrite
-`build_user` so that it behaves exactly the same but doesn’t have the
-repetition of `username` and `email`, as shown in Listing 5-5.
-
-<Listing number="5-5" file-name="src/main.rs" caption="A `build_user` function that uses field init shorthand because the `username` and `email` parameters have the same name as struct fields">
+<Listing number="5-5" file-name="src/main.rs" caption="Une fonction `build_user` qui utilise le raccourci d'initialisation des champs car les paramètres `username` et `email` ont le même nom que les champs du struct">
 
 ```rust
 {{#rustdoc_include ../listings/ch05-using-structs-to-structure-related-data/listing-05-05/src/main.rs:here}}
@@ -94,27 +58,15 @@ repetition of `username` and `email`, as shown in Listing 5-5.
 
 </Listing>
 
-Here, we’re creating a new instance of the `User` struct, which has a field
-named `email`. We want to set the `email` field’s value to the value in the
-`email` parameter of the `build_user` function. Because the `email` field and
-the `email` parameter have the same name, we only need to write `email` rather
-than `email: email`.
+Ici, nous créons une nouvelle instance du struct `User`, qui a un champ nommé `email`. Nous voulons définir la valeur du champ `email` sur la valeur du paramètre `email` de la fonction `build_user`. Étant donné que le champ `email` et le paramètre `email` ont le même nom, nous n'avons besoin d'écrire que `email` au lieu de `email: email`.
 
-<!-- Old headings. Do not remove or links may break. -->
+### Créer des instances avec la syntaxe de mise à jour de struct
 
-<a id="creating-instances-from-other-instances-with-struct-update-syntax"></a>
+Il est souvent utile de créer une nouvelle instance d'un struct qui inclut la plupart des valeurs d'une autre instance du même type, mais en modifiant certaines d'entre elles. Vous pouvez le faire en utilisant la syntaxe de mise à jour de struct.
 
-### Creating Instances with Struct Update Syntax
+Tout d'abord, dans la liste 5-6, nous montrons comment créer une nouvelle instance `User` dans `user2` de manière classique, sans la syntaxe de mise à jour. Nous définissons une nouvelle valeur pour `email` mais utilisons sinon les mêmes valeurs que `user1` que nous avons créées dans la liste 5-2.
 
-It’s often useful to create a new instance of a struct that includes most of
-the values from another instance of the same type, but changes some of them.
-You can do this using struct update syntax.
-
-First, in Listing 5-6 we show how to create a new `User` instance in `user2` in
-the regular way, without the update syntax. We set a new value for `email` but
-otherwise use the same values from `user1` that we created in Listing 5-2.
-
-<Listing number="5-6" file-name="src/main.rs" caption="Creating a new `User` instance using all but one of the values from `user1`">
+<Listing number="5-6" file-name="src/main.rs" caption="Création d'une nouvelle instance `User` en utilisant toutes les valeurs sauf une de `user1`">
 
 ```rust
 {{#rustdoc_include ../listings/ch05-using-structs-to-structure-related-data/listing-05-06/src/main.rs:here}}
@@ -122,11 +74,9 @@ otherwise use the same values from `user1` that we created in Listing 5-2.
 
 </Listing>
 
-Using struct update syntax, we can achieve the same effect with less code, as
-shown in Listing 5-7. The syntax `..` specifies that the remaining fields not
-explicitly set should have the same value as the fields in the given instance.
+En utilisant la syntaxe de mise à jour de struct, nous pouvons obtenir le même effet avec moins de code, comme le montre la liste 5-7. La syntaxe `..` spécifie que les champs restants non définis explicitement doivent avoir la même valeur que les champs de l'instance donnée.
 
-<Listing number="5-7" file-name="src/main.rs" caption="Using struct update syntax to set a new `email` value for a `User` instance but to use the rest of the values from `user1`">
+<Listing number="5-7" file-name="src/main.rs" caption="Utilisation de la syntaxe de mise à jour de struct pour définir une nouvelle valeur `email` pour une instance `User`, tout en utilisant le reste des valeurs de `user1`">
 
 ```rust
 {{#rustdoc_include ../listings/ch05-using-structs-to-structure-related-data/listing-05-07/src/main.rs:here}}
@@ -134,42 +84,15 @@ explicitly set should have the same value as the fields in the given instance.
 
 </Listing>
 
-The code in Listing 5-7 also creates an instance in `user2` that has a
-different value for `email` but has the same values for the `username`,
-`active`, and `sign_in_count` fields from `user1`. The `..user1` must come last
-to specify that any remaining fields should get their values from the
-corresponding fields in `user1`, but we can choose to specify values for as
-many fields as we want in any order, regardless of the order of the fields in
-the struct’s definition.
+Le code dans la liste 5-7 crée également une instance dans `user2` qui a une valeur différente pour `email`, mais a les mêmes valeurs pour les champs `username`, `active` et `sign_in_count` de `user1`. Le `..user1` doit venir en dernier pour spécifier que tous les champs restants doivent obtenir leurs valeurs des champs correspondants dans `user1`, mais nous pouvons choisir de spécifier des valeurs pour autant de champs que nous le souhaitons dans n'importe quel ordre, indépendamment de l'ordre des champs dans la définition du struct.
 
-Note that the struct update syntax uses `=` like an assignment; this is because
-it moves the data, just as we saw in the [“Variables and Data Interacting with
-Move”][move]<!-- ignore --> section. In this example, we can no longer use
-`user1` after creating `user2` because the `String` in the `username` field of
-`user1` was moved into `user2`. If we had given `user2` new `String` values for
-both `email` and `username`, and thus only used the `active` and `sign_in_count`
-values from `user1`, then `user1` would still be valid after creating `user2`.
-Both `active` and `sign_in_count` are types that implement the `Copy` trait, so
-the behavior we discussed in the [“Stack-Only Data: Copy”][copy]<!-- ignore -->
-section would apply. We can also still use `user1.email` in this example,
-because its value was not moved out of `user1`.
+Notez que la syntaxe de mise à jour de struct utilise `=` comme une affectation ; cela est dû au fait qu'elle déplace les données, comme nous l'avons vu dans la section [« Variables et données interagissant avec Move »][move]<!-- ignore -->. Dans cet exemple, nous ne pouvons plus utiliser `user1` après avoir créé `user2` car le `String` dans le champ `username` de `user1` a été déplacé dans `user2`. Si nous avions donné à `user2` de nouvelles valeurs `String` pour `email` et `username`, et donc seulement utilisé les valeurs `active` et `sign_in_count` de `user1`, alors `user1` serait toujours valide après la création de `user2`. Les deux champs `active` et `sign_in_count` sont des types qui implémentent le trait `Copy`, donc le comportement que nous avons discuté dans la section [« Données uniquement sur la pile : Copy »][copy]<!-- ignore --> s'appliquerait. Nous pouvons également toujours utiliser `user1.email` dans cet exemple, car sa valeur n'a pas été déplacée de `user1`.
 
-<!-- Old headings. Do not remove or links may break. -->
+### Créer des types différents avec des tuple structs
 
-<a id="using-tuple-structs-without-named-fields-to-create-different-types"></a>
+Rust prend également en charge des structs qui ressemblent à des tuples, appelés _tuple structs_. Les tuple structs ont le sens supplémentaire que leur nom de struct fournit, mais n'ont pas de noms associés à leurs champs ; ils n'ont que les types des champs. Les tuple structs sont utiles lorsque vous souhaitez donner à l'ensemble du tuple un nom et faire de ce tuple un type différent des autres tuples, et lorsque nommer chaque champ, comme dans un struct ordinaire, serait verbeux ou redondant.
 
-### Creating Different Types with Tuple Structs
-
-Rust also supports structs that look similar to tuples, called _tuple structs_.
-Tuple structs have the added meaning the struct name provides but don’t have
-names associated with their fields; rather, they just have the types of the
-fields. Tuple structs are useful when you want to give the whole tuple a name
-and make the tuple a different type from other tuples, and when naming each
-field as in a regular struct would be verbose or redundant.
-
-To define a tuple struct, start with the `struct` keyword and the struct name
-followed by the types in the tuple. For example, here we define and use two
-tuple structs named `Color` and `Point`:
+Pour définir un tuple struct, commencez par le mot-clé `struct` et le nom de struct suivi des types dans le tuple. Par exemple, ici nous définissons et utilisons deux tuple structs nommés `Color` et `Point` :
 
 <Listing file-name="src/main.rs">
 
@@ -179,31 +102,11 @@ tuple structs named `Color` and `Point`:
 
 </Listing>
 
-Note that the `black` and `origin` values are different types because they’re
-instances of different tuple structs. Each struct you define is its own type,
-even though the fields within the struct might have the same types. For
-example, a function that takes a parameter of type `Color` cannot take a
-`Point` as an argument, even though both types are made up of three `i32`
-values. Otherwise, tuple struct instances are similar to tuples in that you can
-destructure them into their individual pieces, and you can use a `.` followed
-by the index to access an individual value. Unlike tuples, tuple structs
-require you to name the type of the struct when you destructure them. For
-example, we would write `let Point(x, y, z) = origin;` to destructure the
-values in the `origin` point into variables named `x`, `y`, and `z`.
+Notez que les valeurs `black` et `origin` sont de types différents car elles sont des instances de différents tuple structs. Chaque struct que vous définissez est son propre type, même si les champs à l'intérieur du struct peuvent avoir les mêmes types. Par exemple, une fonction qui prend un paramètre de type `Color` ne peut pas prendre un `Point` comme argument, même si les deux types sont composés de trois valeurs `i32`. Sinon, les instances de tuple struct sont similaires aux tuples en ce sens que vous pouvez les déstructurer en leurs pièces individuelles, et vous pouvez utiliser un `.` suivi de l'index pour accéder à une valeur individuelle. Contrairement aux tuples, les tuple structs exigent que vous nommiez le type du struct lorsque vous les déstructurez. Par exemple, nous écririons `let Point(x, y, z) = origin;` pour déstructurer les valeurs du point `origin` en variables nommées `x`, `y`, et `z`.
 
-<!-- Old headings. Do not remove or links may break. -->
+### Définir des structs de type unit-like sans champs
 
-<a id="unit-like-structs-without-any-fields"></a>
-
-### Defining Unit-Like Structs
-
-You can also define structs that don’t have any fields! These are called
-_unit-like structs_ because they behave similarly to `()`, the unit type that
-we mentioned in [“The Tuple Type”][tuples]<!-- ignore --> section. Unit-like
-structs can be useful when you need to implement a trait on some type but don’t
-have any data that you want to store in the type itself. We’ll discuss traits
-in Chapter 10. Here’s an example of declaring and instantiating a unit struct
-named `AlwaysEqual`:
+Vous pouvez également définir des structs qui n'ont pas de champs ! Ceux-ci sont appelés _structs de type unit-like_ car ils se comportent de manière similaire à `()`, le type unit que nous avons mentionné dans la section [« Le type Tuple »][tuples]<!-- ignore -->. Les structs de type unit-like peuvent être utiles lorsque vous devez implémenter un trait sur un type mais n'avez pas de données que vous souhaitez stocker dans le type lui-même. Nous discuterons des traits dans le chapitre 10. Voici un exemple de déclaration et d'instanciation d'un struct de type unit nommé `AlwaysEqual` :
 
 <Listing file-name="src/main.rs">
 
@@ -213,29 +116,13 @@ named `AlwaysEqual`:
 
 </Listing>
 
-To define `AlwaysEqual`, we use the `struct` keyword, the name we want, and
-then a semicolon. No need for curly brackets or parentheses! Then, we can get
-an instance of `AlwaysEqual` in the `subject` variable in a similar way: using
-the name we defined, without any curly brackets or parentheses. Imagine that
-later we’ll implement behavior for this type such that every instance of
-`AlwaysEqual` is always equal to every instance of any other type, perhaps to
-have a known result for testing purposes. We wouldn’t need any data to
-implement that behavior! You’ll see in Chapter 10 how to define traits and
-implement them on any type, including unit-like structs.
+Pour définir `AlwaysEqual`, nous utilisons le mot-clé `struct`, le nom que nous voulons et ensuite un point-virgule. Pas besoin d'accolades ni de parenthèses ! Ensuite, nous pouvons obtenir une instance de `AlwaysEqual` dans la variable `subject` de manière similaire : en utilisant le nom que nous avons défini, sans aucune accolade ni parenthèse. Imaginez que plus tard nous allons implémenter un comportement pour ce type tel que chaque instance de `AlwaysEqual` est toujours égale à chaque instance de tout autre type, peut-être pour avoir un résultat connu à des fins de test. Nous n'aurions besoin d'aucune donnée pour implémenter ce comportement ! Vous verrez dans le chapitre 10 comment définir des traits et les implémenter sur n'importe quel type, y compris les structs de type unit-like.
 
-> ### Ownership of Struct Data
+> ### Propriété des données du struct
 >
-> In the `User` struct definition in Listing 5-1, we used the owned `String`
-> type rather than the `&str` string slice type. This is a deliberate choice
-> because we want each instance of this struct to own all of its data and for
-> that data to be valid for as long as the entire struct is valid.
+> Dans la définition du struct `User` dans la liste 5-1, nous avons utilisé le type possédé `String` plutôt que le type de tranche de chaîne `&str`. C'est un choix délibéré car nous voulons que chaque instance de ce struct possède toutes ses données et que celles-ci soient valides tant que l'ensemble du struct est valide.
 >
-> It’s also possible for structs to store references to data owned by something
-> else, but to do so requires the use of _lifetimes_, a Rust feature that we’ll
-> discuss in Chapter 10. Lifetimes ensure that the data referenced by a struct
-> is valid for as long as the struct is. Let’s say you try to store a reference
-> in a struct without specifying lifetimes, like the following in
-> *src/main.rs*; this won’t work:
+> Il est également possible pour les structs de stocker des références à des données appartenant à autre chose, mais pour ce faire, il faut utiliser des _durées de vie_, une fonctionnalité de Rust que nous aborderons dans le chapitre 10. Les durées de vie garantissent que les données référencées par un struct sont valides aussi longtemps que le struct l’est. Supposons que vous essayez de stocker une référence dans un struct sans spécifier de durées de vie, comme ce qui suit dans *src/main.rs* ; cela ne fonctionnera pas :
 >
 > <Listing file-name="src/main.rs">
 >
@@ -261,31 +148,31 @@ implement them on any type, including unit-like structs.
 >
 > </Listing>
 >
-> The compiler will complain that it needs lifetime specifiers:
+> Le compilateur se plaint qu'il a besoin de spécifications de durée de vie :
 >
 > ```console
 > $ cargo run
->    Compiling structs v0.1.0 (file:///projects/structs)
-> error[E0106]: missing lifetime specifier
+>    Compilation de structs v0.1.0 (file:///projects/structs)
+> error[E0106]: spécificateur de durée de vie manquant
 >  --> src/main.rs:3:15
 >   |
 > 3 |     username: &str,
->   |               ^ expected named lifetime parameter
+>   |               ^ spécificateur de durée de vie nommé attendu
 >   |
-> help: consider introducing a named lifetime parameter
+> aide : envisagez d'introduire un paramètre de durée de vie nommé
 >   |
 > 1 ~ struct User<'a> {
 > 2 |     active: bool,
 > 3 ~     username: &'a str,
 >   |
 >
-> error[E0106]: missing lifetime specifier
+> error[E0106]: spécificateur de durée de vie manquant
 >  --> src/main.rs:4:12
 >   |
 > 4 |     email: &str,
->   |            ^ expected named lifetime parameter
+>   |            ^ spécificateur de durée de vie nommé attendu
 >   |
-> help: consider introducing a named lifetime parameter
+> aide : envisagez d'introduire un paramètre de durée de vie nommé
 >   |
 > 1 ~ struct User<'a> {
 > 2 |     active: bool,
@@ -293,20 +180,11 @@ implement them on any type, including unit-like structs.
 > 4 ~     email: &'a str,
 >   |
 >
-> For more information about this error, try `rustc --explain E0106`.
-> error: could not compile `structs` (bin "structs") due to 2 previous errors
+> Pour plus d'informations sur cette erreur, essayez `rustc --explain E0106`.
+> erreur : impossible de compiler `structs` (bin "structs") en raison de 2 erreurs précédentes
 > ```
 >
-> In Chapter 10, we’ll discuss how to fix these errors so that you can store
-> references in structs, but for now, we’ll fix errors like these using owned
-> types like `String` instead of references like `&str`.
-
-<!-- manual-regeneration
-for the error above
-after running update-rustc.sh:
-pbcopy < listings/ch05-using-structs-to-structure-related-data/no-listing-02-reference-in-struct/output.txt
-paste above
-add `> ` before every line -->
+> Dans le chapitre 10, nous aborderons comment corriger ces erreurs afin que vous puissiez stocker des références dans des structs, mais pour l'instant, nous corrigerons ces erreurs en utilisant des types possédés comme `String` plutôt que des références comme `&str`.
 
 [tuples]: ch03-02-data-types.html#the-tuple-type
 [move]: ch04-01-what-is-ownership.html#variables-and-data-interacting-with-move

@@ -1,30 +1,21 @@
 <!-- Old headings. Do not remove or links may break. -->
 
-<a id="turning-our-single-threaded-server-into-a-multithreaded-server"></a>
-<a id="from-single-threaded-to-multithreaded-server"></a>
+<a id="tourner-notre-serveur-à-fil-simple-en-un-serveur-multithread"></a>
+<a id="de-serveur-à-fil-simple-à-multithread"></a>
 
-## From a Single-Threaded to a Multithreaded Server
+## De Serveur à Fil Simple à Serveur Multithread
 
-Right now, the server will process each request in turn, meaning it won’t
-process a second connection until the first connection is finished processing.
-If the server received more and more requests, this serial execution would be
-less and less optimal. If the server receives a request that takes a long time
-to process, subsequent requests will have to wait until the long request is
-finished, even if the new requests can be processed quickly. We’ll need to fix
-this, but first we’ll look at the problem in action.
+Actuellement, le serveur traitera chaque requête à son tour, ce qui signifie qu'il ne traitera pas une seconde connexion tant que la première connexion n'est pas terminée. Si le serveur reçoit de plus en plus de requêtes, cette exécution séquentielle deviendra de moins en moins optimale. Si le serveur reçoit une requête qui prend beaucoup de temps à traiter, les requêtes suivantes devront attendre jusqu'à ce que la longue requête soit terminée, même si les nouvelles requêtes peuvent être traitées rapidement. Nous devrons corriger cela, mais d'abord, nous examinerons le problème en action.
 
 <!-- Old headings. Do not remove or links may break. -->
 
-<a id="simulating-a-slow-request-in-the-current-server-implementation"></a>
+<a id="simuler-une-requête-lente-dans-l-implémentation-actuelle-du-serveur"></a>
 
-### Simulating a Slow Request
+### Simuler une Requête Lente
 
-We’ll look at how a slowly processing request can affect other requests made to
-our current server implementation. Listing 21-10 implements handling a request
-to _/sleep_ with a simulated slow response that will cause the server to sleep
-for five seconds before responding.
+Nous allons voir comment une requête de traitement lent peut affecter d'autres requêtes envoyées à notre implémentation actuelle du serveur. Le Listing 21-10 implémente la gestion d'une requête à _/sleep_ avec une réponse lente simulée qui fera que le serveur dormira pendant cinq secondes avant de répondre.
 
-<Listing number="21-10" file-name="src/main.rs" caption="Simulating a slow request by sleeping for five seconds">
+<Listing number="21-10" file-name="src/main.rs" caption="Simuler une requête lente en dormant pendant cinq secondes">
 
 ```rust,no_run
 {{#rustdoc_include ../listings/ch21-web-server/listing-21-10/src/main.rs:here}}
@@ -32,92 +23,41 @@ for five seconds before responding.
 
 </Listing>
 
-We switched from `if` to `match` now that we have three cases. We need to
-explicitly match on a slice of `request_line` to pattern-match against the
-string literal values; `match` doesn’t do automatic referencing and
-dereferencing, like the equality method does.
+Nous avons changé de `if` à `match` maintenant que nous avons trois cas. Nous devons explicitement faire correspondre un élément de `request_line` pour effectuer une correspondance de modèle avec les valeurs littérales de chaîne ; `match` ne fait pas de référence automatique et de désérialisation, comme le fait la méthode d'égalité.
 
-The first arm is the same as the `if` block from Listing 21-9. The second arm
-matches a request to _/sleep_. When that request is received, the server will
-sleep for five seconds before rendering the successful HTML page. The third arm
-is the same as the `else` block from Listing 21-9.
+Le premier axe est le même que le bloc `if` du Listing 21-9. Le deuxième axe fait correspondre une requête à _/sleep_. Lorsque cette requête est reçue, le serveur s'endormira pendant cinq secondes avant de rendre la page HTML réussie. Le troisième axe est identique au bloc `else` du Listing 21-9.
 
-You can see how primitive our server is: Real libraries would handle the
-recognition of multiple requests in a much less verbose way!
+Vous pouvez voir à quel point notre serveur est primitif : De vraies bibliothèques géreraient la reconnaissance de plusieurs requêtes d'une manière beaucoup moins verbeuse !
 
-Start the server using `cargo run`. Then, open two browser windows: one for
-_http://127.0.0.1:7878_ and the other for _http://127.0.0.1:7878/sleep_. If you
-enter the _/_ URI a few times, as before, you’ll see it respond quickly. But if
-you enter _/sleep_ and then load _/_, you’ll see that _/_ waits until `sleep`
-has slept for its full five seconds before loading.
+Démarrez le serveur en utilisant `cargo run`. Ensuite, ouvrez deux fenêtres de navigateur : une pour _http://127.0.0.1:7878_ et l'autre pour _http://127.0.0.1:7878/sleep_. Si vous entrez plusieurs fois l'URI _/_ comme auparavant, vous verrez qu'il répond rapidement. Mais si vous entrez _/sleep_ puis chargez _/_ , vous verrez que _/_ attend que `sleep` ait dormi pendant ses cinq secondes complètes avant de se charger.
 
-There are multiple techniques we could use to avoid requests backing up behind
-a slow request, including using async as we did Chapter 17; the one we’ll
-implement is a thread pool.
+Il existe plusieurs techniques que nous pourrions utiliser pour éviter que les requêtes ne s'accumulent derrière une requête lente, y compris l'utilisation d'async comme nous l'avons fait au Chapitre 17 ; celle que nous allons mettre en œuvre est un pool de threads.
 
-### Improving Throughput with a Thread Pool
+### Améliorer le Débit avec un Pool de Threads
 
-A _thread pool_ is a group of spawned threads that are ready and waiting to
-handle a task. When the program receives a new task, it assigns one of the
-threads in the pool to the task, and that thread will process the task. The
-remaining threads in the pool are available to handle any other tasks that come
-in while the first thread is processing. When the first thread is done
-processing its task, it’s returned to the pool of idle threads, ready to handle
-a new task. A thread pool allows you to process connections concurrently,
-increasing the throughput of your server.
+Un _pool de threads_ est un groupe de threads créés qui sont prêts et attendent de gérer une tâche. Lorsque le programme reçoit une nouvelle tâche, il attribue l'une des threads du pool à la tâche, et ce thread traitera la tâche. Les autres threads du pool sont disponibles pour gérer d'autres tâches qui arrivent pendant que le premier thread traite la tâche. Lorsque le premier thread a terminé de traiter sa tâche, il est retourné au pool de threads inactifs, prêt à gérer une nouvelle tâche. Un pool de threads vous permet de traiter les connexions de manière concurrente, augmentant le débit de votre serveur.
 
-We’ll limit the number of threads in the pool to a small number to protect us
-from DoS attacks; if we had our program create a new thread for each request as
-it came in, someone making 10 million requests to our server could wreak havoc
-by using up all our server’s resources and grinding the processing of requests
-to a halt.
+Nous limiterons le nombre de threads dans le pool à un petit nombre pour nous protéger contre les attaques DoS ; si nous faisions en sorte que notre programme crée un nouveau thread pour chaque requête à mesure qu'elle arrivait, quelqu'un effectuant 10 millions de requêtes sur notre serveur pourrait causer des ravages en utilisant toutes les ressources de notre serveur et en arrêtant le traitement des requêtes.
 
-Rather than spawning unlimited threads, then, we’ll have a fixed number of
-threads waiting in the pool. Requests that come in are sent to the pool for
-processing. The pool will maintain a queue of incoming requests. Each of the
-threads in the pool will pop off a request from this queue, handle the request,
-and then ask the queue for another request. With this design, we can process up
-to _`N`_ requests concurrently, where _`N`_ is the number of threads. If each
-thread is responding to a long-running request, subsequent requests can still
-back up in the queue, but we’ve increased the number of long-running requests
-we can handle before reaching that point.
+Plutôt que de lancer un nombre illimité de threads, nous aurons un nombre fixe de threads en attente dans le pool. Les requêtes qui arrivent sont envoyées au pool pour traitement. Le pool maintiendra une file d'attente de requêtes entrantes. Chacune des threads dans le pool retirera une requête de cette file, gérera la requête, puis demandera à la file une autre requête. Avec ce design, nous pouvons traiter jusqu'à _`N`_ requêtes de manière concurrente, où _`N`_ est le nombre de threads. Si chaque thread répond à une requête de longue durée, les requêtes suivantes peuvent toujours s'accumuler dans la file, mais nous avons augmenté le nombre de requêtes de longue durée que nous pouvons gérer avant d'atteindre ce point.
 
-This technique is just one of many ways to improve the throughput of a web
-server. Other options you might explore are the fork/join model, the
-single-threaded async I/O model, and the multithreaded async I/O model. If
-you’re interested in this topic, you can read more about other solutions and
-try to implement them; with a low-level language like Rust, all of these
-options are possible.
+Cette technique n'est qu'une des nombreuses façons d'améliorer le débit d'un serveur web. D'autres options que vous pouvez explorer sont le modèle fork/join, le modèle I/O asynchrone à thread unique et le modèle I/O asynchrone multithread. Si ce sujet vous intéresse, vous pouvez en lire davantage sur d'autres solutions et essayer de les mettre en œuvre ; avec un langage de bas niveau comme Rust, toutes ces options sont possibles.
 
-Before we begin implementing a thread pool, let’s talk about what using the
-pool should look like. When you’re trying to design code, writing the client
-interface first can help guide your design. Write the API of the code so that
-it’s structured in the way you want to call it; then, implement the
-functionality within that structure rather than implementing the functionality
-and then designing the public API.
+Avant de commencer à implémenter un pool de threads, parlons de ce à quoi devrait ressembler l'utilisation du pool. Lorsque vous essayez de concevoir du code, écrire d'abord l'interface client peut aider à guider votre conception. Écrivez l'API du code afin qu'elle soit structurée de la manière dont vous souhaitez l'appeler ; puis, mettez en œuvre la fonctionnalité au sein de cette structure plutôt que d'implémenter la fonctionnalité, puis de concevoir l'API publique.
 
-Similar to how we used test-driven development in the project in Chapter 12,
-we’ll use compiler-driven development here. We’ll write the code that calls the
-functions we want, and then we’ll look at errors from the compiler to determine
-what we should change next to get the code to work. Before we do that, however,
-we’ll explore the technique we’re not going to use as a starting point.
+Similaire à la manière dont nous avons utilisé le développement piloté par les tests dans le projet du Chapitre 12, nous utiliserons le développement piloté par le compilateur ici. Nous allons écrire le code qui appelle les fonctions que nous voulons, puis nous examinerons les erreurs du compilateur pour déterminer ce que nous devrions changer ensuite pour que le code fonctionne. Avant de faire cela, cependant, nous allons explorer la technique que nous n'allons pas utiliser comme point de départ.
 
 <!-- Old headings. Do not remove or links may break. -->
 
-<a id="code-structure-if-we-could-spawn-a-thread-for-each-request"></a>
+<a id="structure-du-code-si-nous-pouvions-lancer-un-thread-pour-chaque-requête"></a>
 
-#### Spawning a Thread for Each Request
+#### Lancer un Thread pour Chaque Requête
 
-First, let’s explore how our code might look if it did create a new thread for
-every connection. As mentioned earlier, this isn’t our final plan due to the
-problems with potentially spawning an unlimited number of threads, but it is a
-starting point to get a working multithreaded server first. Then, we’ll add the
-thread pool as an improvement, and contrasting the two solutions will be easier.
+Tout d'abord, explorons à quoi pourrait ressembler notre code s'il créait un nouveau thread pour chaque connexion. Comme mentionné précédemment, ce n'est pas notre plan final en raison des problèmes de lancement potentiel d'un nombre illimité de threads, mais c'est un point de départ pour obtenir un serveur multithread fonctionnel en premier. Ensuite, nous ajouterons le pool de threads comme amélioration, et il sera plus facile de contraster les deux solutions.
 
-Listing 21-11 shows the changes to make to `main` to spawn a new thread to
-handle each stream within the `for` loop.
+Le Listing 21-11 montre les modifications à apporter à `main` pour lancer un nouveau thread pour gérer chaque flux dans la boucle `for`.
 
-<Listing number="21-11" file-name="src/main.rs" caption="Spawning a new thread for each stream">
+<Listing number="21-11" file-name="src/main.rs" caption="Lancement d'un nouveau thread pour chaque flux">
 
 ```rust,no_run
 {{#rustdoc_include ../listings/ch21-web-server/listing-21-11/src/main.rs:here}}
@@ -125,29 +65,19 @@ handle each stream within the `for` loop.
 
 </Listing>
 
-As you learned in Chapter 16, `thread::spawn` will create a new thread and then
-run the code in the closure in the new thread. If you run this code and load
-_/sleep_ in your browser, then _/_ in two more browser tabs, you’ll indeed see
-that the requests to _/_ don’t have to wait for _/sleep_ to finish. However, as
-we mentioned, this will eventually overwhelm the system because you’d be making
-new threads without any limit.
+Comme vous l'avez appris au Chapitre 16, `thread::spawn` créera un nouveau thread puis exécutera le code dans la fermeture dans le nouveau thread. Si vous exécutez ce code et chargez _/sleep_ dans votre navigateur, puis _/_ dans deux autres onglets de navigateur, vous verrez en effet que les requêtes à _/_ n'ont pas à attendre que _/sleep_ soit terminé. Cependant, comme nous l'avons mentionné, cela finira par submerger le système car vous créeriez de nouveaux threads sans aucune limite.
 
-You may also recall from Chapter 17 that this is exactly the kind of situation
-where async and await really shine! Keep that in mind as we build the thread
-pool and think about how things would look different or the same with async.
+Vous vous souvenez peut-être également du Chapitre 17 que c'est exactement le genre de situation où async et await brillent vraiment ! Gardez cela à l'esprit alors que nous construisons le pool de threads et réfléchissons à la façon dont les choses sembleraient différentes ou similaires avec async.
 
 <!-- Old headings. Do not remove or links may break. -->
 
-<a id="creating-a-similar-interface-for-a-finite-number-of-threads"></a>
+<a id="création-d-une-interface-similaire-pour-un-nombre-fini-de-threads"></a>
 
-#### Creating a Finite Number of Threads
+#### Création d'un Nombre Fini de Threads
 
-We want our thread pool to work in a similar, familiar way so that switching
-from threads to a thread pool doesn’t require large changes to the code that
-uses our API. Listing 21-12 shows the hypothetical interface for a `ThreadPool`
-struct we want to use instead of `thread::spawn`.
+Nous voulons que notre pool de threads fonctionne de manière similaire et familière afin que le passage des threads à un pool de threads ne nécessite pas de grands changements au code qui utilise notre API. Le Listing 21-12 montre l'interface hypothétique pour une structure `ThreadPool` que nous voulons utiliser à la place de `thread::spawn`.
 
-<Listing number="21-12" file-name="src/main.rs" caption="Our ideal `ThreadPool` interface">
+<Listing number="21-12" file-name="src/main.rs" caption="Notre interface idéale `ThreadPool`">
 
 ```rust,ignore,does_not_compile
 {{#rustdoc_include ../listings/ch21-web-server/listing-21-12/src/main.rs:here}}
@@ -155,37 +85,23 @@ struct we want to use instead of `thread::spawn`.
 
 </Listing>
 
-We use `ThreadPool::new` to create a new thread pool with a configurable number
-of threads, in this case four. Then, in the `for` loop, `pool.execute` has a
-similar interface as `thread::spawn` in that it takes a closure that the pool
-should run for each stream. We need to implement `pool.execute` so that it
-takes the closure and gives it to a thread in the pool to run. This code won’t
-yet compile, but we’ll try so that the compiler can guide us in how to fix it.
+Nous utilisons `ThreadPool::new` pour créer un nouveau pool de threads avec un nombre configurable de threads, dans ce cas quatre. Ensuite, dans la boucle `for`, `pool.execute` a une interface similaire à `thread::spawn` en ce sens qu'elle prend une fermeture que le pool doit exécuter pour chaque flux. Nous devons implémenter `pool.execute` afin qu'il prenne la fermeture et la donne à un thread dans le pool pour l'exécuter. Ce code ne compilera pas encore, mais nous allons essayer afin que le compilateur puisse nous guider sur la façon de le corriger.
 
 <!-- Old headings. Do not remove or links may break. -->
 
-<a id="building-the-threadpool-struct-using-compiler-driven-development"></a>
+<a id="construction-de-la-structure-threadpool-en-utilisant-le-développement-piloté-par-le-compilateur"></a>
 
-#### Building `ThreadPool` Using Compiler-Driven Development
+#### Construction de `ThreadPool` en Utilisant le Développement Piloté par le Compilateur
 
-Make the changes in Listing 21-12 to _src/main.rs_, and then let’s use the
-compiler errors from `cargo check` to drive our development. Here is the first
-error we get:
+Apportez les modifications du Listing 21-12 à _src/main.rs_, puis utilisons les erreurs du compilateur de `cargo check` pour guider notre développement. Voici la première erreur que nous obtenons :
 
 ```console
 {{#include ../listings/ch21-web-server/listing-21-12/output.txt}}
 ```
 
-Great! This error tells us we need a `ThreadPool` type or module, so we’ll
-build one now. Our `ThreadPool` implementation will be independent of the kind
-of work our web server is doing. So, let’s switch the `hello` crate from a
-binary crate to a library crate to hold our `ThreadPool` implementation. After
-we change to a library crate, we could also use the separate thread pool
-library for any work we want to do using a thread pool, not just for serving
-web requests.
+Génial ! Cette erreur nous dit que nous avons besoin d'un type ou d'un module `ThreadPool`, donc nous allons en construire un maintenant. Notre implémentation de `ThreadPool` sera indépendante du type de travail que notre serveur web effectue. Donc, convertissons le crate `hello` d'un crate binaire en un crate de bibliothèque pour contenir notre implémentation de `ThreadPool`. Après avoir changé pour un crate de bibliothèque, nous pourrions également utiliser la bibliothèque de pool de threads séparée pour tout travail que nous souhaitons effectuer en utilisant un pool de threads, pas seulement pour servir des requêtes web.
 
-Create a _src/lib.rs_ file that contains the following, which is the simplest
-definition of a `ThreadPool` struct that we can have for now:
+Créez un fichier _src/lib.rs_ contenant ce qui suit, qui est la définition la plus simple d'une structure `ThreadPool` que nous pouvons avoir pour l'instant :
 
 <Listing file-name="src/lib.rs">
 
@@ -195,9 +111,7 @@ definition of a `ThreadPool` struct that we can have for now:
 
 </Listing>
 
-
-Then, edit the _main.rs_ file to bring `ThreadPool` into scope from the library
-crate by adding the following code to the top of _src/main.rs_:
+Ensuite, modifiez le fichier _main.rs_ pour importer `ThreadPool` depuis le crate de bibliothèque en ajoutant le code suivant en haut de _src/main.rs_ :
 
 <Listing file-name="src/main.rs">
 
@@ -207,18 +121,13 @@ crate by adding the following code to the top of _src/main.rs_:
 
 </Listing>
 
-This code still won’t work, but let’s check it again to get the next error that
-we need to address:
+Ce code ne fonctionnera toujours pas, mais vérifions-le à nouveau pour obtenir la prochaine erreur que nous devons résoudre :
 
 ```console
 {{#include ../listings/ch21-web-server/no-listing-01-define-threadpool-struct/output.txt}}
 ```
 
-This error indicates that next we need to create an associated function named
-`new` for `ThreadPool`. We also know that `new` needs to have one parameter
-that can accept `4` as an argument and should return a `ThreadPool` instance.
-Let’s implement the simplest `new` function that will have those
-characteristics:
+Cette erreur indique que nous devons maintenant créer une fonction associée nommée `new` pour `ThreadPool`. Nous savons également que `new` doit avoir un paramètre qui peut accepter `4` comme argument et doit retourner une instance de `ThreadPool`. Implémentons la fonction `new` la plus simple qui aura ces caractéristiques :
 
 <Listing file-name="src/lib.rs">
 
@@ -228,33 +137,17 @@ characteristics:
 
 </Listing>
 
-We chose `usize` as the type of the `size` parameter because we know that a
-negative number of threads doesn’t make any sense. We also know we’ll use this
-`4` as the number of elements in a collection of threads, which is what the
-`usize` type is for, as discussed in the [“Integer Types”][integer-types]<!--
-ignore --> section in Chapter 3.
+Nous avons choisi `usize` comme type du paramètre `size` car nous savons qu'un nombre négatif de threads n'a pas de sens. Nous savons également que nous utiliserons ce `4` comme nombre d'éléments dans une collection de threads, ce qui est ce pour quoi le type `usize` est destiné, comme discuté dans la section [« Types Entiers »][integer-types]<!-- ignore --> du Chapitre 3.
 
-Let’s check the code again:
+Vérifions à nouveau le code :
 
 ```console
 {{#include ../listings/ch21-web-server/no-listing-02-impl-threadpool-new/output.txt}}
 ```
 
-Now the error occurs because we don’t have an `execute` method on `ThreadPool`.
-Recall from the [“Creating a Finite Number of
-Threads”](#creating-a-finite-number-of-threads)<!-- ignore --> section that we
-decided our thread pool should have an interface similar to `thread::spawn`. In
-addition, we’ll implement the `execute` function so that it takes the closure
-it’s given and gives it to an idle thread in the pool to run.
+Maintenant, l'erreur se produit parce que nous n'avons pas de méthode `execute` sur `ThreadPool`. Rappelez-vous de la section [« Création d'un Nombre Fini de Threads »](#creating-a-finite-number-of-threads)<!-- ignore --> où nous avons décidé que notre pool de threads devrait avoir une interface similaire à `thread::spawn`. De plus, nous allons implémenter la fonction `execute` afin qu'elle prenne la fermeture qu'on lui donne et la transmette à un thread inactif du pool pour qu'il l'exécute.
 
-We’ll define the `execute` method on `ThreadPool` to take a closure as a
-parameter. Recall from the [“Moving Captured Values Out of
-Closures”][moving-out-of-closures]<!-- ignore --> in Chapter 13 that we can
-take closures as parameters with three different traits: `Fn`, `FnMut`, and
-`FnOnce`. We need to decide which kind of closure to use here. We know we’ll
-end up doing something similar to the standard library `thread::spawn`
-implementation, so we can look at what bounds the signature of `thread::spawn`
-has on its parameter. The documentation shows us the following:
+Nous allons définir la méthode `execute` sur `ThreadPool` pour qu'elle prenne une fermeture comme paramètre. Rappelez-vous de la section [« Déplacer les Valeurs Capturées Hors des Fermetures »][moving-out-of-closures]<!-- ignore --> dans le Chapitre 13 que nous pouvons prendre des fermetures comme paramètres avec trois traits différents : `Fn`, `FnMut`, et `FnOnce`. Nous devons décider quel type de fermeture utiliser ici. Nous savons que nous allons finalement faire quelque chose de similaire à l'implémentation standard de `thread::spawn`, donc nous pouvons regarder quels types de contraintes a la signature de `thread::spawn` sur son paramètre. La documentation nous montre ce qui suit :
 
 ```rust,ignore
 pub fn spawn<F, T>(f: F) -> JoinHandle<T>
@@ -264,19 +157,9 @@ pub fn spawn<F, T>(f: F) -> JoinHandle<T>
         T: Send + 'static,
 ```
 
-The `F` type parameter is the one we’re concerned with here; the `T` type
-parameter is related to the return value, and we’re not concerned with that. We
-can see that `spawn` uses `FnOnce` as the trait bound on `F`. This is probably
-what we want as well, because we’ll eventually pass the argument we get in
-`execute` to `spawn`. We can be further confident that `FnOnce` is the trait we
-want to use because the thread for running a request will only execute that
-request’s closure one time, which matches the `Once` in `FnOnce`.
+Le paramètre de type `F` est celui qui nous intéresse ici ; le paramètre de type `T` est lié à la valeur de retour, et cela ne nous préoccupe pas. Nous pouvons voir que `spawn` utilise `FnOnce` comme contrainte de trait sur `F`. C'est probablement ce que nous voulons également, car nous allons finalement passer l'argument que nous obtenons dans `execute` à `spawn`. Nous pouvons être encore plus confiants que `FnOnce` est le trait que nous voulons utiliser car le thread exécutant une requête n'exécutera la fermeture de cette requête qu'une seule fois, ce qui correspond à `Once` dans `FnOnce`.
 
-The `F` type parameter also has the trait bound `Send` and the lifetime bound
-`'static`, which are useful in our situation: We need `Send` to transfer the
-closure from one thread to another and `'static` because we don’t know how long
-the thread will take to execute. Let’s create an `execute` method on
-`ThreadPool` that will take a generic parameter of type `F` with these bounds:
+Le paramètre de type `F` a également la contrainte de trait `Send` et la contrainte de durée de vie `'static`, qui sont utiles dans notre situation : nous avons besoin de `Send` pour transférer la fermeture d'un thread à un autre et de `'static` car nous ne savons pas combien de temps le thread prendra pour s'exécuter. Créons une méthode `execute` sur `ThreadPool` qui prendra un paramètre générique de type `F` avec ces contraintes :
 
 <Listing file-name="src/lib.rs">
 
@@ -286,45 +169,25 @@ the thread will take to execute. Let’s create an `execute` method on
 
 </Listing>
 
-We still use the `()` after `FnOnce` because this `FnOnce` represents a closure
-that takes no parameters and returns the unit type `()`. Just like function
-definitions, the return type can be omitted from the signature, but even if we
-have no parameters, we still need the parentheses.
+Nous utilisons toujours `()` après `FnOnce` car ce `FnOnce` représente une fermeture qui ne prend pas de paramètres et renvoie le type unité `()`. Comme pour les définitions de fonctions, le type de retour peut être omis dans la signature, mais même si nous n'avons pas de paramètres, nous avons toujours besoin des parenthèses.
 
-Again, this is the simplest implementation of the `execute` method: It does
-nothing, but we’re only trying to make our code compile. Let’s check it again:
+Encore une fois, il s'agit de la mise en œuvre la plus simple de la méthode `execute` : elle ne fait rien, mais nous essayons seulement de faire compiler notre code. Vérifions-le à nouveau :
 
 ```console
 {{#include ../listings/ch21-web-server/no-listing-03-define-execute/output.txt}}
 ```
 
-It compiles! But note that if you try `cargo run` and make a request in the
-browser, you’ll see the errors in the browser that we saw at the beginning of
-the chapter. Our library isn’t actually calling the closure passed to `execute`
-yet!
+Il compile ! Mais notez que si vous essayez `cargo run` et faites une requête dans le navigateur, vous verrez les erreurs dans le navigateur que nous avons vues au début du chapitre. Notre bibliothèque n'appelle pas encore réellement la fermeture passée à `execute` !
 
-> Note: A saying you might hear about languages with strict compilers, such as
-> Haskell and Rust, is “If the code compiles, it works.” But this saying is not
-> universally true. Our project compiles, but it does absolutely nothing! If we
-> were building a real, complete project, this would be a good time to start
-> writing unit tests to check that the code compiles _and_ has the behavior we
-> want.
+> Remarque : Un dicton que vous pourriez entendre sur les langages avec des compilateurs stricts, comme Haskell et Rust, est « Si le code compile, il fonctionne. » Mais ce dicton n'est pas universellement vrai. Notre projet compile, mais il ne fait absolument rien ! Si nous construisions un vrai projet complet, ce serait un bon moment pour commencer à écrire des tests unitaires pour vérifier que le code compile _et_ a le comportement que nous voulons.
 
-Consider: What would be different here if we were going to execute a future
-instead of a closure?
+Considérez : Qu'est-ce qui serait différent ici si nous devions exécuter un futur plutôt qu'une fermeture ?
 
-#### Validating the Number of Threads in `new`
+#### Validation du Nombre de Threads dans `new`
 
-We aren’t doing anything with the parameters to `new` and `execute`. Let’s
-implement the bodies of these functions with the behavior we want. To start,
-let’s think about `new`. Earlier we chose an unsigned type for the `size`
-parameter because a pool with a negative number of threads makes no sense.
-However, a pool with zero threads also makes no sense, yet zero is a perfectly
-valid `usize`. We’ll add code to check that `size` is greater than zero before
-we return a `ThreadPool` instance, and we’ll have the program panic if it
-receives a zero by using the `assert!` macro, as shown in Listing 21-13.
+Nous ne faisons rien avec les paramètres de `new` et `execute`. Implémentons les corps de ces fonctions avec le comportement que nous voulons. Pour commencer, pensons à `new`. Plus tôt, nous avons choisi un type non signé pour le paramètre `size` parce qu'un pool avec un nombre négatif de threads n'a aucun sens. Cependant, un pool avec zéro threads n'a également aucun sens, mais zéro est un `usize` parfaitement valide. Nous allons ajouter du code pour vérifier que `size` est supérieur à zéro avant de retourner une instance de `ThreadPool`, et nous ferons en sorte que le programme panique s'il reçoit un zéro en utilisant la macro `assert!`, comme le montre le Listing 21-13.
 
-<Listing number="21-13" file-name="src/lib.rs" caption="Implementing `ThreadPool::new` to panic if `size` is zero">
+<Listing number="21-13" file-name="src/lib.rs" caption="Implémentation de `ThreadPool::new` pour paniquer si `size` est zéro">
 
 ```rust,noplayground
 {{#rustdoc_include ../listings/ch21-web-server/listing-21-13/src/lib.rs:here}}
@@ -332,29 +195,17 @@ receives a zero by using the `assert!` macro, as shown in Listing 21-13.
 
 </Listing>
 
-We’ve also added some documentation for our `ThreadPool` with doc comments.
-Note that we followed good documentation practices by adding a section that
-calls out the situations in which our function can panic, as discussed in
-Chapter 14. Try running `cargo doc --open` and clicking the `ThreadPool` struct
-to see what the generated docs for `new` look like!
+Nous avons également ajouté de la documentation pour notre `ThreadPool` avec des commentaires doc. Notez que nous avons suivi de bonnes pratiques de documentation en ajoutant une section qui mentionne les situations dans lesquelles notre fonction peut paniquer, comme discuté au Chapitre 14. Essayez d'exécuter `cargo doc --open` et cliquez sur la structure `ThreadPool` pour voir à quoi ressemblent la documentation générée pour `new` !
 
-Instead of adding the `assert!` macro as we’ve done here, we could change `new`
-into `build` and return a `Result` like we did with `Config::build` in the I/O
-project in Listing 12-9. But we’ve decided in this case that trying to create a
-thread pool without any threads should be an unrecoverable error. If you’re
-feeling ambitious, try to write a function named `build` with the following
-signature to compare with the `new` function:
+Plutôt que d'ajouter la macro `assert!` comme nous l'avons fait ici, nous pourrions transformer `new` en `build` et renvoyer un `Result` comme nous l'avons fait avec `Config::build` dans le projet I/O au Listing 12-9. Mais nous avons décidé dans ce cas que tenter de créer un pool de threads sans aucun thread devrait être une erreur irréparable. Si vous vous sentez ambitieux, essayez d'écrire une fonction nommée `build` avec la signature suivante pour la comparer avec la fonction `new` :
 
 ```rust,ignore
 pub fn build(size: usize) -> Result<ThreadPool, PoolCreationError> {
 ```
 
-#### Creating Space to Store the Threads
+#### Création d'Espace pour Stocker les Threads
 
-Now that we have a way to know we have a valid number of threads to store in
-the pool, we can create those threads and store them in the `ThreadPool` struct
-before returning the struct. But how do we “store” a thread? Let’s take another
-look at the `thread::spawn` signature:
+Maintenant que nous avons un moyen de savoir que nous avons un nombre valide de threads à stocker dans le pool, nous pouvons créer ces threads et les stocker dans la structure `ThreadPool` avant de retourner la structure. Mais comment « stocker » un thread ? Revoyons à nouveau la signature de `thread::spawn` :
 
 ```rust,ignore
 pub fn spawn<F, T>(f: F) -> JoinHandle<T>
@@ -364,18 +215,11 @@ pub fn spawn<F, T>(f: F) -> JoinHandle<T>
         T: Send + 'static,
 ```
 
-The `spawn` function returns a `JoinHandle<T>`, where `T` is the type that the
-closure returns. Let’s try using `JoinHandle` too and see what happens. In our
-case, the closures we’re passing to the thread pool will handle the connection
-and not return anything, so `T` will be the unit type `()`.
+La fonction `spawn` retourne un `JoinHandle<T>`, où `T` est le type que renvoie la fermeture. Essayons également d'utiliser `JoinHandle` et voyons ce qui se passe. Dans notre cas, les fermetures que nous passons au pool de threads géreront la connexion et ne renverront rien, donc `T` sera le type unité `()`.
 
-The code in Listing 21-14 will compile, but it doesn’t create any threads yet.
-We’ve changed the definition of `ThreadPool` to hold a vector of
-`thread::JoinHandle<()>` instances, initialized the vector with a capacity of
-`size`, set up a `for` loop that will run some code to create the threads, and
-returned a `ThreadPool` instance containing them.
+Le code du Listing 21-14 va compiler, mais il ne crée pas encore de threads. Nous avons changé la définition de `ThreadPool` pour contenir un vecteur d'instances `thread::JoinHandle<()>`, initialisé le vecteur avec une capacité de `size`, mis en place une boucle `for` qui exécutera du code pour créer les threads et retourner une instance de `ThreadPool` qui les contiendra.
 
-<Listing number="21-14" file-name="src/lib.rs" caption="Creating a vector for `ThreadPool` to hold the threads">
+<Listing number="21-14" file-name="src/lib.rs" caption="Création d'un vecteur pour que `ThreadPool` contienne les threads">
 
 ```rust,ignore,not_desired_behavior
 {{#rustdoc_include ../listings/ch21-web-server/listing-21-14/src/lib.rs:here}}
@@ -383,69 +227,37 @@ returned a `ThreadPool` instance containing them.
 
 </Listing>
 
-We’ve brought `std::thread` into scope in the library crate because we’re
-using `thread::JoinHandle` as the type of the items in the vector in
-`ThreadPool`.
+Nous avons importé `std::thread` dans le crate de bibliothèque car nous utilisons `thread::JoinHandle` comme type des éléments du vecteur dans `ThreadPool`.
 
-Once a valid size is received, our `ThreadPool` creates a new vector that can
-hold `size` items. The `with_capacity` function performs the same task as
-`Vec::new` but with an important difference: It pre-allocates space in the
-vector. Because we know we need to store `size` elements in the vector, doing
-this allocation up front is slightly more efficient than using `Vec::new`,
-which resizes itself as elements are inserted.
+Une fois qu'une taille valide est reçue, notre `ThreadPool` crée un nouveau vecteur qui peut contenir `size` éléments. La fonction `with_capacity` effectue la même tâche que `Vec::new` mais avec une différence importante : elle pré-alloue de l'espace dans le vecteur. Parce que nous savons que nous devons stocker `size` éléments dans le vecteur, faire cette allocation à l'avance est légèrement plus efficace que d'utiliser `Vec::new`, qui redimensionne lui-même au fur et à mesure que des éléments sont insérés.
 
-When you run `cargo check` again, it should succeed.
+Lorsque vous exécutez à nouveau `cargo check`, il devrait réussir.
 
 <!-- Old headings. Do not remove or links may break. -->
-<a id ="a-worker-struct-responsible-for-sending-code-from-the-threadpool-to-a-thread"></a>
+<a id ="un-structeur-de-travail-responsable-de-l-envoi-de-code-du-threadpool-à-un-thread"></a>
 
-#### Sending Code from the `ThreadPool` to a Thread
+#### Envoi de Code du `ThreadPool` à un Thread
 
-We left a comment in the `for` loop in Listing 21-14 regarding the creation of
-threads. Here, we’ll look at how we actually create threads. The standard
-library provides `thread::spawn` as a way to create threads, and
-`thread::spawn` expects to get some code the thread should run as soon as the
-thread is created. However, in our case, we want to create the threads and have
-them _wait_ for code that we’ll send later. The standard library’s
-implementation of threads doesn’t include any way to do that; we have to
-implement it manually.
+Nous avons laissé un commentaire dans la boucle `for` du Listing 21-14 concernant la création des threads. Ici, nous allons voir comment nous créons effectivement les threads. La bibliothèque standard fournit `thread::spawn` comme moyen de créer des threads, et `thread::spawn` s'attend à recevoir du code que le thread doit exécuter dès que le thread est créé. Cependant, dans notre cas, nous voulons créer les threads et les faire _attendre_ du code que nous enverrons plus tard. L'implémentation standard des threads ne comprend aucun moyen de le faire ; nous devons l'implémenter manuellement.
 
-We’ll implement this behavior by introducing a new data structure between the
-`ThreadPool` and the threads that will manage this new behavior. We’ll call
-this data structure _Worker_, which is a common term in pooling
-implementations. The `Worker` picks up code that needs to be run and runs the
-code in its thread.
+Nous allons mettre en œuvre ce comportement en introduisant une nouvelle structure de données entre le `ThreadPool` et les threads qui gérera ce nouveau comportement. Nous allons appeler cette structure de données _Worker_, ce qui est un terme courant dans les implémentations de pool. Le `Worker` récupère le code qui doit être exécuté et exécute le code dans son thread.
 
-Think of people working in the kitchen at a restaurant: The workers wait until
-orders come in from customers, and then they’re responsible for taking those
-orders and filling them.
+Pensez aux personnes travaillant dans la cuisine d'un restaurant : Les travailleurs attendent que des commandes arrivent de la part des clients, puis ils sont responsables de prendre ces commandes et de les remplir.
 
-Instead of storing a vector of `JoinHandle<()>` instances in the thread pool,
-we’ll store instances of the `Worker` struct. Each `Worker` will store a single
-`JoinHandle<()>` instance. Then, we’ll implement a method on `Worker` that will
-take a closure of code to run and send it to the already running thread for
-execution. We’ll also give each `Worker` an `id` so that we can distinguish
-between the different instances of `Worker` in the pool when logging or
-debugging.
+Au lieu de stocker un vecteur d'instances `JoinHandle<()>` dans le pool de threads, nous allons stocker des instances de la structure `Worker`. Chaque `Worker` stockera une seule instance `JoinHandle<()>`. Ensuite, nous allons implémenter une méthode sur `Worker` qui prendra une fermeture de code à exécuter et l'enverra au thread déjà en cours d'exécution pour l'exécution. Nous donnerons également à chaque `Worker` un `id` afin que nous puissions distinguer les différentes instances de `Worker` dans le pool lors de la journalisation ou du débogage.
 
-Here is the new process that will happen when we create a `ThreadPool`. We’ll
-implement the code that sends the closure to the thread after we have `Worker`
-set up in this way:
+Voici le nouveau processus qui se produira lorsque nous créerons un `ThreadPool`. Nous allons implémenter le code qui enverra la fermeture au thread après avoir configuré `Worker` de cette manière :
 
-1. Define a `Worker` struct that holds an `id` and a `JoinHandle<()>`.
-2. Change `ThreadPool` to hold a vector of `Worker` instances.
-3. Define a `Worker::new` function that takes an `id` number and returns a
-   `Worker` instance that holds the `id` and a thread spawned with an empty
-   closure.
-4. In `ThreadPool::new`, use the `for` loop counter to generate an `id`, create
-   a new `Worker` with that `id`, and store the `Worker` in the vector.
+1. Définir une structure `Worker` qui contient un `id` et un `JoinHandle<()>`.
+2. Changer `ThreadPool` pour contenir un vecteur d'instances `Worker`.
+3. Définir une fonction `Worker::new` qui prend un numéro `id` et retourne une instance `Worker` qui contient l`'id` et un thread créé avec une fermeture vide.
+4. Dans `ThreadPool::new`, utiliser le compteur de boucle `for` pour générer un `id`, créer un nouveau `Worker` avec cet `id`, et stocker le `Worker` dans le vecteur.
 
-If you’re up for a challenge, try implementing these changes on your own before
-looking at the code in Listing 21-15.
+Si vous vous sentez prêt pour un défi, essayez d'implémenter ces changements par vous-même avant de regarder le code du Listing 21-15.
 
-Ready? Here is Listing 21-15 with one way to make the preceding modifications.
+Prêt ? Voici le Listing 21-15 avec une façon de faire les modifications précédentes.
 
-<Listing number="21-15" file-name="src/lib.rs" caption="Modifying `ThreadPool` to hold `Worker` instances instead of holding threads directly">
+<Listing number="21-15" file-name="src/lib.rs" caption="Modification de `ThreadPool` pour contenir des instances de `Worker` au lieu de contenir des threads directement">
 
 ```rust,noplayground
 {{#rustdoc_include ../listings/ch21-web-server/listing-21-15/src/lib.rs:here}}
@@ -453,59 +265,31 @@ Ready? Here is Listing 21-15 with one way to make the preceding modifications.
 
 </Listing>
 
-We’ve changed the name of the field on `ThreadPool` from `threads` to `workers`
-because it’s now holding `Worker` instances instead of `JoinHandle<()>`
-instances. We use the counter in the `for` loop as an argument to
-`Worker::new`, and we store each new `Worker` in the vector named `workers`.
+Nous avons changé le nom du champ sur `ThreadPool` de `threads` à `workers` car il contient maintenant des instances de `Worker` au lieu d'instances de `JoinHandle<()>`. Nous utilisons le compteur dans la boucle `for` comme argument pour `Worker::new`, et nous stockons chaque nouveau `Worker` dans le vecteur nommé `workers`.
 
-External code (like our server in _src/main.rs_) doesn’t need to know the
-implementation details regarding using a `Worker` struct within `ThreadPool`,
-so we make the `Worker` struct and its `new` function private. The
-`Worker::new` function uses the `id` we give it and stores a `JoinHandle<()>`
-instance that is created by spawning a new thread using an empty closure.
+Le code externe (comme notre serveur dans _src/main.rs_) n'a pas besoin de connaître les détails d'implémentation concernant l'utilisation d'une structure `Worker` au sein de `ThreadPool`, nous rendons donc la structure `Worker` et sa fonction `new` privées. La fonction `Worker::new` utilise l'`id` que nous lui donnons et stocke une instance de `JoinHandle<()>` qui est créée en lançant un nouveau thread avec une fermeture vide.
 
-> Note: If the operating system can’t create a thread because there aren’t
-> enough system resources, `thread::spawn` will panic. That will cause our
-> whole server to panic, even though the creation of some threads might
-> succeed. For simplicity’s sake, this behavior is fine, but in a production
-> thread pool implementation, you’d likely want to use
-> [`std::thread::Builder`][builder]<!-- ignore --> and its
-> [`spawn`][builder-spawn]<!-- ignore --> method that returns `Result` instead.
+> Remarque : Si le système d'exploitation ne peut pas créer un thread parce qu'il n'y a pas assez de ressources système, `thread::spawn` panique. Cela fera paniquer notre serveur entier, même si la création de certains threads pourrait réussir. Pour des raisons de simplicité, ce comportement est acceptable, mais dans une implémentation de pool de threads en production, vous voudriez probablement utiliser [`std::thread::Builder`][builder]<!-- ignore --> et sa méthode [`spawn`][builder-spawn]<!-- ignore --> qui retourne un `Result`.
 
-This code will compile and will store the number of `Worker` instances we
-specified as an argument to `ThreadPool::new`. But we’re _still_ not processing
-the closure that we get in `execute`. Let’s look at how to do that next.
+Ce code va compiler et stockera le nombre d'instances `Worker` que nous avons spécifié comme argument pour `ThreadPool::new`. Mais nous ne traitons _toujours pas_ la fermeture que nous obtenons dans `execute`. Voyons comment le faire ensuite.
 
-#### Sending Requests to Threads via Channels
+#### Envoi de Requêtes aux Threads via des Canaux
 
-The next problem we’ll tackle is that the closures given to `thread::spawn` do
-absolutely nothing. Currently, we get the closure we want to execute in the
-`execute` method. But we need to give `thread::spawn` a closure to run when we
-create each `Worker` during the creation of the `ThreadPool`.
+Le prochain problème que nous allons aborder est que les fermetures données à `thread::spawn` ne font absolument rien. Actuellement, nous obtenons la fermeture que nous voulons exécuter dans la méthode `execute`. Mais nous devons donner à `thread::spawn` une fermeture à exécuter lorsque nous créons chaque `Worker` durant la création du `ThreadPool`.
 
-We want the `Worker` structs that we just created to fetch the code to run from
-a queue held in the `ThreadPool` and send that code to its thread to run.
+Nous voulons que les structures `Worker` que nous venons de créer récupèrent le code à exécuter à partir d'une file d'attente détenue dans le `ThreadPool` et envoient ce code à son thread pour l'exécution.
 
-The channels we learned about in Chapter 16—a simple way to communicate between
-two threads—would be perfect for this use case. We’ll use a channel to function
-as the queue of jobs, and `execute` will send a job from the `ThreadPool` to
-the `Worker` instances, which will send the job to its thread. Here is the plan:
+Les canaux que nous avons appris au Chapitre 16 - un moyen simple de communiquer entre deux threads - seraient parfaits pour ce cas d'utilisation. Nous allons utiliser un canal pour fonctionner comme la file d'attente des travaux, et `execute` enverra un travail du `ThreadPool` aux instances de `Worker`, qui enverront le travail à son thread. Voici le plan :
 
-1. The `ThreadPool` will create a channel and hold on to the sender.
-2. Each `Worker` will hold on to the receiver.
-3. We’ll create a new `Job` struct that will hold the closures we want to send
-   down the channel.
-4. The `execute` method will send the job it wants to execute through the
-   sender.
-5. In its thread, the `Worker` will loop over its receiver and execute the
-   closures of any jobs it receives.
+1. Le `ThreadPool` créera un canal et gardera l'émetteur.
+2. Chaque `Worker` conservera le récepteur.
+3. Nous créerons une nouvelle structure `Job` qui contiendra les fermetures que nous voulons envoyer via le canal.
+4. La méthode `execute` enverra le travail qu'elle souhaite exécuter via l'émetteur.
+5. Dans son thread, le `Worker` bouclera sur son récepteur et exécutera les fermetures de tout travail qu'il recevra.
 
-Let’s start by creating a channel in `ThreadPool::new` and holding the sender
-in the `ThreadPool` instance, as shown in Listing 21-16. The `Job` struct
-doesn’t hold anything for now but will be the type of item we’re sending down
-the channel.
+Commençons par créer un canal dans `ThreadPool::new` et garder l'émetteur dans l'instance de `ThreadPool`, comme indiqué dans le Listing 21-16. La structure `Job` ne conserve rien pour l'instant mais sera le type d'élément que nous envoyons via le canal.
 
-<Listing number="21-16" file-name="src/lib.rs" caption="Modifying `ThreadPool` to store the sender of a channel that transmits `Job` instances">
+<Listing number="21-16" file-name="src/lib.rs" caption="Modification de `ThreadPool` pour stocker l'émetteur d'un canal qui transmet des instances `Job`">
 
 ```rust,noplayground
 {{#rustdoc_include ../listings/ch21-web-server/listing-21-16/src/lib.rs:here}}
@@ -513,15 +297,11 @@ the channel.
 
 </Listing>
 
-In `ThreadPool::new`, we create our new channel and have the pool hold the
-sender. This will successfully compile.
+Dans `ThreadPool::new`, nous créons notre nouveau canal et faisons en sorte que le pool conserve l'émetteur. Cela compilera avec succès.
 
-Let’s try passing a receiver of the channel into each `Worker` as the thread
-pool creates the channel. We know we want to use the receiver in the thread that
-the `Worker` instances spawn, so we’ll reference the `receiver` parameter in the
-closure. The code in Listing 21-17 won’t quite compile yet.
+Essayons de passer un récepteur du canal à chaque `Worker` pendant que le pool de threads crée le canal. Nous savons que nous voulons utiliser le récepteur dans le thread que les instances `Worker` lancent, donc nous allons référencer le paramètre `receiver` dans la fermeture. Le code du Listing 21-17 ne compilera pas encore tout à fait.
 
-<Listing number="21-17" file-name="src/lib.rs" caption="Passing the receiver to each `Worker`">
+<Listing number="21-17" file-name="src/lib.rs" caption="Passage du récepteur à chaque `Worker`">
 
 ```rust,ignore,does_not_compile
 {{#rustdoc_include ../listings/ch21-web-server/listing-21-17/src/lib.rs:here}}
@@ -529,34 +309,21 @@ closure. The code in Listing 21-17 won’t quite compile yet.
 
 </Listing>
 
-We’ve made some small and straightforward changes: We pass the receiver into
-`Worker::new`, and then we use it inside the closure.
+Nous avons apporté quelques modifications petites et simples : Nous passons le récepteur à `Worker::new`, puis nous l'utilisons à l'intérieur de la fermeture.
 
-When we try to check this code, we get this error:
+Lorsque nous essayons de vérifier ce code, nous obtenons cette erreur :
 
 ```console
 {{#include ../listings/ch21-web-server/listing-21-17/output.txt}}
 ```
 
-The code is trying to pass `receiver` to multiple `Worker` instances. This
-won’t work, as you’ll recall from Chapter 16: The channel implementation that
-Rust provides is multiple _producer_, single _consumer_. This means we can’t
-just clone the consuming end of the channel to fix this code. We also don’t
-want to send a message multiple times to multiple consumers; we want one list
-of messages with multiple `Worker` instances such that each message gets
-processed once.
+Le code essaie de passer le `receiver` à plusieurs instances de `Worker`. Cela ne fonctionnera pas, comme vous vous en souvenez du Chapitre 16 : L'implémentation du canal que Rust fournit est à produit multiple, consommateur unique. Cela signifie que nous ne pouvons pas simplement cloner l'extrémité consommante du canal pour corriger ce code. De plus, nous ne voulons pas envoyer un message plusieurs fois à plusieurs consommateurs ; nous voulons une seule liste de messages avec plusieurs instances de `Worker` de sorte que chaque message soit traité une fois.
 
-Additionally, taking a job off the channel queue involves mutating the
-`receiver`, so the threads need a safe way to share and modify `receiver`;
-otherwise, we might get race conditions (as covered in Chapter 16).
+De plus, retirer un travail de la file d'attente du canal implique de modifier le `receiver`, donc les threads ont besoin d'un moyen sûr de partager et de modifier le `receiver` ; autrement, nous pourrions avoir des conditions de course (comme couvertes dans le Chapitre 16).
 
-Recall the thread-safe smart pointers discussed in Chapter 16: To share
-ownership across multiple threads and allow the threads to mutate the value, we
-need to use `Arc<Mutex<T>>`. The `Arc` type will let multiple `Worker` instances
-own the receiver, and `Mutex` will ensure that only one `Worker` gets a job from
-the receiver at a time. Listing 21-18 shows the changes we need to make.
+Rappelez-vous des pointeurs intelligents thread-sûrs discutés au Chapitre 16 : Pour partager la propriété entre plusieurs threads et permettre aux threads de modifier la valeur, nous devons utiliser `Arc<Mutex<T>>`. Le type `Arc` permettra à plusieurs instances de `Worker` de posséder le récepteur, et `Mutex` garantira qu'un seul `Worker` obtient un travail du récepteur à la fois. Le Listing 21-18 montre les modifications que nous devons apporter.
 
-<Listing number="21-18" file-name="src/lib.rs" caption="Sharing the receiver among the `Worker` instances using `Arc` and `Mutex`">
+<Listing number="21-18" file-name="src/lib.rs" caption="Partage du récepteur entre les instances `Worker` en utilisant `Arc` et `Mutex`">
 
 ```rust,noplayground
 {{#rustdoc_include ../listings/ch21-web-server/listing-21-18/src/lib.rs:here}}
@@ -564,21 +331,15 @@ the receiver at a time. Listing 21-18 shows the changes we need to make.
 
 </Listing>
 
-In `ThreadPool::new`, we put the receiver in an `Arc` and a `Mutex`. For each
-new `Worker`, we clone the `Arc` to bump the reference count so that the
-`Worker` instances can share ownership of the receiver.
+Dans `ThreadPool::new`, nous mettons le récepteur dans un `Arc` et un `Mutex`. Pour chaque nouveau `Worker`, nous clonons l'`Arc` pour augmenter le compte de référence afin que les instances `Worker` puissent partager la propriété du récepteur.
 
-With these changes, the code compiles! We’re getting there!
+Avec ces changements, le code compile ! Nous progressons !
 
-#### Implementing the `execute` Method
+#### Implémentation de la Méthode `execute`
 
-Let’s finally implement the `execute` method on `ThreadPool`. We’ll also change
-`Job` from a struct to a type alias for a trait object that holds the type of
-closure that `execute` receives. As discussed in the [“Type Synonyms and Type
-Aliases”][type-aliases]<!-- ignore --> section in Chapter 20, type aliases
-allow us to make long types shorter for ease of use. Look at Listing 21-19.
+Implémentons enfin la méthode `execute` sur `ThreadPool`. Nous allons également changer `Job` d'une structure à un alias de type pour un objet de trait qui contient le type de fermeture que `execute` reçoit. Comme discuté dans la section [« Synonymes de Type et Alias de Type »][type-aliases]<!-- ignore --> du Chapitre 20, les alias de type nous permettent de raccourcir des types longs pour faciliter l'utilisation. Regardez le Listing 21-19.
 
-<Listing number="21-19" file-name="src/lib.rs" caption="Creating a `Job` type alias for a `Box` that holds each closure and then sending the job down the channel">
+<Listing number="21-19" file-name="src/lib.rs" caption="Création d'un alias de type `Job` pour un `Box` qui contient chaque fermeture et ensuite envoi du travail via le canal">
 
 ```rust,noplayground
 {{#rustdoc_include ../listings/ch21-web-server/listing-21-19/src/lib.rs:here}}
@@ -586,22 +347,11 @@ allow us to make long types shorter for ease of use. Look at Listing 21-19.
 
 </Listing>
 
-After creating a new `Job` instance using the closure we get in `execute`, we
-send that job down the sending end of the channel. We’re calling `unwrap` on
-`send` for the case that sending fails. This might happen if, for example, we
-stop all our threads from executing, meaning the receiving end has stopped
-receiving new messages. At the moment, we can’t stop our threads from
-executing: Our threads continue executing as long as the pool exists. The
-reason we use `unwrap` is that we know the failure case won’t happen, but the
-compiler doesn’t know that.
+Après avoir créé une nouvelle instance `Job` en utilisant la fermeture que nous recevons dans `execute`, nous envoyons ce travail à l'extrémité d'envoi du canal. Nous appelons `unwrap` sur `send` pour le cas où l'envoi échoue. Cela peut arriver si, par exemple, nous arrêtons tous nos threads d'exécuter, ce qui signifie que l'extrémité recevant a arrêté de recevoir de nouveaux messages. Pour le moment, nous ne pouvons pas arrêter nos threads d'exécuter : Nos threads continuent à s'exécuter tant que le pool existe. La raison pour laquelle nous utilisons `unwrap` est que nous savons que le cas d'échec ne se produira pas, mais le compilateur ne le sait pas.
 
-But we’re not quite done yet! In the `Worker`, our closure being passed to
-`thread::spawn` still only _references_ the receiving end of the channel.
-Instead, we need the closure to loop forever, asking the receiving end of the
-channel for a job and running the job when it gets one. Let’s make the change
-shown in Listing 21-20 to `Worker::new`.
+Mais nous n'avons pas tout à fait fini ! Dans le `Worker`, notre fermeture passée à `thread::spawn` ne fait toujours que _référencer_ l'extrémité recevant du canal. Au lieu de cela, nous avons besoin que la fermeture boucle indéfiniment, demandant l'extrémité recevant du canal pour un travail et exécutant le travail lorsqu'elle en reçoit un. Apportons le changement montré dans le Listing 21-20 à `Worker::new`.
 
-<Listing number="21-20" file-name="src/lib.rs" caption="Receiving and executing the jobs in the `Worker` instance’s thread">
+<Listing number="21-20" file-name="src/lib.rs" caption="Réception et exécution des travaux dans le thread de l'instance `Worker`">
 
 ```rust,noplayground
 {{#rustdoc_include ../listings/ch21-web-server/listing-21-20/src/lib.rs:here}}
@@ -609,92 +359,66 @@ shown in Listing 21-20 to `Worker::new`.
 
 </Listing>
 
-Here, we first call `lock` on the `receiver` to acquire the mutex, and then we
-call `unwrap` to panic on any errors. Acquiring a lock might fail if the mutex
-is in a _poisoned_ state, which can happen if some other thread panicked while
-holding the lock rather than releasing the lock. In this situation, calling
-`unwrap` to have this thread panic is the correct action to take. Feel free to
-change this `unwrap` to an `expect` with an error message that is meaningful to
-you.
+Ici, nous appelons d'abord `lock` sur le `receiver` pour acquérir le mutex, puis nous appelons `unwrap` pour paniquer sur toute erreur. Acquérir un verrou peut échouer si le mutex est dans un état _empoisonné_, ce qui peut se produire si un autre thread a paniqué tout en tenant le verrou plutôt qu'en le libérant. Dans cette situation, appeler `unwrap` pour faire paniquer ce thread est la bonne chose à faire. N'hésitez pas à changer ce `unwrap` en un `expect` avec un message d'erreur significatif pour vous.
 
-If we get the lock on the mutex, we call `recv` to receive a `Job` from the
-channel. A final `unwrap` moves past any errors here as well, which might occur
-if the thread holding the sender has shut down, similar to how the `send`
-method returns `Err` if the receiver shuts down.
+Si nous obtenons le verrou sur le mutex, nous appelons `recv` pour recevoir un `Job` du canal. Un dernier `unwrap` passe également les erreurs, car elles peuvent se produire si le thread tenant l'émetteur a été fermé, de la même manière que la méthode `send` renvoie `Err` si le récepteur se ferme.
 
-The call to `recv` blocks, so if there is no job yet, the current thread will
-wait until a job becomes available. The `Mutex<T>` ensures that only one
-`Worker` thread at a time is trying to request a job.
+L'appel à `recv` bloque, donc s'il n'y a pas de travail pour l'instant, le thread actuel attendra jusqu'à ce qu'un travail devienne disponible. Le `Mutex<T>` garantit qu'un seul thread `Worker` à la fois tente de demander un travail.
 
-Our thread pool is now in a working state! Give it a `cargo run` and make some
-requests:
+Notre pool de threads est maintenant dans un état de fonctionnement ! Faites un `cargo run` et faites quelques requêtes :
 
-<!-- manual-regeneration
+<!-- régénération-manuelle
 cd listings/ch21-web-server/listing-21-20
 cargo run
-make some requests to 127.0.0.1:7878
-Can't automate because the output depends on making requests
+faire des requêtes à 127.0.0.1:7878
+Impossible d'automatiser car la sortie dépend des requêtes faites
 -->
 
 ```console
 $ cargo run
    Compiling hello v0.1.0 (file:///projects/hello)
-warning: field `workers` is never read
+warning: le champ `workers` n'est jamais lu
  --> src/lib.rs:7:5
   |
 6 | pub struct ThreadPool {
-  |            ---------- field in this struct
+  |            ---------- champ dans cette structure
 7 |     workers: Vec<Worker>,
   |     ^^^^^^^
   |
-  = note: `#[warn(dead_code)]` on by default
+  = note : `#[warn(dead_code)]` par défaut
 
-warning: fields `id` and `thread` are never read
+warning: les champs `id` et `thread` ne sont jamais lus
   --> src/lib.rs:48:5
    |
 47 | struct Worker {
-   |        ------ fields in this struct
+   |        ------ champs dans cette structure
 48 |     id: usize,
    |     ^^
 49 |     thread: thread::JoinHandle<()>,
    |     ^^^^^^
 
-warning: `hello` (lib) generated 2 warnings
+warning: `hello` (lib) a généré 2 avertissements
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.91s
      Running `target/debug/hello`
-Worker 0 got a job; executing.
-Worker 2 got a job; executing.
-Worker 1 got a job; executing.
-Worker 3 got a job; executing.
-Worker 0 got a job; executing.
-Worker 2 got a job; executing.
-Worker 1 got a job; executing.
-Worker 3 got a job; executing.
-Worker 0 got a job; executing.
-Worker 2 got a job; executing.
+Worker 0 a reçu un travail ; exécution en cours.
+Worker 2 a reçu un travail ; exécution en cours.
+Worker 1 a reçu un travail ; exécution en cours.
+Worker 3 a reçu un travail ; exécution en cours.
+Worker 0 a reçu un travail ; exécution en cours.
+Worker 2 a reçu un travail ; exécution en cours.
+Worker 1 a reçu un travail ; exécution en cours.
+Worker 3 a reçu un travail ; exécution en cours.
 ```
 
-Success! We now have a thread pool that executes connections asynchronously.
-There are never more than four threads created, so our system won’t get
-overloaded if the server receives a lot of requests. If we make a request to
-_/sleep_, the server will be able to serve other requests by having another
-thread run them.
+Succès ! Nous avons maintenant un pool de threads qui exécute les connexions de manière asynchrone. Il n'y a jamais plus de quatre threads créés, donc notre système ne sera pas submergé si le serveur reçoit beaucoup de requêtes. Si nous faisons une requête à _/sleep_, le serveur pourra servir d'autres requêtes en faisant exécuter celles-ci par un autre thread.
 
-> Note: If you open _/sleep_ in multiple browser windows simultaneously, they
-> might load one at a time in five-second intervals. Some web browsers execute
-> multiple instances of the same request sequentially for caching reasons. This
-> limitation is not caused by our web server.
+> Remarque : Si vous ouvrez _/sleep_ dans plusieurs fenêtres de navigateur simultanément, elles peuvent se charger une par une par intervalles de cinq secondes. Certains navigateurs web exécutent plusieurs instances de la même requête successivement pour des raisons de mise en cache. Cette limitation n'est pas causée par notre serveur web.
 
-This is a good time to pause and consider how the code in Listings 21-18, 21-19,
-and 21-20 would be different if we were using futures instead of a closure for
-the work to be done. What types would change? How would the method signatures be
-different, if at all? What parts of the code would stay the same?
+C'est un bon moment pour faire une pause et réfléchir à la façon dont le code dans les Listings 21-18, 21-19, et 21-20 serait différent si nous utilisions des futurs au lieu d'une fermeture pour le travail à réaliser. Quels types changeraient ? Comment les signatures des méthodes seraient-elles différentes, le cas échéant ? Quelles parties du code resteraient les mêmes ?
 
-After learning about the `while let` loop in Chapter 17 and Chapter 19, you
-might be wondering why we didn’t write the `Worker` thread code as shown in
-Listing 21-21.
+Après avoir appris sur la boucle `while let` dans le Chapitre 17 et le Chapitre 19, vous vous demandez peut-être pourquoi nous n'avons pas écrit le code du thread `Worker` comme indiqué dans le Listing 21-21.
 
-<Listing number="21-21" file-name="src/lib.rs" caption="An alternative implementation of `Worker::new` using `while let`">
+<Listing number="21-21" file-name="src/lib.rs" caption="Une implémentation alternative de `Worker::new` utilisant `while let`">
 
 ```rust,ignore,not_desired_behavior
 {{#rustdoc_include ../listings/ch21-web-server/listing-21-21/src/lib.rs:here}}
@@ -702,24 +426,9 @@ Listing 21-21.
 
 </Listing>
 
-This code compiles and runs but doesn’t result in the desired threading
-behavior: A slow request will still cause other requests to wait to be
-processed. The reason is somewhat subtle: The `Mutex` struct has no public
-`unlock` method because the ownership of the lock is based on the lifetime of
-the `MutexGuard<T>` within the `LockResult<MutexGuard<T>>` that the `lock`
-method returns. At compile time, the borrow checker can then enforce the rule
-that a resource guarded by a `Mutex` cannot be accessed unless we hold the
-lock. However, this implementation can also result in the lock being held
-longer than intended if we aren’t mindful of the lifetime of the
-`MutexGuard<T>`.
+Ce code compile et s'exécute mais ne produit pas le comportement de threading souhaité : Une requête lente entraînera toujours d'autres requêtes en attente d'être traitées. La raison est quelque peu subtile : La structure `Mutex` n'a pas de méthode publique `unlock` car la propriété du verrou est basée sur la durée de vie du `MutexGuard<T>` dans `LockResult<MutexGuard<T>>` que la méthode `lock` retourne. Au moment de la compilation, le vérificateur d'emprunt peut alors faire respecter la règle selon laquelle une ressource protégée par un `Mutex` ne peut être accessible que si nous tenons le verrou. Cependant, cette implémentation peut également entraîner une tenue du verrou plus longtemps que prévu si nous ne sommes pas attentifs à la durée de vie de `MutexGuard<T>`.
 
-The code in Listing 21-20 that uses `let job =
-receiver.lock().unwrap().recv().unwrap();` works because with `let`, any
-temporary values used in the expression on the right-hand side of the equal
-sign are immediately dropped when the `let` statement ends. However, `while
-let` (and `if let` and `match`) does not drop temporary values until the end of
-the associated block. In Listing 21-21, the lock remains held for the duration
-of the call to `job()`, meaning other `Worker` instances cannot receive jobs.
+Le code dans le Listing 21-20 qui utilise `let job = receiver.lock().unwrap().recv().unwrap();` fonctionne parce qu'avec `let`, toutes les valeurs temporaires utilisées dans l'expression sur le côté droit du signe égal sont immédiatement supprimées lorsque la déclaration `let` se termine. Cependant, `while let` (et `if let` et `match`) ne supprime pas les valeurs temporaires jusqu'à la fin du bloc associé. Dans le Listing 21-21, le verrou reste détenu pendant la durée de l'appel à `job()`, ce qui signifie que d'autres instances de `Worker` ne peuvent pas recevoir de travaux.
 
 [type-aliases]: ch20-03-advanced-types.html#type-synonyms-and-type-aliases
 [integer-types]: ch03-02-data-types.html#integer-types

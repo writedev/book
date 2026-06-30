@@ -1,101 +1,49 @@
-<!-- Old headings. Do not remove or links may break. -->
+<!-- Anciennes en-têtes. Ne pas supprimer ou les liens peuvent être rompus. -->
 
 <a id="extensible-concurrency-with-the-sync-and-send-traits"></a>
 <a id="extensible-concurrency-with-the-send-and-sync-traits"></a>
 
-## Extensible Concurrency with `Send` and `Sync`
+## Concurrence extensible avec `Send` et `Sync`
 
-Interestingly, almost every concurrency feature we’ve talked about so far in
-this chapter has been part of the standard library, not the language. Your
-options for handling concurrency are not limited to the language or the
-standard library; you can write your own concurrency features or use those
-written by others.
+Fait intéressant, presque toutes les fonctionnalités de concurrence dont nous avons parlé jusqu'à présent dans ce chapitre font partie de la bibliothèque standard, et non du langage. Vos options de gestion de la concurrence ne se limitent pas au langage ou à la bibliothèque standard ; vous pouvez écrire vos propres fonctionnalités de concurrence ou utiliser celles écrites par d'autres.
 
-However, among the key concurrency concepts that are embedded in the language
-rather than the standard library are the `std::marker` traits `Send` and `Sync`.
+Cependant, parmi les concepts clés de la concurrence qui sont intégrés dans le langage plutôt que dans la bibliothèque standard, on trouve les traits `Send` et `Sync` de `std::marker`.
 
-<!-- Old headings. Do not remove or links may break. -->
+<!-- Anciennes en-têtes. Ne pas supprimer ou les liens peuvent être rompus. -->
 
 <a id="allowing-transference-of-ownership-between-threads-with-send"></a>
 
-### Transferring Ownership Between Threads
+### Transfert de propriété entre les threads
 
-The `Send` marker trait indicates that ownership of values of the type
-implementing `Send` can be transferred between threads. Almost every Rust type
-implements `Send`, but there are some exceptions, including `Rc<T>`: This
-cannot implement `Send` because if you cloned an `Rc<T>` value and tried to
-transfer ownership of the clone to another thread, both threads might update
-the reference count at the same time. For this reason, `Rc<T>` is implemented
-for use in single-threaded situations where you don’t want to pay the
-thread-safe performance penalty.
+Le trait marqueur `Send` indique que la propriété de valeurs du type implémentant `Send` peut être transférée entre les threads. La quasi-totalité des types Rust implémente `Send`, mais il existe quelques exceptions, notamment `Rc<T>` : cela ne peut pas implémenter `Send` car si vous clonez une valeur `Rc<T>` et essayez de transférer la propriété du clone à un autre thread, les deux threads pourraient mettre à jour le compteur de références en même temps. Pour cette raison, `Rc<T>` est implémenté pour être utilisé dans des situations à thread unique où vous ne voulez pas supporter la pénalité de performance liée à la sécurité des threads.
 
-Therefore, Rust’s type system and trait bounds ensure that you can never
-accidentally send an `Rc<T>` value across threads unsafely. When we tried to do
-this in Listing 16-14, we got the error `` the trait `Send` is not implemented
-for `Rc<Mutex<i32>>` ``. When we switched to `Arc<T>`, which does implement
-`Send`, the code compiled.
+Par conséquent, le système de types de Rust et les bornes de traits garantissent que vous ne pouvez jamais envoyer accidentellement une valeur `Rc<T>` entre les threads de manière non sécurisée. Lorsque nous avons essayé de le faire dans la Liste 16-14, nous avons obtenu l'erreur `` le trait `Send` n'est pas implémenté pour `Rc<Mutex<i32>>` ``. Lorsque nous sommes passés à `Arc<T>`, qui implémente `Send`, le code a compilé.
 
-Any type composed entirely of `Send` types is automatically marked as `Send` as
-well. Almost all primitive types are `Send`, aside from raw pointers, which
-we’ll discuss in Chapter 20.
+Tout type composé uniquement de types `Send` est automatiquement marqué comme `Send` également. Presque tous les types primitifs sont `Send`, à l'exception des pointeurs bruts, que nous aborderons au chapitre 20.
 
-<!-- Old headings. Do not remove or links may break. -->
+<!-- Anciennes en-têtes. Ne pas supprimer ou les liens peuvent être rompus. -->
 
 <a id="allowing-access-from-multiple-threads-with-sync"></a>
 
-### Accessing from Multiple Threads
+### Accès à partir de plusieurs threads
 
-The `Sync` marker trait indicates that it is safe for the type implementing
-`Sync` to be referenced from multiple threads. In other words, any type `T`
-implements `Sync` if `&T` (an immutable reference to `T`) implements `Send`,
-meaning the reference can be sent safely to another thread. Similar to `Send`,
-primitive types all implement `Sync`, and types composed entirely of types that
-implement `Sync` also implement `Sync`.
+Le trait marqueur `Sync` indique qu'il est sûr que le type implémentant `Sync` soit référencé à partir de plusieurs threads. En d'autres termes, tout type `T` implémente `Sync` si `&T` (une référence immuable à `T`) implémente `Send`, ce qui signifie que la référence peut être envoyée en toute sécurité à un autre thread. À l'instar de `Send`, tous les types primitifs implémentent `Sync`, et les types entièrement composés de types qui implémentent `Sync` implémentent également `Sync`.
 
-The smart pointer `Rc<T>` also doesn’t implement `Sync` for the same reasons
-that it doesn’t implement `Send`. The `RefCell<T>` type (which we talked about
-in Chapter 15) and the family of related `Cell<T>` types don’t implement
-`Sync`. The implementation of borrow checking that `RefCell<T>` does at runtime
-is not thread-safe. The smart pointer `Mutex<T>` implements `Sync` and can be
-used to share access with multiple threads, as you saw in [“Shared Access to
-`Mutex<T>`”][shared-access]<!-- ignore -->.
+Le pointeur intelligent `Rc<T>` n'implémente également pas `Sync` pour les mêmes raisons qu'il n'implémente pas `Send`. Le type `RefCell<T>` (dont nous avons parlé au chapitre 15) et la famille de types `Cell<T>` associés n'implémentent pas `Sync`. L'implémentation de la vérification d'emprunt que `RefCell<T>` effectue à l'exécution n'est pas sécurisée pour les threads. Le pointeur intelligent `Mutex<T>` implémente `Sync` et peut être utilisé pour partager un accès avec plusieurs threads, comme vous l'avez vu dans [« Accès partagé à `Mutex<T>` »][shared-access]<!-- ignorer -->.
 
-### Implementing `Send` and `Sync` Manually Is Unsafe
+### Implémentation manuelle de `Send` et `Sync` est non sécurisée
 
-Because types composed entirely of other types that implement the `Send` and
-`Sync` traits also automatically implement `Send` and `Sync`, we don’t have to
-implement those traits manually. As marker traits, they don’t even have any
-methods to implement. They’re just useful for enforcing invariants related to
-concurrency.
+Parce que les types entièrement composés d'autres types qui implémentent les traits `Send` et `Sync` implémentent également automatiquement `Send` et `Sync`, nous n'avons pas besoin d'implémenter ces traits manuellement. En tant que traits marqueurs, ils n'ont même pas de méthodes à implémenter. Ils sont simplement utiles pour faire respecter les invariants liés à la concurrence.
 
-Manually implementing these traits involves implementing unsafe Rust code.
-We’ll talk about using unsafe Rust code in Chapter 20; for now, the important
-information is that building new concurrent types not made up of `Send` and
-`Sync` parts requires careful thought to uphold the safety guarantees. [“The
-Rustonomicon”][nomicon] has more information about these guarantees and how to
-uphold them.
+L'implémentation manuelle de ces traits implique la mise en œuvre de code Rust non sécurisé. Nous parlerons de l'utilisation du code Rust non sécurisé au chapitre 20 ; pour l'instant, l'information importante est que la création de nouveaux types concurrents qui ne sont pas composés de parties `Send` et `Sync` nécessite une réflexion soigneuse pour respecter les garanties de sécurité. [« The Rustonomicon »][nomicon] fournit plus d'informations sur ces garanties et comment les respecter.
 
-## Summary
+## Résumé
 
-This isn’t the last you’ll see of concurrency in this book: The next chapter
-focuses on async programming, and the project in Chapter 21 will use the
-concepts in this chapter in a more realistic situation than the smaller
-examples discussed here.
+Ce n'est pas la dernière fois que vous verrez la concurrence dans ce livre : le chapitre suivant se concentre sur la programmation asynchrone, et le projet du chapitre 21 utilisera les concepts de ce chapitre dans une situation plus réaliste que les petits exemples discutés ici.
 
-As mentioned earlier, because very little of how Rust handles concurrency is
-part of the language, many concurrency solutions are implemented as crates.
-These evolve more quickly than the standard library, so be sure to search
-online for the current, state-of-the-art crates to use in multithreaded
-situations.
+Comme mentionné plus haut, parce que très peu de la façon dont Rust gère la concurrence fait partie du langage, de nombreuses solutions de concurrence sont mises en œuvre sous forme de crates. Celles-ci évoluent plus rapidement que la bibliothèque standard, alors assurez-vous de rechercher en ligne les crates les plus récentes à utiliser dans des situations multithread.
 
-The Rust standard library provides channels for message passing and smart
-pointer types, such as `Mutex<T>` and `Arc<T>`, that are safe to use in
-concurrent contexts. The type system and the borrow checker ensure that the
-code using these solutions won’t end up with data races or invalid references.
-Once you get your code to compile, you can rest assured that it will happily
-run on multiple threads without the kinds of hard-to-track-down bugs common in
-other languages. Concurrent programming is no longer a concept to be afraid of:
-Go forth and make your programs concurrent, fearlessly!
+La bibliothèque standard Rust fournit des canaux pour le passage de messages et des types de pointeurs intelligents, tels que `Mutex<T>` et `Arc<T>`, qui sont sûrs à utiliser dans des contextes concurrents. Le système de types et le vérificateur d'emprunts garantissent que le code utilisant ces solutions ne finira pas par avoir des courses de données ou des références invalides. Une fois que vous avez réussi à compiler votre code, vous pouvez être sûr qu'il s'exécutera sans problème sur plusieurs threads, sans les types de bogues difficiles à déceler courants dans d'autres langages. La programmation concurrente n'est plus un concept à craindre : allez de l'avant et rendez vos programmes concurrents, sans crainte !
 
 [shared-access]: ch16-03-shared-state.html#shared-access-to-mutext
 [nomicon]: ../nomicon/index.html

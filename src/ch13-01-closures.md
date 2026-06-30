@@ -1,45 +1,26 @@
-<!-- Old headings. Do not remove or links may break. -->
+<!-- Anciennes titres. Ne pas supprimer sinon les liens peuvent être cassés. -->
 
 <a id="closures-anonymous-functions-that-can-capture-their-environment"></a>
-<a id="closures-anonymous-functions-that-capture-their-environment"></a>
+<a id="closures-anonymous-functions-that-can-capture-their-environment"></a>
 
-## Closures
+## Fermetures
 
-Rust’s closures are anonymous functions you can save in a variable or pass as
-arguments to other functions. You can create the closure in one place and then
-call the closure elsewhere to evaluate it in a different context. Unlike
-functions, closures can capture values from the scope in which they’re defined.
-We’ll demonstrate how these closure features allow for code reuse and behavior
-customization.
+Les fermetures de Rust sont des fonctions anonymes que vous pouvez enregistrer dans une variable ou passer comme arguments à d'autres fonctions. Vous pouvez créer la fermeture à un endroit et ensuite l'appeler ailleurs pour l'évaluer dans un contexte différent. Contrairement aux fonctions, les fermetures peuvent capturer des valeurs du scope dans lequel elles sont définies. Nous allons démontrer comment ces caractéristiques des fermetures permettent la réutilisation de code et la personnalisation du comportement.
 
-<!-- Old headings. Do not remove or links may break. -->
+<!-- Anciennes titres. Ne pas supprimer sinon les liens peuvent être cassés. -->
 
 <a id="creating-an-abstraction-of-behavior-with-closures"></a>
 <a id="refactoring-using-functions"></a>
 <a id="refactoring-with-closures-to-store-code"></a>
 <a id="capturing-the-environment-with-closures"></a>
 
-### Capturing the Environment
+### Capturer l'environnement
 
-We’ll first examine how we can use closures to capture values from the
-environment they’re defined in for later use. Here’s the scenario: Every so
-often, our T-shirt company gives away an exclusive, limited-edition shirt to
-someone on our mailing list as a promotion. People on the mailing list can
-optionally add their favorite color to their profile. If the person chosen for
-a free shirt has their favorite color set, they get that color shirt. If the
-person hasn’t specified a favorite color, they get whatever color the company
-currently has the most of.
+Nous allons d'abord examiner comment nous pouvons utiliser des fermetures pour capturer des valeurs de l'environnement dans lequel elles sont définies pour une utilisation ultérieure. Voici le scénario : De temps en temps, notre entreprise de T-shirts offre un t-shirt exclusif en édition limitée à quelqu'un sur notre liste de diffusion en tant que promotion. Les personnes sur la liste de diffusion peuvent éventuellement ajouter leur couleur préférée à leur profil. Si la personne choisie pour un t-shirt gratuit a spécifié sa couleur préférée, elle reçoit un t-shirt de cette couleur. Si la personne n'a pas précisé de couleur préférée, elle reçoit la couleur que l'entreprise a actuellement en plus grande quantité.
 
-There are many ways to implement this. For this example, we’re going to use an
-enum called `ShirtColor` that has the variants `Red` and `Blue` (limiting the
-number of colors available for simplicity). We represent the company’s
-inventory with an `Inventory` struct that has a field named `shirts` that
-contains a `Vec<ShirtColor>` representing the shirt colors currently in stock.
-The method `giveaway` defined on `Inventory` gets the optional shirt color
-preference of the free-shirt winner, and it returns the shirt color the
-person will get. This setup is shown in Listing 13-1.
+Il existe de nombreuses façons de mettre cela en œuvre. Pour cet exemple, nous allons utiliser une énumération appelée `ShirtColor` qui a les variantes `Red` et `Blue` (limitant le nombre de couleurs disponibles pour des raisons de simplicité). Nous représentons l'inventaire de l'entreprise avec une structure `Inventory` qui a un champ nommé `shirts` contenant un `Vec<ShirtColor>` représentant les couleurs de t-shirts actuellement en stock. La méthode `giveaway` définie sur `Inventory` obtient la préférence de couleur de t-shirt optionnelle du gagnant du t-shirt gratuit, et elle renvoie la couleur de t-shirt que la personne recevra. Ce dispositif est illustré dans l'Listing 13-1.
 
-<Listing number="13-1" file-name="src/main.rs" caption="Shirt company giveaway situation">
+<Listing number="13-1" file-name="src/main.rs" caption="Situation de cadeau de l'entreprise de T-shirts">
 
 ```rust,noplayground
 {{#rustdoc_include ../listings/ch13-functional-features/listing-13-01/src/main.rs}}
@@ -47,73 +28,33 @@ person will get. This setup is shown in Listing 13-1.
 
 </Listing>
 
-The `store` defined in `main` has two blue shirts and one red shirt remaining
-to distribute for this limited-edition promotion. We call the `giveaway` method
-for a user with a preference for a red shirt and a user without any preference.
+Le `store` défini dans `main` a deux t-shirts bleus et un t-shirt rouge restants à distribuer pour cette promotion en édition limitée. Nous appelons la méthode `giveaway` pour un utilisateur avec une préférence pour un t-shirt rouge et un utilisateur sans préférence.
 
-Again, this code could be implemented in many ways, and here, to focus on
-closures, we’ve stuck to concepts you’ve already learned, except for the body of
-the `giveaway` method that uses a closure. In the `giveaway` method, we get the
-user preference as a parameter of type `Option<ShirtColor>` and call the
-`unwrap_or_else` method on `user_preference`. The [`unwrap_or_else` method on
-`Option<T>`][unwrap-or-else]<!-- ignore --> is defined by the standard library.
-It takes one argument: a closure without any arguments that returns a value `T`
-(the same type stored in the `Some` variant of the `Option<T>`, in this case
-`ShirtColor`). If the `Option<T>` is the `Some` variant, `unwrap_or_else`
-returns the value from within the `Some`. If the `Option<T>` is the `None`
-variant, `unwrap_or_else` calls the closure and returns the value returned by
-the closure.
+Encore une fois, ce code pourrait être mis en œuvre de nombreuses manières, et ici, pour se concentrer sur les fermetures, nous nous sommes en tenus à des concepts que vous avez déjà appris, sauf pour le corps de la méthode `giveaway` qui utilise une fermeture. Dans la méthode `giveaway`, nous obtenons la préférence de l'utilisateur comme paramètre de type `Option<ShirtColor>` et appelons la méthode `unwrap_or_else` sur `user_preference`. La méthode [`unwrap_or_else` sur `Option<T>`][unwrap-or-else]<!-- ignore --> est définie par la bibliothèque standard. Elle prend un argument : une fermeture sans arguments qui renvoie une valeur `T` (le même type stocké dans la variante `Some` de l' `Option<T>`, dans ce cas `ShirtColor`). Si l' `Option<T>` est la variante `Some`, `unwrap_or_else` renvoie la valeur de l'intérieur du `Some`. Si l' `Option<T>` est la variante `None`, `unwrap_or_else` appelle la fermeture et renvoie la valeur retournée par la fermeture.
 
-We specify the closure expression `|| self.most_stocked()` as the argument to
-`unwrap_or_else`. This is a closure that takes no parameters itself (if the
-closure had parameters, they would appear between the two vertical pipes). The
-body of the closure calls `self.most_stocked()`. We’re defining the closure
-here, and the implementation of `unwrap_or_else` will evaluate the closure
-later if the result is needed.
+Nous spécifions l'expression de fermeture `|| self.most_stocked()` comme argument de `unwrap_or_else`. C'est une fermeture qui ne prend pas de paramètres elle-même (si la fermeture avait des paramètres, ils apparaîtraient entre les deux barres verticales). Le corps de la fermeture appelle `self.most_stocked()`. Nous définissons la fermeture ici, et l'implémentation de `unwrap_or_else` évaluera la fermeture plus tard si le résultat est nécessaire.
 
-Running this code prints the following:
+L'exécution de ce code imprime ce qui suit :
 
 ```console
 {{#include ../listings/ch13-functional-features/listing-13-01/output.txt}}
 ```
 
-One interesting aspect here is that we’ve passed a closure that calls
-`self.most_stocked()` on the current `Inventory` instance. The standard library
-didn’t need to know anything about the `Inventory` or `ShirtColor` types we
-defined, or the logic we want to use in this scenario. The closure captures an
-immutable reference to the `self` `Inventory` instance and passes it with the
-code we specify to the `unwrap_or_else` method. Functions, on the other hand,
-are not able to capture their environment in this way.
+Un aspect intéressant ici est que nous avons passé une fermeture qui appelle `self.most_stocked()` sur l'instance `Inventory` actuelle. La bibliothèque standard n'a pas besoin de connaître quoi que ce soit sur les types `Inventory` ou `ShirtColor` que nous avons définis, ni la logique que nous voulons utiliser dans ce scénario. La fermeture capture une référence immuable à l'instance `Inventory` `self` et la passe avec le code que nous spécifions à la méthode `unwrap_or_else`. Les fonctions, en revanche, ne peuvent pas capturer leur environnement de cette manière.
 
-<!-- Old headings. Do not remove or links may break. -->
+<!-- Anciennes titres. Ne pas supprimer sinon les liens peuvent être cassés. -->
 
 <a id="closure-type-inference-and-annotation"></a>
 
-### Inferring and Annotating Closure Types
+### Inférence et annotation des types de fermeture
 
-There are more differences between functions and closures. Closures don’t
-usually require you to annotate the types of the parameters or the return value
-like `fn` functions do. Type annotations are required on functions because the
-types are part of an explicit interface exposed to your users. Defining this
-interface rigidly is important for ensuring that everyone agrees on what types
-of values a function uses and returns. Closures, on the other hand, aren’t used
-in an exposed interface like this: They’re stored in variables, and they’re
-used without naming them and exposing them to users of our library.
+Il existe d'autres différences entre les fonctions et les fermetures. Les fermetures ne nécessitent généralement pas que vous annotiez les types des paramètres ou de la valeur de retour comme le font les fonctions `fn`. Les annotations de type sont requises sur les fonctions parce que les types font partie d'une interface explicite exposée à vos utilisateurs. La définition rigide de cette interface est importante pour garantir que tout le monde s'accorde sur les types de valeurs qu'une fonction utilise et renvoie. Les fermetures, en revanche, ne sont pas utilisées dans une interface exposée de cette manière : elles sont stockées dans des variables et utilisent sans les nommer et les exposer aux utilisateurs de notre bibliothèque.
 
-Closures are typically short and relevant only within a narrow context rather
-than in any arbitrary scenario. Within these limited contexts, the compiler can
-infer the types of the parameters and the return type, similar to how it’s able
-to infer the types of most variables (there are rare cases where the compiler
-needs closure type annotations too).
+Les fermetures sont généralement courtes et pertinentes uniquement dans un contexte étroit plutôt que dans un scénario arbitraire. Dans ces contextes limités, le compilateur peut inférer les types des paramètres et le type de retour, de manière similaire à la façon dont il peut inférer les types de la plupart des variables (il existe des cas rares où le compilateur a également besoin d'annotations de type pour les fermetures).
 
-As with variables, we can add type annotations if we want to increase
-explicitness and clarity at the cost of being more verbose than is strictly
-necessary. Annotating the types for a closure would look like the definition
-shown in Listing 13-2. In this example, we’re defining a closure and storing it
-in a variable rather than defining the closure in the spot we pass it as an
-argument, as we did in Listing 13-1.
+Comme pour les variables, nous pouvons ajouter des annotations de type si nous voulons augmenter l'explicité et la clarté au prix d'être plus verbeux que ce qui est strictement nécessaire. Annoter les types d'une fermeture ressemblerait à la définition montrée dans l'Listing 13-2. Dans cet exemple, nous définissons une fermeture et la stockons dans une variable plutôt que de la définir à l'endroit où nous la passons en argument, comme nous l'avons fait dans l'Listing 13-1.
 
-<Listing number="13-2" file-name="src/main.rs" caption="Adding optional type annotations of the parameter and return value types in the closure">
+<Listing number="13-2" file-name="src/main.rs" caption="Ajout d'annotations de type optionnelles des paramètres et des types de valeurs de retour dans la fermeture">
 
 ```rust
 {{#rustdoc_include ../listings/ch13-functional-features/listing-13-02/src/main.rs:here}}
@@ -121,12 +62,7 @@ argument, as we did in Listing 13-1.
 
 </Listing>
 
-With type annotations added, the syntax of closures looks more similar to the
-syntax of functions. Here, we define a function that adds 1 to its parameter and
-a closure that has the same behavior, for comparison. We’ve added some spaces
-to line up the relevant parts. This illustrates how closure syntax is similar
-to function syntax except for the use of pipes and the amount of syntax that is
-optional:
+Avec les annotations de type ajoutées, la syntaxe des fermetures ressemble un peu plus à la syntaxe des fonctions. Ici, nous définissons une fonction qui ajoute 1 à son paramètre et une fermeture qui a le même comportement, pour comparaison. Nous avons ajouté quelques espaces pour aligner les parties pertinentes. Cela illustre comment la syntaxe de fermeture est similaire à la syntaxe de fonction, sauf pour l'utilisation de barres verticales et le montant de syntaxe qui est facultatif :
 
 ```rust,ignore
 fn  add_one_v1   (x: u32) -> u32 { x + 1 }
@@ -135,26 +71,11 @@ let add_one_v3 = |x|             { x + 1 };
 let add_one_v4 = |x|               x + 1  ;
 ```
 
-The first line shows a function definition and the second line shows a fully
-annotated closure definition. In the third line, we remove the type annotations
-from the closure definition. In the fourth line, we remove the brackets, which
-are optional because the closure body has only one expression. These are all
-valid definitions that will produce the same behavior when they’re called. The
-`add_one_v3` and `add_one_v4` lines require the closures to be evaluated to be
-able to compile because the types will be inferred from their usage. This is
-similar to `let v = Vec::new();` needing either type annotations or values of
-some type to be inserted into the `Vec` for Rust to be able to infer the type.
+La première ligne montre une définition de fonction et la deuxième ligne montre une définition de fermeture entièrement annotée. Dans la troisième ligne, nous supprimons les annotations de type de la définition de la fermeture. Dans la quatrième ligne, nous supprimons les crochets, qui sont facultatifs parce que le corps de la fermeture ne contient qu'une seule expression. Ce sont toutes des définitions valides qui produiront le même comportement lorsqu'elles seront appelées. Les lignes `add_one_v3` et `add_one_v4` nécessitent que les fermetures soient évaluées pour pouvoir être compilées, car les types seront inférés de leur utilisation. C'est similaire à `let v = Vec::new();` nécessitant soit des annotations de type, soit des valeurs de quelque type que ce soit pour être insérées dans le `Vec` afin que Rust puisse inférer le type.
 
-For closure definitions, the compiler will infer one concrete type for each of
-their parameters and for their return value. For instance, Listing 13-3 shows
-the definition of a short closure that just returns the value it receives as a
-parameter. This closure isn’t very useful except for the purposes of this
-example. Note that we haven’t added any type annotations to the definition.
-Because there are no type annotations, we can call the closure with any type,
-which we’ve done here with `String` the first time. If we then try to call
-`example_closure` with an integer, we’ll get an error.
+Pour les définitions de fermetures, le compilateur inférera un type concret pour chacun de leurs paramètres et pour leur valeur de retour. Par exemple, l'Listing 13-3 montre la définition d'une courte fermeture qui renvoie simplement la valeur qu'elle reçoit en paramètre. Cette fermeture n'est pas très utile sauf dans le cadre de cet exemple. Notez que nous n'avons ajouté aucune annotation de type à la définition. Puisqu'il n'y a pas d'annotations de type, nous pouvons appeler la fermeture avec n'importe quel type, ce que nous avons fait ici avec `String` la première fois. Si nous essayons ensuite d'appeler `example_closure` avec un entier, nous obtiendrons une erreur.
 
-<Listing number="13-3" file-name="src/main.rs" caption="Attempting to call a closure whose types are inferred with two different types">
+<Listing number="13-3" file-name="src/main.rs" caption="Tentative d'appel d'une fermeture dont les types sont inférés avec deux types différents">
 
 ```rust,ignore,does_not_compile
 {{#rustdoc_include ../listings/ch13-functional-features/listing-13-03/src/main.rs:here}}
@@ -162,30 +83,21 @@ which we’ve done here with `String` the first time. If we then try to call
 
 </Listing>
 
-The compiler gives us this error:
+Le compilateur nous donne cette erreur :
 
 ```console
 {{#include ../listings/ch13-functional-features/listing-13-03/output.txt}}
 ```
 
-The first time we call `example_closure` with the `String` value, the compiler
-infers the type of `x` and the return type of the closure to be `String`. Those
-types are then locked into the closure in `example_closure`, and we get a type
-error when we next try to use a different type with the same closure.
+La première fois que nous appelons `example_closure` avec la valeur `String`, le compilateur infère le type de `x` et le type de retour de la fermeture comme étant `String`. Ces types sont ensuite verrouillés dans la fermeture dans `example_closure`, et nous obtenons une erreur de type lorsque nous essayons d'utiliser un type différent avec la même fermeture.
 
-### Capturing References or Moving Ownership
+### Capturer des références ou déplacer la propriété
 
-Closures can capture values from their environment in three ways, which
-directly map to the three ways a function can take a parameter: borrowing
-immutably, borrowing mutably, and taking ownership. The closure will decide
-which of these to use based on what the body of the function does with the
-captured values.
+Les fermetures peuvent capturer des valeurs de leur environnement de trois manières, qui correspondent directement aux trois manières qu'une fonction peut prendre un paramètre : emprunter de manière immuable, emprunter de manière mutable et prendre la propriété. La fermeture décidera laquelle de ces méthodes utiliser en fonction de ce que fait le corps de la fonction avec les valeurs capturées.
 
-In Listing 13-4, we define a closure that captures an immutable reference to
-the vector named `list` because it only needs an immutable reference to print
-the value.
+Dans l'Listing 13-4, nous définissons une fermeture qui capture une référence immuable au vecteur nommé `list` parce qu'elle a seulement besoin d'une référence immuable pour imprimer la valeur.
 
-<Listing number="13-4" file-name="src/main.rs" caption="Defining and calling a closure that captures an immutable reference">
+<Listing number="13-4" file-name="src/main.rs" caption="Définir et appeler une fermeture qui capture une référence immuable">
 
 ```rust
 {{#rustdoc_include ../listings/ch13-functional-features/listing-13-04/src/main.rs}}
@@ -193,23 +105,17 @@ the value.
 
 </Listing>
 
-This example also illustrates that a variable can bind to a closure definition,
-and we can later call the closure by using the variable name and parentheses as
-if the variable name were a function name.
+Cet exemple illustre également qu'une variable peut se lier à une définition de fermeture, et nous pouvons appeler plus tard la fermeture en utilisant le nom de la variable et des parenthèses comme si le nom de la variable était un nom de fonction.
 
-Because we can have multiple immutable references to `list` at the same time,
-`list` is still accessible from the code before the closure definition, after
-the closure definition but before the closure is called, and after the closure
-is called. This code compiles, runs, and prints:
+Puisque nous pouvons avoir plusieurs références immuables à `list` en même temps, `list` est toujours accessible à partir du code avant la définition de la fermeture, après la définition de la fermeture mais avant l'appel de la fermeture, et après l'appel de la fermeture. Ce code compile, s'exécute et imprime :
 
 ```console
 {{#include ../listings/ch13-functional-features/listing-13-04/output.txt}}
 ```
 
-Next, in Listing 13-5, we change the closure body so that it adds an element to
-the `list` vector. The closure now captures a mutable reference.
+Ensuite, dans l'Listing 13-5, nous changeons le corps de la fermeture de sorte qu'il ajoute un élément au vecteur `list`. La fermeture capture maintenant une référence mutable.
 
-<Listing number="13-5" file-name="src/main.rs" caption="Defining and calling a closure that captures a mutable reference">
+<Listing number="13-5" file-name="src/main.rs" caption="Définir et appeler une fermeture qui capture une référence mutable">
 
 ```rust
 {{#rustdoc_include ../listings/ch13-functional-features/listing-13-05/src/main.rs}}
@@ -217,32 +123,19 @@ the `list` vector. The closure now captures a mutable reference.
 
 </Listing>
 
-This code compiles, runs, and prints:
+Ce code compile, s'exécute et imprime :
 
 ```console
 {{#include ../listings/ch13-functional-features/listing-13-05/output.txt}}
 ```
 
-Note that there’s no longer a `println!` between the definition and the call of
-the `borrows_mutably` closure: When `borrows_mutably` is defined, it captures a
-mutable reference to `list`. We don’t use the closure again after the closure
-is called, so the mutable borrow ends. Between the closure definition and the
-closure call, an immutable borrow to print isn’t allowed, because no other
-borrows are allowed when there’s a mutable borrow. Try adding a `println!`
-there to see what error message you get!
+Notez qu'il n'y a plus de `println!` entre la définition et l'appel de la fermeture `borrows_mutably` : Lorsque `borrows_mutably` est défini, il capture une référence mutable à `list`. Nous n'utilisons plus la fermeture après l'appel de la fermeture, donc l'emprunt mutable se termine. Entre la définition de la fermeture et l'appel de la fermeture, un emprunt immuable pour imprimer n'est pas autorisé, car aucun autre emprunt n'est autorisé lorsqu'il y a un emprunt mutable. Essayez d'ajouter un `println!` à cet endroit pour voir quel message d'erreur vous recevez !
 
-If you want to force the closure to take ownership of the values it uses in the
-environment even though the body of the closure doesn’t strictly need
-ownership, you can use the `move` keyword before the parameter list.
+Si vous voulez forcer la fermeture à prendre possession des valeurs qu'elle utilise dans l'environnement, même si le corps de la fermeture n'a pas strictement besoin de la propriété, vous pouvez utiliser le mot-clé `move` avant la liste des paramètres.
 
-This technique is mostly useful when passing a closure to a new thread to move
-the data so that it’s owned by the new thread. We’ll discuss threads and why
-you would want to use them in detail in Chapter 16 when we talk about
-concurrency, but for now, let’s briefly explore spawning a new thread using a
-closure that needs the `move` keyword. Listing 13-6 shows Listing 13-4 modified
-to print the vector in a new thread rather than in the main thread.
+Cette technique est principalement utile lors du passage d'une fermeture à un nouveau thread pour déplacer les données afin qu'elles soient possédées par le nouveau thread. Nous aborderons les threads et pourquoi vous voudriez les utiliser en détail dans le Chapitre 16 lorsque nous parlerons de la concurrence, mais pour l'instant, explorons brièvement la création d'un nouveau thread utilisant une fermeture qui nécessite le mot-clé `move`. L'Listing 13-6 montre l'Listing 13-4 modifié pour imprimer le vecteur dans un nouveau thread plutôt que dans le thread principal.
 
-<Listing number="13-6" file-name="src/main.rs" caption="Using `move` to force the closure for the thread to take ownership of `list`">
+<Listing number="13-6" file-name="src/main.rs" caption="Utilisation de `move` pour forcer la fermeture du thread à prendre possession de `list`">
 
 ```rust
 {{#rustdoc_include ../listings/ch13-functional-features/listing-13-06/src/main.rs}}
@@ -250,61 +143,28 @@ to print the vector in a new thread rather than in the main thread.
 
 </Listing>
 
-We spawn a new thread, giving the thread a closure to run as an argument. The
-closure body prints out the list. In Listing 13-4, the closure only captured
-`list` using an immutable reference because that's the least amount of access
-to `list` needed to print it. In this example, even though the closure body
-still only needs an immutable reference, we need to specify that `list` should
-be moved into the closure by putting the `move` keyword at the beginning of the
-closure definition. If the main thread performed more operations before calling
-`join` on the new thread, the new thread might finish before the rest of the
-main thread finishes, or the main thread might finish first. If the main thread
-maintained ownership of `list` but ended before the new thread and drops
-`list`, the immutable reference in the thread would be invalid. Therefore, the
-compiler requires that `list` be moved into the closure given to the new thread
-so that the reference will be valid. Try removing the `move` keyword or using
-`list` in the main thread after the closure is defined to see what compiler
-errors you get!
+Nous lançons un nouveau thread, donnant au thread une fermeture à exécuter en tant qu'argument. Le corps de la fermeture imprime la liste. Dans l'Listing 13-4, la fermeture ne capturait que `list` en utilisant une référence immuable, car c'est le minimum d'accès à `list` nécessaire pour l'imprimer. Dans cet exemple, même si le corps de la fermeture n'a toujours besoin que d'une référence immuable, nous devons spécifier que `list` doit être déplacé dans la fermeture en mettant le mot clé `move` au début de la définition de la fermeture. Si le thread principal effectuait plus d'opérations avant d'appeler `join` sur le nouveau thread, le nouveau thread pourrait se terminer avant que le reste du thread principal ne se termine, ou le thread principal pourrait finir en premier. Si le thread principal conservait la propriété de `list` mais se terminait avant le nouveau thread et abandonnait `list`, la référence immuable dans le thread deviendrait invalide. Par conséquent, le compilateur exige que `list` soit déplacé dans la fermeture remise au nouveau thread afin que la référence reste valide. Essayez de retirer le mot-clé `move` ou d'utiliser `list` dans le thread principal après la définition de la fermeture pour voir quelles erreurs de compilation vous recevez !
 
-<!-- Old headings. Do not remove or links may break. -->
+<!-- Anciennes titres. Ne pas supprimer sinon les liens peuvent être cassés. -->
 
 <a id="storing-closures-using-generic-parameters-and-the-fn-traits"></a>
 <a id="limitations-of-the-cacher-implementation"></a>
 <a id="moving-captured-values-out-of-the-closure-and-the-fn-traits"></a>
 <a id="moving-captured-values-out-of-closures-and-the-fn-traits"></a>
 
-### Moving Captured Values Out of Closures
+### Déplacer des valeurs capturées hors des fermetures
 
-Once a closure has captured a reference or captured ownership of a value from
-the environment where the closure is defined (thus affecting what, if anything,
-is moved _into_ the closure), the code in the body of the closure defines what
-happens to the references or values when the closure is evaluated later (thus
-affecting what, if anything, is moved _out of_ the closure).
+Une fois qu'une fermeture a capturé une référence ou a capturé la propriété d'une valeur de l'environnement où la fermeture est définie (affectant ainsi ce qui, le cas échéant, est déplacé _dans_ la fermeture), le code du corps de la fermeture définit ce qui arrive aux références ou aux valeurs lorsque la fermeture est évaluée ultérieurement (affectant ainsi ce qui, le cas échéant, est déplacé _hors_ de la fermeture).
 
-A closure body can do any of the following: Move a captured value out of the
-closure, mutate the captured value, neither move nor mutate the value, or
-capture nothing from the environment to begin with.
+Le corps d'une fermeture peut faire l'une des actions suivantes : déplacer une valeur capturée hors de la fermeture, muter la valeur capturée, ni déplacer ni muter la valeur, ou ne rien capturer du tout de l'environnement.
 
-The way a closure captures and handles values from the environment affects
-which traits the closure implements, and traits are how functions and structs
-can specify what kinds of closures they can use. Closures will automatically
-implement one, two, or all three of these `Fn` traits, in an additive fashion,
-depending on how the closure’s body handles the values:
+La manière dont une fermeture capture et gère les valeurs de l'environnement affecte quels traits la fermeture implémente, et les traits sont la façon dont les fonctions et les structures peuvent spécifier quels types de fermetures elles peuvent utiliser. Les fermetures implémenteront automatiquement un, deux ou tous les trois de ces traits `Fn`, de manière additive, en fonction de la manière dont le corps de la fermeture gère les valeurs :
 
-* `FnOnce` applies to closures that can be called once. All closures implement
-  at least this trait because all closures can be called. A closure that moves
-  captured values out of its body will only implement `FnOnce` and none of the
-  other `Fn` traits because it can only be called once.
-* `FnMut` applies to closures that don’t move captured values out of their body
-  but might mutate the captured values. These closures can be called more than
-  once.
-* `Fn` applies to closures that don’t move captured values out of their body
-  and don’t mutate captured values, as well as closures that capture nothing
-  from their environment. These closures can be called more than once without
-  mutating their environment, which is important in cases such as calling a closure multiple times concurrently.
+* `FnOnce` s'applique aux fermetures qui peuvent être appelées une fois. Toutes les fermetures implémentent au moins ce trait car toutes les fermetures peuvent être appelées. Une fermeture qui déplace des valeurs capturées hors de son corps n'implémentera que `FnOnce` et aucun des autres traits `Fn` car elle ne peut être appelée qu'une fois.
+* `FnMut` s'applique aux fermetures qui ne déplacent pas des valeurs capturées hors de leur corps mais peuvent muter les valeurs capturées. Ces fermetures peuvent être appelées plus d'une fois.
+* `Fn` s'applique aux fermetures qui ne déplacent pas des valeurs capturées hors de leur corps et ne mutent pas les valeurs capturées, ainsi qu'aux fermetures qui ne capturent rien de leur environnement. Ces fermetures peuvent être appelées plusieurs fois sans muter leur environnement, ce qui est important dans des cas où une fermeture doit être appelée plusieurs fois simultanément.
 
-Let’s look at the definition of the `unwrap_or_else` method on `Option<T>` that
-we used in Listing 13-1:
+Regardons la définition de la méthode `unwrap_or_else` sur `Option<T>` que nous avons utilisée dans l'Listing 13-1 :
 
 ```rust,ignore
 impl<T> Option<T> {
@@ -320,42 +180,17 @@ impl<T> Option<T> {
 }
 ```
 
-Recall that `T` is the generic type representing the type of the value in the
-`Some` variant of an `Option`. That type `T` is also the return type of the
-`unwrap_or_else` function: Code that calls `unwrap_or_else` on an
-`Option<String>`, for example, will get a `String`.
+Rappelez-vous que `T` est le type générique représentant le type de la valeur dans la variante `Some` d'un `Option`. Ce type `T` est également le type de retour de la fonction `unwrap_or_else` : Le code qui appelle `unwrap_or_else` sur un `Option<String>`, par exemple, obtiendra une `String`.
 
-Next, notice that the `unwrap_or_else` function has the additional generic type
-parameter `F`. The `F` type is the type of the parameter named `f`, which is
-the closure we provide when calling `unwrap_or_else`.
+Ensuite, remarquez que la fonction `unwrap_or_else` a le paramètre de type générique supplémentaire `F`. Le type `F` est le type du paramètre nommé `f`, qui est la fermeture que nous fournissons lors de l'appel de `unwrap_or_else`.
 
-The trait bound specified on the generic type `F` is `FnOnce() -> T`, which
-means `F` must be able to be called once, take no arguments, and return a `T`.
-Using `FnOnce` in the trait bound expresses the constraint that
-`unwrap_or_else` will not call `f` more than once. In the body of
-`unwrap_or_else`, we can see that if the `Option` is `Some`, `f` won’t be
-called. If the `Option` is `None`, `f` will be called once. Because all
-closures implement `FnOnce`, `unwrap_or_else` accepts all three kinds of
-closures and is as flexible as it can be.
+La contrainte de trait spécifiée sur le type générique `F` est `FnOnce() -> T`, ce qui signifie que `F` doit pouvoir être appelé une fois, ne prendre aucun argument et retourner un `T`. L'utilisation de `FnOnce` dans la contrainte de trait exprime la condition selon laquelle `unwrap_or_else` n'appellera `f` qu'une seule fois. Dans le corps de `unwrap_or_else`, nous pouvons voir que si l' `Option` est `Some`, `f` ne sera pas appelée. Si l' `Option` est `None`, `f` sera appelée une fois. Étant donné que toutes les fermetures implémentent `FnOnce`, `unwrap_or_else` accepte les trois types de fermetures et est aussi flexible que possible.
 
-> Note: If what we want to do doesn’t require capturing a value from the
-> environment, we can use the name of a function rather than a closure where we
-> need something that implements one of the `Fn` traits. For example, on an
-> `Option<Vec<T>>` value, we could call `unwrap_or_else(Vec::new)` to get a
-> new, empty vector if the value is `None`. The compiler automatically
-> implements whichever of the `Fn` traits is applicable for a function
-> definition.
+> Remarque : Si ce que nous voulons faire ne nécessite pas de capturer une valeur de l'environnement, nous pouvons utiliser le nom d'une fonction plutôt qu'une fermeture là où nous avons besoin de quelque chose qui implémente l'un des traits `Fn`. Par exemple, sur une valeur `Option<Vec<T>>`, nous pourrions appeler `unwrap_or_else(Vec::new)` pour obtenir un nouveau vecteur vide si la valeur est `None`. Le compilateur implémente automatiquement le(s) trait(s) `Fn` applicables pour une définition de fonction.
 
-Now let’s look at the standard library method `sort_by_key`, defined on slices,
-to see how that differs from `unwrap_or_else` and why `sort_by_key` uses
-`FnMut` instead of `FnOnce` for the trait bound. The closure gets one argument
-in the form of a reference to the current item in the slice being considered,
-and it returns a value of type `K` that can be ordered. This function is useful
-when you want to sort a slice by a particular attribute of each item. In
-Listing 13-7, we have a list of `Rectangle` instances, and we use `sort_by_key`
-to order them by their `width` attribute from low to high.
+Maintenant, examinons la méthode de la bibliothèque standard `sort_by_key`, définie sur les tranches, pour voir comment cela diffère de `unwrap_or_else` et pourquoi `sort_by_key` utilise `FnMut` au lieu de `FnOnce` pour la contrainte de trait. La fermeture reçoit un argument sous la forme d'une référence à l'élément actuel dans la tranche considérée, et elle renvoie une valeur de type `K` qui peut être ordonnée. Cette fonction est utile lorsque vous souhaitez trier une tranche par un attribut particulier de chaque élément. Dans l'Listing 13-7, nous avons une liste d'instances `Rectangle`, et nous utilisons `sort_by_key` pour les ordonner par leur attribut `width` du plus bas au plus haut.
 
-<Listing number="13-7" file-name="src/main.rs" caption="Using `sort_by_key` to order rectangles by width">
+<Listing number="13-7" file-name="src/main.rs" caption="Utilisation de `sort_by_key` pour ordonner des rectangles par largeur">
 
 ```rust
 {{#rustdoc_include ../listings/ch13-functional-features/listing-13-07/src/main.rs}}
@@ -363,22 +198,17 @@ to order them by their `width` attribute from low to high.
 
 </Listing>
 
-This code prints:
+Ce code imprime :
 
 ```console
 {{#include ../listings/ch13-functional-features/listing-13-07/output.txt}}
 ```
 
-The reason `sort_by_key` is defined to take an `FnMut` closure is that it calls
-the closure multiple times: once for each item in the slice. The closure `|r|
-r.width` doesn’t capture, mutate, or move anything out from its environment, so
-it meets the trait bound requirements.
+La raison pour laquelle `sort_by_key` est défini pour prendre une fermeture `FnMut` est qu'il appelle la fermeture plusieurs fois : une fois pour chaque élément dans la tranche. La fermeture `|r| r.width` ne capture, ne muta ni ne déplace rien de son environnement, donc elle satisfait les exigences de contrainte de trait.
 
-In contrast, Listing 13-8 shows an example of a closure that implements just
-the `FnOnce` trait, because it moves a value out of the environment. The
-compiler won’t let us use this closure with `sort_by_key`.
+En revanche, l'Listing 13-8 montre un exemple d'une fermeture qui n'implémente que le trait `FnOnce`, parce qu'elle déplace une valeur de l'environnement. Le compilateur ne nous laissera pas utiliser cette fermeture avec `sort_by_key`.
 
-<Listing number="13-8" file-name="src/main.rs" caption="Attempting to use an `FnOnce` closure with `sort_by_key`">
+<Listing number="13-8" file-name="src/main.rs" caption="Tentative d'utiliser une fermeture `FnOnce` avec `sort_by_key`">
 
 ```rust,ignore,does_not_compile
 {{#rustdoc_include ../listings/ch13-functional-features/listing-13-08/src/main.rs}}
@@ -386,31 +216,15 @@ compiler won’t let us use this closure with `sort_by_key`.
 
 </Listing>
 
-This is a contrived, convoluted way (that doesn’t work) to try to count the
-number of times `sort_by_key` calls the closure when sorting `list`. This code
-attempts to do this counting by pushing `value`—a `String` from the closure’s
-environment—into the `sort_operations` vector. The closure captures `value` and
-then moves `value` out of the closure by transferring ownership of `value` to
-the `sort_operations` vector. This closure can be called once; trying to call
-it a second time wouldn’t work, because `value` would no longer be in the
-environment to be pushed into `sort_operations` again! Therefore, this closure
-only implements `FnOnce`. When we try to compile this code, we get this error
-that `value` can’t be moved out of the closure because the closure must
-implement `FnMut`:
+C'est un moyen compliqué et trompeur (qui ne fonctionne pas) d'essayer de compter le nombre de fois que `sort_by_key` appelle la fermeture lors du tri de `list`. Ce code tente de compter cela en ajoutant `value`—une `String` provenant de l'environnement de la fermeture—dans le vecteur `sort_operations`. La fermeture capture `value` puis déplace `value` hors de la fermeture en cédant la propriété de `value` au vecteur `sort_operations`. Cette fermeture ne peut être appelée qu'une fois ; essayer de l'appeler une seconde fois ne fonctionnerait pas, car `value` ne serait plus dans l'environnement pour être poussé dans `sort_operations` à nouveau ! Par conséquent, cette fermeture n'implémente que `FnOnce`. Lorsque nous essayons de compiler ce code, nous obtenons cette erreur indiquant que `value` ne peut pas être déplacée hors de la fermeture car la fermeture doit implémenter `FnMut` :
 
 ```console
 {{#include ../listings/ch13-functional-features/listing-13-08/output.txt}}
 ```
 
-The error points to the line in the closure body that moves `value` out of the
-environment. To fix this, we need to change the closure body so that it doesn’t
-move values out of the environment. Keeping a counter in the environment and
-incrementing its value in the closure body is a more straightforward way to
-count the number of times the closure is called. The closure in Listing 13-9
-works with `sort_by_key` because it is only capturing a mutable reference to the
-`num_sort_operations` counter and can therefore be called more than once.
+L'erreur pointe vers la ligne dans le corps de la fermeture qui déplace `value` hors de l'environnement. Pour résoudre cela, nous devons changer le corps de la fermeture pour qu'il ne déplace pas de valeurs hors de l'environnement. Garder un compteur dans l'environnement et incrémenter sa valeur dans le corps de la fermeture est un moyen plus simple de compter le nombre de fois que la fermeture est appelée. La fermeture dans l'Listing 13-9 fonctionne avec `sort_by_key` car elle ne capture qu'une référence mutable au compteur `num_sort_operations` et peut donc être appelée plus d'une fois.
 
-<Listing number="13-9" file-name="src/main.rs" caption="Using an `FnMut` closure with `sort_by_key` is allowed.">
+<Listing number="13-9" file-name="src/main.rs" caption="Utiliser une fermeture `FnMut` avec `sort_by_key` est autorisé.">
 
 ```rust
 {{#rustdoc_include ../listings/ch13-functional-features/listing-13-09/src/main.rs}}
@@ -418,9 +232,6 @@ works with `sort_by_key` because it is only capturing a mutable reference to the
 
 </Listing>
 
-The `Fn` traits are important when defining or using functions or types that
-make use of closures. In the next section, we’ll discuss iterators. Many
-iterator methods take closure arguments, so keep these closure details in mind
-as we continue!
+Les traits `Fn` sont importants lors de la définition ou de l'utilisation de fonctions ou de types qui utilisent des fermetures. Dans la section suivante, nous discuterons des itérateurs. De nombreuses méthodes d'itérateur prennent des arguments de fermeture, alors gardez ces détails sur les fermetures à l'esprit lorsque nous continuons !
 
 [unwrap-or-else]: ../std/option/enum.Option.html#method.unwrap_or_else

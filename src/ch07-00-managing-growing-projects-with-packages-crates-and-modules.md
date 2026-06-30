@@ -1,52 +1,24 @@
-<!-- Old headings. Do not remove or links may break. -->
+<!-- Anciennes en-têtes. Ne pas supprimer ou les liens peuvent se briser. -->
 
 <a id="managing-growing-projects-with-packages-crates-and-modules"></a>
 
-# Packages, Crates, and Modules
+# Packages, Caisses et Modules
 
-As you write large programs, organizing your code will become increasingly
-important. By grouping related functionality and separating code with distinct
-features, you’ll clarify where to find code that implements a particular
-feature and where to go to change how a feature works.
+À mesure que vous écrivez de grands programmes, l'organisation de votre code deviendra de plus en plus importante. En regroupant des fonctionnalités connexes et en séparant le code avec des fonctionnalités distinctes, vous clarifierez où trouver le code qui implémente une fonctionnalité particulière et où aller pour modifier le fonctionnement d'une fonctionnalité.
 
-The programs we’ve written so far have been in one module in one file. As a
-project grows, you should organize code by splitting it into multiple modules
-and then multiple files. A package can contain multiple binary crates and
-optionally one library crate. As a package grows, you can extract parts into
-separate crates that become external dependencies. This chapter covers all
-these techniques. For very large projects comprising a set of interrelated
-packages that evolve together, Cargo provides workspaces, which we’ll cover in
-[“Cargo Workspaces”][workspaces]<!-- ignore --> in Chapter 14.
+Les programmes que nous avons écrits jusqu'à présent étaient dans un seul module dans un seul fichier. À mesure qu'un projet grandit, vous devez organiser le code en le répartissant sur plusieurs modules puis plusieurs fichiers. Un package peut contenir plusieurs caisses binaires et éventuellement une librairie. À mesure qu'un package se développe, vous pouvez extraire des parties dans des caisses séparées qui deviennent des dépendances externes. Ce chapitre couvre toutes ces techniques. Pour les très grands projets composés d'un ensemble de packages interconnectés qui évoluent ensemble, Cargo fournit des espaces de travail, que nous aborderons dans [“Espaces de travail Cargo”][workspaces]<!-- ignore --> au Chapitre 14.
 
-We’ll also discuss encapsulating implementation details, which lets you reuse
-code at a higher level: Once you’ve implemented an operation, other code can
-call your code via its public interface without having to know how the
-implementation works. The way you write code defines which parts are public for
-other code to use and which parts are private implementation details that you
-reserve the right to change. This is another way to limit the amount of detail
-you have to keep in your head.
+Nous discuterons également de l'encapsulation des détails d'implémentation, ce qui vous permet de réutiliser le code à un niveau supérieur : Une fois que vous avez implémenté une opération, d'autres codes peuvent appeler votre code via son interface publique sans avoir à savoir comment l'implémentation fonctionne. La manière dont vous écrivez le code définit quelles parties sont publiques pour que d'autres codes les utilisent et quelles parties sont des détails d'implémentation privés que vous vous réservez le droit de modifier. C'est une autre façon de limiter la quantité de détails que vous devez garder en tête.
 
-A related concept is scope: The nested context in which code is written has a
-set of names that are defined as “in scope.” When reading, writing, and
-compiling code, programmers and compilers need to know whether a particular
-name at a particular spot refers to a variable, function, struct, enum, module,
-constant, or other item and what that item means. You can create scopes and
-change which names are in or out of scope. You can’t have two items with the
-same name in the same scope; tools are available to resolve name conflicts.
+Un concept connexe est la portée : Le contexte imbriqué dans lequel le code est écrit a un ensemble de noms qui sont définis comme "dans la portée". Lors de la lecture, de l'écriture et de la compilation du code, les programmeurs et les compilateurs doivent savoir si un nom particulier à un endroit particulier fait référence à une variable, une fonction, une structure, un énuméré, un module, une constante ou un autre élément et ce que cet élément signifie. Vous pouvez créer des portées et modifier quels noms sont dans ou hors de portée. Vous ne pouvez pas avoir deux éléments avec le même nom dans la même portée ; des outils sont disponibles pour résoudre les conflits de nom.
 
-Rust has a number of features that allow you to manage your code’s
-organization, including which details are exposed, which details are private,
-and what names are in each scope in your programs. These features, sometimes
-collectively referred to as the _module system_, include:
+Rust dispose de plusieurs fonctionnalités qui vous permettent de gérer l'organisation de votre code, y compris quels détails sont exposés, quels détails sont privés et quels noms sont dans chaque portée dans vos programmes. Ces fonctionnalités, parfois collectivement appelées le _système de modules_, incluent :
 
-* **Packages**: A Cargo feature that lets you build, test, and share crates
-* **Crates**: A tree of modules that produces a library or executable
-* **Modules and use**: Let you control the organization, scope, and privacy of
-paths
-* **Paths**: A way of naming an item, such as a struct, function, or module
+* **Packages** : Une fonctionnalité Cargo qui vous permet de construire, tester et partager des caisses
+* **Caisses** : Un arbre de modules qui produit une librairie ou un exécutable
+* **Modules et utilisation** : Vous permettent de contrôler l'organisation, la portée et la confidentialité des chemins
+* **Chemins** : Un moyen de nommer un élément, comme une structure, une fonction ou un module
 
-In this chapter, we’ll cover all these features, discuss how they interact, and
-explain how to use them to manage scope. By the end, you should have a solid
-understanding of the module system and be able to work with scopes like a pro!
+Dans ce chapitre, nous aborderons toutes ces fonctionnalités, discuterons de leurs interactions et expliquerons comment les utiliser pour gérer la portée. À la fin, vous devriez avoir une solide compréhension du système de modules et être capable de travailler avec des portées comme un pro !
 
 [workspaces]: ch14-03-cargo-workspaces.html
