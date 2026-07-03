@@ -42,13 +42,13 @@ let s = "hello";
 
 La variable `s` fait référence à une chaîne littérale, où la valeur de la chaîne est codée en dur dans le texte de notre programme. La variable est valide depuis le moment où elle est déclarée jusqu'à la fin de la portée actuelle. La liste 4-1 montre un programme avec des commentaires annotant où la variable `s` serait valide.
 
-<liste numéro="4-1" légende="Une variable et la portée dans laquelle elle est valide">
+<Listing number="4-1" caption="Une variable et la portée dans laquelle elle est valide">
 
 ```rust
 {{#rustdoc_include ../listings/ch04-understanding-ownership/listing-04-01/src/main.rs:here}}
 ```
 
-</liste>
+</Listing>
 
 Autrement dit, il y a deux points importants dans le temps ici :
 
@@ -108,13 +108,13 @@ Ce modèle a un impact profond sur la manière dont le code Rust est écrit. Cel
 
 Plusieurs variables peuvent interagir avec les mêmes données de différentes manières en Rust. La liste 4-2 montre un exemple utilisant un entier.
 
-<liste numéro="4-2" légende="Assignation de la valeur entière de la variable `x` à `y`">
+<Listing number="4-2" caption="Assignation de la valeur entière de la variable `x` à `y`">
 
 ```rust
 {{#rustdoc_include ../listings/ch04-understanding-ownership/listing-04-02/src/main.rs:here}}
 ```
 
-</liste>
+</Listing>
 
 Nous pouvons probablement deviner ce que cela fait : « Lier la valeur `5` à `x` ; ensuite, faire une copie de la valeur dans `x` et la lier à `y` ». Nous avons maintenant deux variables, `x` et `y`, qui sont toutes deux égales à `5`. C'est en effet ce qui se passe, car les entiers sont des valeurs simples de taille fixe et connue, et ces deux valeurs `5` sont ajoutées à la pile.
 
@@ -224,13 +224,13 @@ Alors, quels types implémentent le trait `Copy` ? Vous pouvez vérifier la docu
 
 Les mécanismes de passage d'une valeur à une fonction sont similaires à ceux lors de l'assignation d'une valeur à une variable. Passer une variable à une fonction se déplacera ou se copiera, tout comme l'assignation. La liste 4-3 contient un exemple avec des annotations montrant où les variables entrent et sortent de la portée.
 
-<liste numéro="4-3" nom de fichier="src/main.rs" légende="Fonctions avec appartenance et portée annotées">
+<Listing number="4-3" file-name="src/main.rs" caption="Fonctions avec appartenance et portée annotées">
 
 ```rust
 {{#rustdoc_include ../listings/ch04-understanding-ownership/listing-04-03/src/main.rs}}
 ```
 
-</liste>
+</Listing>
 
 Si nous essayions d'utiliser `s` après l'appel à `takes_ownership`, Rust génèrerait une erreur de compilation. Ces vérifications statiques nous protègent des erreurs. Essayez d'ajouter du code à `main` qui utilise `s` et `x` pour voir où vous pouvez les utiliser et où les règles d'appartenance vous en empêchent.
 
@@ -238,13 +238,13 @@ Si nous essayions d'utiliser `s` après l'appel à `takes_ownership`, Rust gén�
 
 Le retour de valeurs peut également transférer l'appartenance. La liste 4-4 montre un exemple d'une fonction qui retourne une valeur, avec des annotations similaires à celles de la liste 4-3.
 
-<liste numéro="4-4" nom de fichier="src/main.rs" légende="Transférer l'appartenance des valeurs de retour">
+<listing number="4-4" file-name="src/main.rs" caption="Transférer l'appartenance des valeurs de retour">
 
 ```rust
 {{#rustdoc_include ../listings/ch04-understanding-ownership/listing-04-04/src/main.rs}}
 ```
 
-</liste>
+</Listing>
 
 L'appartenance d'une variable suit le même modèle chaque fois : assigner une valeur à une autre variable la déplace. Lorsqu'une variable qui inclut des données dans le tas sort de la portée, la valeur sera nettoyée par `drop` à moins que l'appartenance des données n'ait été déplacée vers une autre variable.
 
@@ -252,13 +252,13 @@ Bien que cela fonctionne, prendre l'appartenance puis retourner l'appartenance a
 
 Rust nous permet de retourner plusieurs valeurs en utilisant un tuple, comme le montre la liste 4-5.
 
-<liste numéro="4-5" légende="Retourner l'appartenance des paramètres">
+<Listing number="4-5" caption="Retourner l'appartenance des paramètres">
 
 ```rust
 {{#rustdoc_include ../listings/ch04-understanding-ownership/listing-04-05/src/main.rs}}
 ```
 
-</liste>
+</Listing>
 
 Mais cela est trop de cérémonie et beaucoup de travail pour un concept qui devrait être courant. Heureusement pour nous, Rust a une fonctionnalité pour utiliser une valeur sans transférer l'appartenance : les références.
 

@@ -10,13 +10,13 @@ Considérez une expression `match` comme étant semblable à une machine de tri 
 
 En parlant de pièces, utilisons-les comme exemple avec `match` ! Nous pouvons écrire une fonction qui prend une pièce américaine inconnue et, d'une manière similaire à la machine de comptage, détermine de quelle pièce il s'agit et renvoie sa valeur en cents, comme illustré dans la Liste 6-3.
 
-<Liste numéro="6-3" légende="Un enum et une expression `match` qui utilise les variantes de l'enum comme motifs">
+<Listing number="6-3" caption="Un enum et une expression `match` qui utilise les variantes de l'enum comme motifs">
 
 ```rust
 {{#rustdoc_include ../listings/ch06-enums-and-pattern-matching/listing-06-03/src/main.rs:here}}
 ```
 
-</Liste>
+</Listing>
 
 Analysons le `match` dans la fonction `value_in_cents`. Tout d'abord, nous listons le mot clé `match` suivi d'une expression, qui dans ce cas est la valeur `coin`. Cela semble très similaire à une expression conditionnelle utilisée avec `if`, mais il existe une grande différence : Avec `if`, la condition doit évaluer à une valeur booléenne, mais ici, elle peut être de n'importe quel type. Le type de `coin` dans cet exemple est l'enum `Coin` que nous avons défini sur la première ligne.
 
@@ -38,13 +38,13 @@ Une autre fonctionnalité utile des bras de match est qu'ils peuvent se lier aux
 
 Par exemple, changeons une de nos variantes d'enum pour contenir des données à l'intérieur. De 1999 à 2008, les États-Unis ont frappé des quarts avec différents designs pour chacun des 50 États sur un côté. Aucune autre pièce n'a eu de designs d'État, donc seuls les quarts ont cette valeur supplémentaire. Nous pouvons ajouter cette information à notre `enum` en modifiant la variante `Quarter` pour inclure une valeur `UsState` stockée à l'intérieur, ce que nous avons fait dans la Liste 6-4.
 
-<Liste numéro="6-4" légende="Un enum `Coin` dans lequel la variante `Quarter` contient également une valeur `UsState`">
+<Listing number="6-4" caption="Un enum `Coin` dans lequel la variante `Quarter` contient également une valeur `UsState`">
 
 ```rust
 {{#rustdoc_include ../listings/ch06-enums-and-pattern-matching/listing-06-04/src/main.rs:here}}
 ```
 
-</Liste>
+</Listing>
 
 Imaginons qu'un ami essaie de collecter tous les quarts des 50 États. Pendant que nous trions notre monnaie en pièces par type, nous appellerons également le nom de l'État associé à chaque quart afin que, s'il s'agit de l'un qu'il n'a pas, il puisse l'ajouter à sa collection.
 
@@ -69,13 +69,13 @@ Disons que nous voulons écrire une fonction qui prend un `Option<i32>` et, s'il
 
 Cette fonction est très facile à écrire, grâce à `match`, et ressemblera à la Liste 6-5.
 
-<Liste numéro="6-5" légende="Une fonction qui utilise une expression `match` sur un `Option<i32>`">
+<Listing number="6-5" caption="Une fonction qui utilise une expression `match` sur un `Option<i32>`">
 
 ```rust
 {{#rustdoc_include ../listings/ch06-enums-and-pattern-matching/listing-06-05/src/main.rs:here}}
 ```
 
-</Liste>
+</Listing>
 
 Examinons la première exécution de `plus_one` en détail. Lorsque nous appelons `plus_one(five)`, la variable `x` dans le corps de `plus_one` aura la valeur `Some(5)`. Nous la comparons ensuite à chaque bras de `match` :
 

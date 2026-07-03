@@ -16,13 +16,13 @@ Avant de discuter du cas d'utilisation du stockage sur le tas pour `Box<T>`, nou
 
 La Liste 15-1 montre comment utiliser une boîte pour stocker une valeur `i32` sur le tas.
 
-<Liste numéro="15-1" nom-de-fichier="src/main.rs" légende="Stockage d'une valeur `i32` sur le tas en utilisant une boîte">
+<Listing number="15-1" file-name="src/main.rs" caption="Stockage d'une valeur `i32` sur le tas en utilisant une boîte">
 
 ```rust
 {{#rustdoc_include ../listings/ch15-smart-pointers/listing-15-01/src/main.rs}}
 ```
 
-</Liste>
+</Listing>
 
 Nous définissons la variable `b` pour avoir la valeur d'une `Box` qui pointe vers la valeur `5`, qui est allouée sur le tas. Ce programme imprimera `b = 5` ; dans ce cas, nous pouvons accéder aux données dans la boîte de la même manière que si ces données étaient sur la pile. Tout comme toute valeur possédée, lorsqu'une boîte sort de son contexte, comme `b` à la fin de `main`, elle sera désallouée. La désallocation se produit à la fois pour la boîte (stockée sur la pile) et pour les données auxquelles elle pointe (stockées sur le tas).
 
@@ -50,37 +50,37 @@ La liste cons n'est pas une structure de données couramment utilisée dans Rust
 
 La Liste 15-2 contient une définition d'énumération pour une liste cons. Notez que ce code ne compilera pas encore, car le type `List` n'a pas de taille connue, ce que nous allons démontrer.
 
-<Liste numéro="15-2" nom-de-fichier="src/main.rs" légende="La première tentative de définition d'une énumération pour représenter une structure de données liste cons de valeurs `i32`">
+<Listing number="15-2" file-name="src/main.rs" caption="La première tentative de définition d'une énumération pour représenter une structure de données liste cons de valeurs `i32`">
 
 ```rust,ignore,does_not_compile
 {{#rustdoc_include ../listings/ch15-smart-pointers/listing-15-02/src/main.rs:here}}
 ```
 
-</Liste>
+</Listing>
 
 > Remarque : Nous mettons en œuvre une liste cons qui ne contient que des valeurs `i32` pour les besoins de cet exemple. Nous aurions pu l'implémenter en utilisant des génériques, comme nous en avons discuté dans le Chapitre 10, pour définir un type de liste cons qui pourrait stocker des valeurs de n'importe quel type.
 
 Utiliser le type `List` pour stocker la liste `1, 2, 3` ressemblerait au code de la Liste 15-3.
 
-<Liste numéro="15-3" nom-de-fichier="src/main.rs" légende="Utilisation de l'énumération `List` pour stocker la liste `1, 2, 3`">
+<Listing number="15-3" file-name="src/main.rs" caption="Utilisation de l'énumération `List` pour stocker la liste `1, 2, 3`">
 
 ```rust,ignore,does_not_compile
 {{#rustdoc_include ../listings/ch15-smart-pointers/listing-15-03/src/main.rs:here}}
 ```
 
-</Liste>
+</Listing>
 
 La première valeur `Cons` contient `1` et une autre valeur `List`. Cette valeur `List` est une autre valeur `Cons` qui contient `2` et une autre valeur `List`. Cette valeur `List` est une valeur `Cons` qui contient `3` et une valeur `List`, qui est enfin `Nil`, la variante non-récursive qui signale la fin de la liste.
 
 Si nous essayons de compiler le code dans la Liste 15-3, nous obtiendrons l'erreur montrée dans la Liste 15-4.
 
-<Liste numéro="15-4" légende="L'erreur que nous recevons lors de la tentative de définition d'une énumération récursive">
+<Listing number="15-4" caption="L'erreur que nous recevons lors de la tentative de définition d'une énumération récursive">
 
 ```console
 {{#include ../listings/ch15-smart-pointers/listing-15-03/output.txt}}
 ```
 
-</Liste>
+</Listing>
 
 L'erreur indique que ce type "a une taille infinie". La raison est que nous avons défini `List` avec une variante qui est récursive : elle contient directement une autre valeur de lui-même. En conséquence, Rust ne peut pas déterminer combien d'espace il lui faut pour stocker une valeur `List`. Décomposons pourquoi nous obtenons cette erreur. Tout d'abord, nous allons examiner comment Rust décide de l'espace à allouer pour une valeur d'un type non récursif.
 
@@ -117,13 +117,13 @@ Comme un `Box<T>` est un pointeur, Rust sait toujours combien d'espace un `Box<T
 
 Nous pouvons modifier la définition de l'énumération `List` dans la Liste 15-2 et l'utilisation de `List` dans la Liste 15-3 avec le code de la Liste 15-5, qui compilera.
 
-<Liste numéro="15-5" nom-de-fichier="src/main.rs" légende="La définition de `List` qui utilise `Box<T>` afin d'avoir une taille connue">
+<Listing number="15-5" file-name="src/main.rs" caption="La définition de `List` qui utilise `Box<T>` afin d'avoir une taille connue">
 
 ```rust
 {{#rustdoc_include ../listings/ch15-smart-pointers/listing-15-05/src/main.rs}}
 ```
 
-</Liste>
+</Listing>
 
 La variante `Cons` nécessite la taille d'un `i32` plus l'espace pour stocker les données de pointeur de la boîte. La variante `Nil` ne stocke aucune valeur, donc elle a besoin de moins d'espace sur la pile que la variante `Cons`. Nous savons maintenant que toute valeur `List` prendra la taille d'un `i32` plus la taille des données de pointeur d'une boîte. En utilisant une boîte, nous avons brisé la chaîne récursive infinie, donc le compilateur peut déterminer la taille nécessaire pour stocker une valeur `List`. La Figure 15-2 montre à quoi ressemble maintenant la variante `Cons`.
 

@@ -26,13 +26,13 @@ Par défaut, si un test réussit, la bibliothèque de test de Rust capture tout 
 
 À titre d'exemple, l'énoncé 11-10 contient une fonction triviale qui imprime la valeur de son paramètre et retourne 10, ainsi qu'un test qui réussit et un test qui échoue.
 
-<Énoncé numéro="11-10" nom-de-fichier="src/lib.rs" légende="Tests pour une fonction qui appelle `println!`">
+<Listing number="11-10" file-name="src/lib.rs" caption="Tests pour une fonction qui appelle `println!`">
 
 ```rust,panics,noplayground
 {{#rustdoc_include ../listings/ch11-writing-automated-tests/listing-11-10/src/lib.rs}}
 ```
 
-</Énoncé>
+</Listing>
 
 Lorsque nous exécutons ces tests avec `cargo test`, nous verrons la sortie suivante :
 
@@ -60,13 +60,13 @@ Exécuter une suite de tests complète peut parfois prendre beaucoup de temps. S
 
 Pour démontrer comment exécuter un sous-ensemble de tests, nous allons d'abord créer trois tests pour notre fonction `add_two`, comme montré dans l'énoncé 11-11, et choisir lesquels exécuter.
 
-<Énoncé numéro="11-11" nom-de-fichier="src/lib.rs" légende="Trois tests avec trois noms différents">
+<Listing number="11-11" file-name="src/lib.rs" caption="Trois tests avec trois noms différents">
 
 ```rust,noplayground
 {{#rustdoc_include ../listings/ch11-writing-automated-tests/listing-11-11/src/lib.rs}}
 ```
 
-</Énoncé>
+</Listing>
 
 Si nous exécutons les tests sans passer d'arguments, comme nous l'avons vu précédemment, tous les tests s'exécuteront en parallèle :
 

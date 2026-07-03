@@ -44,7 +44,7 @@ L'émetteur dispose d'une méthode `send` qui prend la valeur que nous voulons e
 
 Dans le Listing 16-8, nous allons récupérer la valeur depuis le récepteur dans le thread principal. Cela ressemble à récupérer le canard en caoutchouc de l'eau à la fin de la rivière ou à recevoir un message de chat.
 
-<Listing number="16-8" file-name="src/main.rs" caption='Recevoir la valeur `"hi"` dans le thread principal et l'afficher'>
+<Listing number="16-8" file-name="src/main.rs" caption="Recevoir la valeur `'hi'` dans le thread principal et l'afficher">
 
 ```rust
 {{#rustdoc_include ../listings/ch16-fearless-concurrency/listing-16-08/src/main.rs}}

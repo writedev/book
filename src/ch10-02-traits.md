@@ -16,13 +16,13 @@ Par exemple, disons que nous avons plusieurs structures qui contiennent divers t
 
 Nous voulons créer une bibliothèque de collecte de médias nommée `aggregator` qui peut afficher des résumés de données qui pourraient être stockées dans une instance `NewsArticle` ou `SocialPost`. Pour ce faire, nous avons besoin d'un résumé de chaque type, et nous demanderons ce résumé en appelant une méthode `summarize` sur une instance. L'extrait 10-12 montre la définition d'un trait `Summary` public qui exprime ce comportement.
 
-<Extrait numéro="10-12" nom-du-fichier="src/lib.rs" légende="Un trait `Summary` qui consiste en le comportement fourni par une méthode `summarize`">
+<Listing number="10-12" file-name="src/lib.rs" caption="Un trait `Summary` qui consiste en le comportement fourni par une méthode `summarize`">
 
 ```rust,noplayground
 {{#rustdoc_include ../listings/ch10-generic-types-traits-and-lifetimes/listing-10-12/src/lib.rs}}
 ```
 
-</Extrait>
+</Listing>
 
 Ici, nous déclarons un trait en utilisant le mot clé `trait` suivi du nom du trait, qui est `Summary` dans ce cas. Nous déclarons également le trait comme `pub` afin que les crates qui dépendent de cette crate puissent également utiliser ce trait, comme nous le verrons dans quelques exemples. À l'intérieur des accolades, nous déclarons les signatures des méthodes qui décrivent les comportements des types qui implémentent ce trait, qui dans ce cas est `fn summarize(&self) -> String`.
 
@@ -34,13 +34,13 @@ Un trait peut avoir plusieurs méthodes dans son corps : Les signatures des mét
 
 Maintenant que nous avons défini les signatures souhaitées des méthodes du trait `Summary`, nous pouvons l'implémenter sur les types de notre collecteur de médias. L'extrait 10-13 montre une implementation du trait `Summary` sur la structure `NewsArticle` qui utilise le titre, l'auteur et le lieu pour créer la valeur de retour de `summarize`. Pour la structure `SocialPost`, nous définissons `summarize` comme le nom d'utilisateur suivi de l'intégralité du texte du post, en supposant que le contenu du post est déjà limité à 280 caractères.
 
-<Extrait numéro="10-13" nom-du-fichier="src/lib.rs" légende="Implémenter le trait `Summary` sur les types `NewsArticle` et `SocialPost`">
+<Listing number="10-13" file-name="src/lib.rs" caption="Implémenter le trait `Summary` sur les types `NewsArticle` et `SocialPost`">
 
 ```rust,noplayground
 {{#rustdoc_include ../listings/ch10-generic-types-traits-and-lifetimes/listing-10-13/src/lib.rs:here}}
 ```
 
-</Extrait>
+</Listing>
 
 Implémenter un trait sur un type est similaire à l'implémentation de méthodes ordinaires. La différence est qu'après `impl`, nous mettons le nom du trait que nous voulons implémenter, puis utilisons le mot clé `for`, et ensuite spécifions le nom du type pour lequel nous voulons implémenter le trait. Dans le bloc `impl`, nous plaçons les signatures des méthodes que la définition du trait a définies. Au lieu d'ajouter un point-virgule après chaque signature, nous utilisons des accolades et complétons le corps de la méthode avec le comportement spécifique que nous voulons que les méthodes du trait aient pour le type particulier.
 
@@ -66,13 +66,13 @@ Il est parfois utile d'avoir un comportement par défaut pour certaines ou toute
 
 Dans l'extrait 10-14, nous spécifions une chaîne par défaut pour la méthode `summarize` du trait `Summary` au lieu de simplement définir la signature de la méthode, comme nous l'avons fait dans l'extrait 10-12.
 
-<Extrait numéro="10-14" nom-du-fichier="src/lib.rs" légende="Définir un trait `Summary` avec une implémentation par défaut de la méthode `summarize`">
+<Listing number="10-14" file-name="src/lib.rs" caption="Définir un trait `Summary` avec une implémentation par défaut de la méthode `summarize`">
 
 ```rust,noplayground
 {{#rustdoc_include ../listings/ch10-generic-types-traits-and-lifetimes/listing-10-14/src/lib.rs:here}}
 ```
 
-</Extrait>
+</Listing>
 
 Pour utiliser une implémentation par défaut pour résumer les instances de `NewsArticle`, nous spécifions un bloc `impl` vide avec `impl Summary for NewsArticle {}`.
 
@@ -212,13 +212,13 @@ Retourner soit un `NewsArticle` soit un `SocialPost` n'est pas permis en raison 
 
 En utilisant une contrainte de trait avec un bloc `impl` qui utilise des paramètres de type génériques, nous pouvons implémenter des méthodes conditionnellement pour des types qui implémentent les traits spécifiés. Par exemple, le type `Pair<T>` dans l'extrait 10-15 implémente toujours la fonction `new` pour retourner une nouvelle instance de `Pair<T>` (rappelons-nous de la section [“Syntaxe des Méthodes”][methods]<!-- ignore --> du Chapitre 5 que `Self` est un alias de type pour le type du bloc `impl`, qui dans ce cas est `Pair<T>`). Mais dans le prochain bloc `impl`, `Pair<T>` n'implémente la méthode `cmp_display` que si son type interne `T` implémente le trait `PartialOrd` qui permet la comparaison _et_ le trait `Display` qui permet l'affichage.
 
-<Extrait numéro="10-15" nom-du-fichier="src/lib.rs" légende="Implémentation conditionnelle de méthodes sur un type générique en fonction des contraintes de trait">
+<Listing number="10-15" file-name="src/lib.rs" caption="Implémentation conditionnelle de méthodes sur un type générique en fonction des contraintes de trait">
 
 ```rust,noplayground
 {{#rustdoc_include ../listings/ch10-generic-types-traits-and-lifetimes/listing-10-15/src/lib.rs}}
 ```
 
-</Extrait>
+</Listing>
 
 Nous pouvons également implémenter un trait conditionnellement pour tout type qui implémente un autre trait. Les implémentations d'un trait sur tout type qui satisfait aux contraintes de trait sont appelées _implémentations globales_ et sont largement utilisées dans la bibliothèque standard de Rust. Par exemple, la bibliothèque standard implémente le trait `ToString` sur tout type qui implémente le trait `Display`. Le bloc `impl` dans la bibliothèque standard ressemble à ce code :
 

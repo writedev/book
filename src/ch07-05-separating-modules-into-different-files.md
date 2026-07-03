@@ -6,23 +6,23 @@ Par exemple, commençons par le code de l'Annonce 7-17 qui avait plusieurs modul
 
 Tout d'abord, nous allons extraire le module `front_of_house` dans son propre fichier. Supprimez le code à l'intérieur des accolades pour le module `front_of_house`, en laissant uniquement la déclaration `mod front_of_house;`, de sorte que _src/lib.rs_ contienne le code montré dans l'Annonce 7-21. Notez que cela ne compilera pas tant que nous n'avons pas créé le fichier _src/front_of_house.rs_ comme montré dans l'Annonce 7-22.
 
-<Annonce numéro="7-21" nom-du-fichier="src/lib.rs" légende="Déclaration du module `front_of_house` dont le corps sera dans *src/front_of_house.rs*">
+<Listing number="7-21" file-name="src/lib.rs" caption="Déclaration du module `front_of_house` dont le corps sera dans *src/front_of_house.rs*">
 
 ```rust,ignore,does_not_compile
 {{#rustdoc_include ../listings/ch07-managing-growing-projects/listing-07-21-and-22/src/lib.rs}}
 ```
 
-</Annonce>
+</Listing>
 
 Ensuite, placez le code qui était dans les accolades dans un nouveau fichier nommé _src/front_of_house.rs_, comme montré dans l'Annonce 7-22. Le compilateur sait chercher dans ce fichier, car il a rencontré la déclaration du module dans le fichier racine du crate avec le nom `front_of_house`.
 
-<Annonce numéro="7-22" nom-du-fichier="src/front_of_house.rs" légende="Définitions à l'intérieur du module `front_of_house` dans *src/front_of_house.rs*">
+<Listing number="7-22" file-name="src/front_of_house.rs" caption="Définitions à l'intérieur du module `front_of_house` dans *src/front_of_house.rs*">
 
 ```rust,ignore
 {{#rustdoc_include ../listings/ch07-managing-growing-projects/listing-07-21-and-22/src/front_of_house.rs}}
 ```
 
-</Annonce>
+</Listing>
 
 Notez que vous n'avez besoin de charger un fichier utilisant une déclaration `mod` qu'une seule fois dans votre arbre de modules. Une fois que le compilateur sait que le fichier fait partie du projet (et connaît l'emplacement dans l'arbre de modules où se trouve le code en raison de l'emplacement de la déclaration `mod`), d'autres fichiers dans votre projet doivent faire référence au code du fichier chargé en utilisant un chemin vers l'endroit où il a été déclaré, comme couvert dans la section ["Chemins pour se référer à un élément dans l'arbre de modules"] [paths]<!-- ignore -->. En d'autres termes, `mod` n'est pas une opération "include" que vous avez pu voir dans d'autres langages de programmation.
 
@@ -30,23 +30,23 @@ Ensuite, nous allons extraire le module `hosting` dans son propre fichier. Le pr
 
 Pour commencer à déplacer `hosting`, nous modifions _src/front_of_house.rs_ pour ne contenir que la déclaration du module `hosting` :
 
-<Annonce nom-du-fichier="src/front_of_house.rs">
+<Listing file-name="src/front_of_house.rs">
 
 ```rust,ignore
 {{#rustdoc_include ../listings/ch07-managing-growing-projects/no-listing-02-extracting-hosting/src/front_of_house.rs}}
 ```
 
-</Annonce>
+</Listing>
 
 Ensuite, nous créons un répertoire _src/front_of_house_ et un fichier _hosting.rs_ pour contenir les définitions faites dans le module `hosting` :
 
-<Annonce nom-du-fichier="src/front_of_house/hosting.rs">
+<Listing file-name="src/front_of_house/hosting.rs">
 
 ```rust,ignore
 {{#rustdoc_include ../listings/ch07-managing-growing-projects/no-listing-02-extracting-hosting/src/front_of_house/hosting.rs}}
 ```
 
-</Annonce>
+</Listing>
 
 Si nous mettions plutôt _hosting.rs_ dans le répertoire _src_, le compilateur s'attendrait à ce que le code de _hosting.rs_ soit dans un module `hosting` déclaré dans le fichier racine du crate et non déclaré comme un enfant du module `front_of_house`. Les règles du compilateur concernant les fichiers à vérifier pour le code des modules signifient que les répertoires et fichiers correspondent plus étroitement à l'arbre des modules.
 

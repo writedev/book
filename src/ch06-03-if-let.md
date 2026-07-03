@@ -2,13 +2,13 @@
 
 La syntaxe `if let` vous permet de combiner `if` et `let` de manière moins verbeuse pour gérer des valeurs qui correspondent à un motif tout en ignorant les autres. Considérez le programme dans la Liste 6-6 qui correspond à une valeur `Option<u8>` dans la variable `config_max`, mais qui ne veut exécuter du code que si la valeur est la variante `Some`.
 
-<Liste numéro="6-6" légende="Un `match` qui ne se préoccupe que d'exécuter du code lorsque la valeur est `Some`">
+<Listing number="6-6" caption="Un `match` qui ne se préoccupe que d'exécuter du code lorsque la valeur est `Some`">
 
 ```rust
 {{#rustdoc_include ../listings/ch06-enums-and-pattern-matching/listing-06-06/src/main.rs:here}}
 ```
 
-</Liste>
+</Listing>
 
 Si la valeur est `Some`, nous affichons la valeur de la variante `Some` en liant la valeur à la variable `max` dans le motif. Nous ne voulons rien faire avec la valeur `None`. Pour satisfaire l'expression `match`, nous devons ajouter `_ =>
 ()` après avoir traité une seule variante, ce qui est un code d’entête ennuyeux à ajouter.
@@ -47,23 +47,23 @@ Le schéma courant consiste à effectuer un calcul lorsqu'une valeur est présen
 
 Puis, nous pourrions utiliser `if let` pour correspondre au type de pièce, introduisant une variable `state` dans le corps de la condition, comme dans la Liste 6-7.
 
-<Liste numéro="6-7" légende="Vérifier si un état existait en 1900 en utilisant des conditionnels imbriqués à l'intérieur d'un `if let`">
+<Listing number="6-7" caption="Vérifier si un état existait en 1900 en utilisant des conditionnels imbriqués à l'intérieur d'un `if let`">
 
 ```rust
 {{#rustdoc_include ../listings/ch06-enums-and-pattern-matching/listing-06-07/src/main.rs:describe}}
 ```
 
-</Liste>
+</Listing>
 
 Cela fait le travail, mais cela a déplacé la charge de travail dans le corps de l'instruction `if let`, et si le travail à effectuer est plus compliqué, il peut être difficile de suivre exactement comment les branches de niveau supérieur se rapportent. Nous pourrions également tirer parti du fait que les expressions produisent une valeur soit pour produire le `state` de `if let`, soit pour retourner tôt, comme dans la Liste 6-8. (Vous pourriez faire quelque chose de similaire avec un `match`, aussi.)
 
-<Liste numéro="6-8" légende="Utiliser `if let` pour produire une valeur ou retourner tôt">
+<Listing number="6-8" caption="Utiliser `if let` pour produire une valeur ou retourner tôt">
 
 ```rust
 {{#rustdoc_include ../listings/ch06-enums-and-pattern-matching/listing-06-08/src/main.rs:describe}}
 ```
 
-</Liste>
+</Listing>
 
 C'est un peu ennuyeux à suivre à sa manière, cependant ! Une branche de l'`if let` produit une valeur, et l'autre retourne complètement de la fonction.
 
@@ -71,13 +71,13 @@ Pour rendre ce schéma courant plus agréable à exprimer, Rust a `let...else`. 
 
 Dans la Liste 6-9, vous pouvez voir à quoi ressemble la Liste 6-8 en utilisant `let...else` à la place de `if let`.
 
-<Liste numéro="6-9" légende="Utiliser `let...else` pour clarifier le flux à travers la fonction">
+<Listing number="6-9" caption="Utiliser `let...else` pour clarifier le flux à travers la fonction">
 
 ```rust
 {{#rustdoc_include ../listings/ch06-enums-and-pattern-matching/listing-06-09/src/main.rs:describe}}
 ```
 
-</Liste>
+</Listing>
 
 Remarquez que cela reste sur le "chemin heureux" dans le corps principal de la fonction de cette manière, sans avoir un flux de contrôle significativement différent pour deux branches comme le faisait `if let`.
 

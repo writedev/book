@@ -19,13 +19,13 @@ Lorsque vous réfléchissez à la méthode à utiliser, considérez ces règles 
 
 Et si vous avez besoin à la fois de parallélisme et de concurrence, vous n'avez pas à choisir entre threads et async. Vous pouvez les utiliser ensemble librement, laissant chacun jouer le rôle qu'il maîtrise le mieux. Par exemple, la Liste 17-25 montre un exemple assez courant de ce type de mélange dans un code Rust du monde réel.
 
-<Liste numéro="17-25" légende="Envoi de messages avec du code bloquant dans un thread et attente des messages dans un bloc async" nom-de-fichier="src/main.rs">
+<Listing number="17-25" caption="Envoi de messages avec du code bloquant dans un thread et attente des messages dans un bloc async" file-name="src/main.rs">
 
 ```rust
 {{#rustdoc_include ../listings/ch17-async-await/listing-17-25/src/main.rs:all}}
 ```
 
-</Liste>
+</Listing>
 
 Nous commençons par créer un canal async, puis lançons un thread qui prend possession de la partie émettrice du canal en utilisant le mot clé `move`. Au sein du thread, nous envoyons les nombres 1 à 10, en dormant une seconde entre chaque. Enfin, nous exécutons un futur créé avec un bloc async passé à `trpl::block_on`, tout comme nous l'avons fait tout au long du chapitre. Dans ce futur, nous attendons ces messages, tout comme dans les autres exemples de passage de messages que nous avons vus.
 

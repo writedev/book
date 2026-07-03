@@ -36,13 +36,13 @@ Et nous pouvons appeler cette fonction avec l'un ou l'autre variant :
 
 Utiliser des enums a encore plus d'avantages. En réfléchissant davantage à notre type d'adresse IP, pour le moment nous n'avons pas de moyen de stocker les données réelles de l'adresse IP ; nous savons seulement de quel _type_ il s'agit. Étant donné que vous avez appris sur les structures dans le Chapitre 5, vous pourriez être tenté d'aborder ce problème avec des structures comme montré dans la Liste 6-1.
 
-<Liste numéro="6-1" légende="Stocker les données et le variant `IpAddrKind` d'une adresse IP à l'aide d'une `struct`">
+<Listing number="6-1" caption="Stocker les données et le variant `IpAddrKind` d'une adresse IP à l'aide d'une `struct`">
 
 ```rust
 {{#rustdoc_include ../listings/ch06-enums-and-pattern-matching/listing-06-01/src/main.rs:here}}
 ```
 
-</Liste>
+</Listing>
 
 Ici, nous avons défini une structure `IpAddr` qui a deux champs : un champ `kind` qui est de type `IpAddrKind` (l'enum que nous avons défini précédemment) et un champ `address` de type `String`. Nous avons deux instances de cette structure. La première est `home`, et elle a la valeur `IpAddrKind::V4` comme son `kind` avec des données d'adresse associées de `127.0.0.1`. La seconde instance est `loopback`. Elle a l'autre variant de `IpAddrKind` comme sa valeur de `kind`, `V6`, et a l'adresse `::1` associée à elle. Nous avons utilisé une structure pour regrouper les valeurs `kind` et `address`, donc maintenant le variant est associé à la valeur.
 
@@ -83,13 +83,13 @@ Notez que même si la bibliothèque standard contient une définition pour `IpAd
 
 Examinons un autre exemple d'un enum dans la Liste 6-2 : Celui-ci a une grande variété de types intégrés dans ses variants.
 
-<Liste numéro="6-2" légende="Un enum `Message` dont les variants stockent chacun différentes quantités et types de valeurs">
+<Listing number="6-2" caption="Un enum `Message` dont les variants stockent chacun différentes quantités et types de valeurs">
 
 ```rust
 {{#rustdoc_include ../listings/ch06-enums-and-pattern-matching/listing-06-02/src/main.rs:here}}
 ```
 
-</Liste>
+</Listing>
 
 Cet enum a quatre variants avec des types différents :
 

@@ -16,23 +16,23 @@ Un autre aspect couramment associé à la POO est l'idée d'_encapsulation_, ce 
 
 Nous avons discuté de la manière de contrôler l'encapsulation dans le Chapitre 7 : nous pouvons utiliser le mot-clé `pub` pour décider quels modules, types, fonctions et méthodes dans notre code doivent être publics, et par défaut, tout le reste est privé. Par exemple, nous pouvons définir une struct `AveragedCollection` qui a un champ contenant un vecteur de valeurs `i32`. La struct peut également avoir un champ qui contient la moyenne des valeurs dans le vecteur, ce qui signifie que la moyenne n'a pas besoin d'être calculée à la demande chaque fois que quelqu'un en a besoin. En d'autres termes, `AveragedCollection` va mettre en cache la moyenne calculée pour nous. La liste 18-1 contient la définition de la struct `AveragedCollection`.
 
-<Liste numéro="18-1" nom de fichier="src/lib.rs" légende="Une struct `AveragedCollection` qui maintient une liste d'entiers et la moyenne des éléments de la collection">
+<Listing number="18-1" file-name="src/lib.rs" caption="Une struct `AveragedCollection` qui maintient une liste d'entiers et la moyenne des éléments de la collection">
 
 ```rust,noplayground
 {{#rustdoc_include ../listings/ch18-oop/listing-18-01/src/lib.rs}}
 ```
 
-</Liste>
+</Listing>
 
 La struct est marquée `pub` afin qu'un autre code puisse l'utiliser, mais les champs à l'intérieur de la struct restent privés. Cela est important dans ce cas car nous voulons nous assurer que chaque fois qu'une valeur est ajoutée ou supprimée de la liste, la moyenne est également mise à jour. Nous faisons cela en implémentant les méthodes `add`, `remove` et `average` sur la struct, comme le montre la liste 18-2.
 
-<Liste numéro="18-2" nom de fichier="src/lib.rs" légende="Implémentations des méthodes publiques `add`, `remove` et `average` sur `AveragedCollection`">
+<Listing number="18-2" file-name="src/lib.rs" caption="Implémentations des méthodes publiques `add`, `remove` et `average` sur `AveragedCollection`">
 
 ```rust,noplayground
 {{#rustdoc_include ../listings/ch18-oop/listing-18-02/src/lib.rs:here}}
 ```
 
-</Liste>
+</Listing>
 
 Les méthodes publiques `add`, `remove` et `average` sont les seules façons d'accéder ou de modifier les données dans une instance de `AveragedCollection`. Lorsqu'un élément est ajouté à `list` à l'aide de la méthode `add` ou supprimé à l'aide de la méthode `remove`, les implémentations de chacune appellent la méthode privée `update_average` qui gère également la mise à jour du champ `average`.
 
