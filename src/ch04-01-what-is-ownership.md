@@ -238,7 +238,7 @@ Si nous essayions d'utiliser `s` après l'appel à `takes_ownership`, Rust gén�
 
 Le retour de valeurs peut également transférer l'appartenance. La liste 4-4 montre un exemple d'une fonction qui retourne une valeur, avec des annotations similaires à celles de la liste 4-3.
 
-<listing number="4-4" file-name="src/main.rs" caption="Transférer l'appartenance des valeurs de retour">
+<Listing number="4-4" file-name="src/main.rs" caption="Transférer l'appartenance des valeurs de retour">
 
 ```rust
 {{#rustdoc_include ../listings/ch04-understanding-ownership/listing-04-04/src/main.rs}}
