@@ -1,0 +1,3 @@
+# Comprendre la propriété
+
+La propriété est la caractéristique la plus unique de Rust et a des implications profondes pour le reste du langage. Elle permet à Rust de garantir la sécurité de la mémoire sans avoir besoin d'un ramasse-miettes, il est donc important de comprendre comment la propriété fonctionne. Dans ce chapitre, nous parlerons de la propriété ainsi que de plusieurs fonctionnalités connexes : l'emprunt, les tranches, et comment Rust organise les données en mémoire.

@@ -1,0 +1,7 @@
+# Caractéristiques de la Programmation Orientée Objet
+
+<!-- Anciennes rubriques. Ne pas supprimer ou les liens risquent de ne plus fonctionner. -->
+
+<a id="caractéristiques-de-la-programmation-orientée-objet-du-rust"></a>
+
+La programmation orientée objet (POO) est une manière de modéliser des programmes. Les objets en tant que concept programmatique ont été introduits dans le langage de programmation Simula dans les années 1960. Ces objets ont influencé l'architecture de programmation d'Alan Kay dans laquelle les objets s'envoient des messages entre eux. Pour décrire cette architecture, il a inventé le terme _programmation orientée objet_ en 1967. De nombreuses définitions concurrentes décrivent ce qu'est la POO, et selon certaines de ces définitions, Rust est orienté objet, tandis que selon d'autres, il ne l'est pas. Dans ce chapitre, nous explorerons certaines caractéristiques couramment considérées comme orientées objet et comment ces caractéristiques se traduisent en Rust idiomatique. Nous vous montrerons ensuite comment implémenter un motif de conception orienté objet en Rust et discuterons des compromis que cela implique par rapport à l'implémentation d'une solution utilisant certaines des forces de Rust à la place.

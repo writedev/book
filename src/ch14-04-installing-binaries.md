@@ -1,30 +1,48 @@
-<!-- Anciennes rubriques. Ne pas supprimer sinon les liens peuvent être rompus. -->
+<!-- Old headings. Do not remove or links may break. -->
 
 <a id="installing-binaries-from-cratesio-with-cargo-install"></a>
 
-## Installation de binaires avec `cargo install`
+## Installing Binaries with `cargo install`
 
-La commande `cargo install` vous permet d'installer et d'utiliser des crates binaires localement. Cela n’est pas destiné à remplacer les packages système ; c’est une manière pratique pour les développeurs Rust d’installer des outils que d’autres ont partagés sur [crates.io](https://crates.io/)<!-- ignore -->. Notez que vous ne pouvez installer que des packages qui ont des cibles binaires. Une _cible binaire_ est le programme exécutable qui est créé si la crate a un fichier _src/main.rs_ ou un autre fichier spécifié comme binaire, contrairement à une cible de bibliothèque qui n’est pas exécutable seule mais qui est adaptée pour être incluse dans d'autres programmes. En général, les crates contiennent des informations dans le fichier README sur le fait qu'une crate est une bibliothèque, a une cible binaire, ou les deux.
+The `cargo install` command allows you to install and use binary crates
+locally. This isn’t intended to replace system packages; it’s meant to be a
+convenient way for Rust developers to install tools that others have shared on
+[crates.io](https://crates.io/)<!-- ignore -->. Note that you can only install
+packages that have binary targets. A _binary target_ is the runnable program
+that is created if the crate has a _src/main.rs_ file or another file specified
+as a binary, as opposed to a library target that isn’t runnable on its own but
+is suitable for including within other programs. Usually, crates have
+information in the README file about whether a crate is a library, has a
+binary target, or both.
 
-Tous les binaires installés avec `cargo install` sont stockés dans le dossier _bin_ de la racine d'installation. Si vous avez installé Rust en utilisant _rustup.rs_ et que vous n'avez pas de configurations personnalisées, ce répertoire sera *$HOME/.cargo/bin*. Assurez-vous que ce répertoire se trouve dans votre `$PATH` pour pouvoir exécuter les programmes que vous avez installés avec `cargo install`.
+All binaries installed with `cargo install` are stored in the installation
+root’s _bin_ folder. If you installed Rust using _rustup.rs_ and don’t have any
+custom configurations, this directory will be *$HOME/.cargo/bin*. Ensure that
+this directory is in your `$PATH` to be able to run programs you’ve installed
+with `cargo install`.
 
-Par exemple, dans le Chapitre 12, nous avons mentionné qu’il existe une implémentation Rust de l'outil `grep` appelée `ripgrep` pour rechercher des fichiers. Pour installer `ripgrep`, nous pouvons exécuter la commande suivante :
+For example, in Chapter 12 we mentioned that there’s a Rust implementation of
+the `grep` tool called `ripgrep` for searching files. To install `ripgrep`, we
+can run the following:
 
-<!-- régénération manuelle
-cargo install quelque chose que vous n'avez pas, copiez la sortie pertinente ci-dessous
+<!-- manual-regeneration
+cargo install something you don't have, copy relevant output below
 -->
 
 ```console
 $ cargo install ripgrep
-    Mise à jour de l'index crates.io
-  Téléchargement de ripgrep v14.1.1
-  1 crate téléchargé (213.6 Ko) en 0.40s
-  Installation de ripgrep v14.1.1
+    Updating crates.io index
+  Downloaded ripgrep v14.1.1
+  Downloaded 1 crate (213.6 KB) in 0.40s
+  Installing ripgrep v14.1.1
 --snip--
-   Compilation de grep v0.3.2
-    Profil `release` terminé [optimisé + informations de débogage] cible(s) en 6.73s
-  Installation de ~/.cargo/bin/rg
-   Paquet `ripgrep v14.1.1` installé (exécutable `rg`)
+   Compiling grep v0.3.2
+    Finished `release` profile [optimized + debuginfo] target(s) in 6.73s
+  Installing ~/.cargo/bin/rg
+   Installed package `ripgrep v14.1.1` (executable `rg`)
 ```
 
-L'avant-dernière ligne de la sortie montre l'emplacement et le nom du binaire installé, qui dans le cas de `ripgrep` est `rg`. Tant que le répertoire d'installation est dans votre `$PATH`, comme mentionné précédemment, vous pouvez alors exécuter `rg --help` et commencer à utiliser un outil plus rapide et plus Rustique pour rechercher des fichiers !
+The second-to-last line of the output shows the location and the name of the
+installed binary, which in the case of `ripgrep` is `rg`. As long as the
+installation directory is in your `$PATH`, as mentioned previously, you can
+then run `rg --help` and start using a faster, Rustier tool for searching files!

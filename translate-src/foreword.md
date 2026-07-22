@@ -1,0 +1,15 @@
+# Préface
+
+Le langage de programmation Rust a parcouru un long chemin en quelques années, passant de sa création et de son incubation par une petite communauté d'enthousiastes à devenir l'un des langages de programmation les plus aimés et les plus demandés au monde. En regardant en arrière, il était inévitable que la puissance et la promesse de Rust attirent l’attention et s’établissent dans la programmation système. Ce qui n'était pas inévitable, c'était la croissance mondiale de l'intérêt et de l'innovation qui a permeé à travers les communautés open source et catalysé l'adoption à grande échelle dans divers secteurs.
+
+À ce stade, il est facile de pointer les merveilleuses caractéristiques que Rust a à offrir pour expliquer cette explosion d'intérêt et d'adoption. Qui ne veut pas d'une sécurité mémoire, *et* de performances rapides, *et* d'un compilateur convivial, *et* d'excellents outils, parmi une pléthore d'autres caractéristiques merveilleuses ? Le langage Rust que vous voyez aujourd'hui combine des années de recherche en programmation système avec la sagesse pratique d'une communauté dynamique et passionnée. Ce langage a été conçu avec intention et élaboré avec soin, offrant aux développeurs un outil qui facilite l'écriture de code sûr, rapide et fiable.
+
+Mais ce qui rend Rust véritablement spécial, ce sont ses racines dans l'autonomisation de vous, l'utilisateur, pour atteindre vos objectifs. C'est un langage qui veut que vous réussissiez, et le principe d'autonomisation traverse le cœur de la communauté qui construit, maintient et plaide pour ce langage. Depuis la précédente édition de ce texte définitif, Rust s'est davantage développé en un langage véritablement mondial et de confiance. Le projet Rust est désormais soutenu de manière robuste par la Rust Foundation, qui investit également dans des initiatives clés pour garantir que Rust soit sécurisé, stable et durable.
+
+Cette édition de *The Rust Programming Language* est une mise à jour complète, reflétant l'évolution du langage au fil des ans et fournissant de nouvelles informations précieuses. Mais ce n'est pas seulement un guide de syntaxe et de bibliothèques, c'est une invitation à rejoindre une communauté qui valorise la qualité, la performance et un design réfléchi. Que vous soyez un développeur chevronné cherchant à explorer Rust pour la première fois ou un Rustacean expérimenté cherchant à perfectionner vos compétences, cette édition offre quelque chose pour tout le monde.
+
+Le parcours de Rust a été celui de la collaboration, de l'apprentissage et de l'itération. La croissance du langage et de son écosystème est un reflet direct de la communauté dynamique et diversifiée qui le soutient. Les contributions de milliers de développeurs, des concepteurs principaux du langage aux contributeurs occasionnels, sont ce qui rend Rust si unique et puissant. En feuilletant ce livre, vous n'apprenez pas seulement un nouveau langage de programmation : vous rejoignez un mouvement pour rendre les logiciels meilleurs, plus sûrs et plus agréables à utiliser.
+
+Bienvenue dans la communauté Rust !
+
+- Bec Rumbul, Directeur Exécutif de la Rust Foundation

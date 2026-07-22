@@ -1,0 +1,5 @@
+# Utilisation des Structs pour Structurer des Données Associées
+
+Un _struct_, ou _structure_, est un type de données personnalisé qui vous permet de regrouper et de nommer plusieurs valeurs associées qui forment un ensemble significatif. Si vous êtes familier avec un langage orienté objet, un struct est similaire aux attributs de données d'un objet. Dans ce chapitre, nous allons comparer et contraster les tuples avec les structs afin d'élargir vos connaissances et de démontrer quand les structs sont une meilleure manière de regrouper des données.
+
+Nous allons montrer comment définir et instancier des structs. Nous discuterons de la façon de définir des fonctions associées, en particulier du type de fonctions associées appelées _méthodes_, pour spécifier le comportement associé à un type de struct. Les structs et les enums (discutés au Chapitre 6) sont les briques de base pour créer de nouveaux types dans le domaine de votre programme afin de tirer pleinement parti de la vérification de type à la compilation de Rust.

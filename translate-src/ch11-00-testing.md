@@ -1,0 +1,11 @@
+# Écriture de Tests Automatisés
+
+Dans son essai de 1972 « Le Programmeur Humble », Edsger W. Dijkstra a déclaré que « le test de programmes peut être un moyen très efficace de montrer la présence de bugs, mais il est désespérément inadéquat pour montrer leur absence. » Cela ne veut pas dire que nous ne devrions pas essayer de tester autant que possible !
+
+La _correction_ de nos programmes est l'étendue à laquelle notre code fait ce que nous avons l'intention qu'il fasse. Rust est conçu avec un grand souci de la correction des programmes, mais la correction est complexe et difficile à prouver. Le système de types de Rust porte une grande partie de ce fardeau, mais le système de types ne peut pas tout attraper. En tant que tel, Rust inclut un support pour l'écriture de tests automatisés.
+
+Disons que nous écrivons une fonction `add_two` qui ajoute 2 à tout nombre qui lui est passé. La signature de cette fonction accepte un entier comme paramètre et renvoie un entier comme résultat. Lorsque nous implémentons et compilons cette fonction, Rust effectue toutes les vérifications de type et de prêt que vous avez apprises jusqu'à présent pour garantir que, par exemple, nous ne passons pas une valeur `String` ou une référence invalide à cette fonction. Mais Rust _ne peut pas_ vérifier que cette fonction fera exactement ce que nous voulons, c'est-à-dire renvoyer le paramètre plus 2 plutôt que, disons, le paramètre plus 10 ou le paramètre moins 50 ! C'est là que les tests interviennent.
+
+Nous pouvons écrire des tests qui affirment, par exemple, que lorsque nous passons `3` à la fonction `add_two`, la valeur renvoyée est `5`. Nous pouvons exécuter ces tests chaque fois que nous apportons des modifications à notre code pour nous assurer que tout comportement correct existant n'a pas changé.
+
+Tester est une compétence complexe : bien que nous ne puissions pas couvrir dans un chapitre tous les détails sur la façon d'écrire de bons tests, dans ce chapitre, nous allons discuter des mécanismes des installations de test de Rust. Nous aborderons les annotations et les macros disponibles lors de l'écriture de vos tests, le comportement par défaut et les options fournies pour exécuter vos tests, ainsi que la façon d'organiser les tests en tests unitaires et tests d'intégration.
