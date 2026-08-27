@@ -104,9 +104,9 @@ def get_content_blob(path: Path) -> str:
     return blob.data.decode()
 
 
-def translate_files(file_list: list[FileChanged]) -> None:
+def translate_files(file_list: list[FileChanged], new_branch: Branch) -> None:
 
-    repo.checkout(main_branch)
+    repo.checkout(new_branch)
 
     for files in file_list:
         if files.type_of_changed.name == "DELETED":
