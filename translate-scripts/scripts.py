@@ -34,24 +34,6 @@ client = OpenAI(base_url="http://localhost:11434/v1/", api_key="ollama")
 INSTRUCT = """You are a translator into French. You must remain objective and, above all, must not alter the content (the meaning) of the sentences you are translating. You must not add your own opinion. You must take the context of the translation into account. If you receive a code file, you must translate only what the user will see. You must NOT touch the technical aspects. YOU MUST ONLY RETURN THE ANSWER – NOTHING MORE THAN WHAT YOU ARE ASKED FOR. You therefore translate the raw text you receive."""
 
 
-def check_if_diff() -> bool:
-    """check if there are diffs between the branchs"""
-    diffs = []
-
-    for diff in repo.diff(main_branch, translate_branch):
-        # if "translate-src/" in diff.delta.new_file.path:
-        #     continue
-
-        if diff.delta.new_file.path.startswith("src"):
-            print(diff.delta.new_file.path)
-
-        diffs.append(diff)
-
-    if diffs == []:
-        return False
-    return True
-
-
 def create_new_branch() -> Branch:
     """Create new random branch with the prefix "github-actions/" """
 
@@ -71,23 +53,13 @@ def get_file_changed(new_branch: Branch) -> list[FileChanged]:
 
     docs_file_changed: list[FileChanged] = []
     for diff in repo.diff(new_branch, main_branch):
-        # file = diff.delta.new_file
         file = diff.delta.new_file
         path = Path(file.path)
 
-        # if file.path.startswith("src/") and file.path.endswith(".md"):
-        #     filename = file.path.split("/")[1]
-
-        #     print(filename)
-
+        # Display the diff with the path
         print(f"{diff.delta.status.name} - {path}")
 
-        # print(path.name)
-
-        if str(path).startswith("src/") and "img/" in str(
-            path
-        ):  # VERIFY IF THERE ARE NOT IN IMG
-            tree = main_branch.peel(Commit).tree
+        if str(path).startswith("src/") and "img/" in str(path):
             docs_file_changed.append(
                 FileChanged(type_of_changed=diff.delta.status, path=path)
             )
@@ -99,15 +71,19 @@ def merge_branch(new_branch: Branch) -> None:
     """Merge the main branch in the branch in the params."""
     repo.checkout(new_branch)
 
-    # analysis, preference = repo.merge_analysis(main_branch.target)
-
+    # Merge the branch
     repo.merge(main_branch)
 
+    # Get the head of both branch
     our_head = repo.head.target
     their_head = repo.head.target
+    # Get the signature
     user = repo.default_signature
+    # Write the tree in the index
     tree = repo.index.write_tree()
+    # Write the message
     message = "Merging branches"
+    # Send the message
     new_commit = repo.create_commit(
         "HEAD", user, user, message, tree, [their_head, our_head]
     )
@@ -146,16 +122,14 @@ def do_update_commit(message: str = "Initial commit"):
 
     index.add_all()
     index.write()
-    author = Signature("Alice Author", "alice@authors.tld")
-    committer = Signature("Cecil Committer", "cecil@committers.tld")
+    author = repo.default_signature
+    committer = repo.default_signature
     message = "Initial commit"
     tree = index.write_tree()
     repo.create_commit(ref, author, committer, message, tree, parents)
 
 
 def translate_files(file_list: list[FileChanged], new_branch: Branch) -> None:
-
-    # repo.checkout(new_branch)
 
     # Delete all IMG folder and copy the new
 
@@ -165,6 +139,8 @@ def translate_files(file_list: list[FileChanged], new_branch: Branch) -> None:
 
     for files in file_list:
         if files.type_of_changed.name == "DELETED":
+            # Delete file in src if is DELETED in the src
+
             delete_file = f"translate-src/{files.path.name}"
 
             if os.path.exists(delete_file):
@@ -178,21 +154,23 @@ def translate_files(file_list: list[FileChanged], new_branch: Branch) -> None:
             files.type_of_changed.name == "MODIFIED"
             or files.type_of_changed.name == "ADDED"
         ):
-            content = get_content_blob_main(files.path)
-            print("---input---\n")
-            # print(content)
+            # Traduct the content and create or modified a file.
 
-            print("Openai Call...")
-            response = client.responses.create(
-                model="qwen2.5-coder:7b", instructions=INSTRUCT, input=content
-            )
-            # response = "hey"  # <- TEST
+            content = get_content_blob_main(files.path)
 
             new_file = f"translate-src/{files.path.name}"
 
-            print("---output---\n")
-            # print(response.output_text)
+            # Call IA api for traduct the document
 
+            print("IA Call...")
+            response = client.responses.create(
+                model="qwen2.5-coder:7b", instructions=INSTRUCT, input=content
+            )
+
+            print("---output---\n")
+            print(response.output_text)
+
+            # Write the file
             open(new_file, mode="w+").write(response.output_text)
 
             print(f"{files.path} translated in {new_file}.")
@@ -202,13 +180,6 @@ def translate_files(file_list: list[FileChanged], new_branch: Branch) -> None:
             print(
                 f"---THIS TYPE OF CHANGE iSNT WORK || {files.type_of_changed.name}||---"
             )
-
-        # open(mode="+w")
-
-
-# print(get_file_changed())
-
-# check_if_diff()
 
 
 def main():
