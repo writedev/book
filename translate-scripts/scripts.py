@@ -25,9 +25,9 @@ auth = Auth.Token(os.environ.get("GITHUB_TOKEN"))
 g = Github(auth=auth)
 
 
-main_branch = repo.branches["main"]
+main_branch = repo.branches["origin/main"]
 
-translate_branch = repo.branches["translate-branch"]  # origin/translate-branch
+translate_branch = repo.branches["origin/translate-branch"]  # origin/translate-branch
 
 load_dotenv()
 
