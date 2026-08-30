@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 import os
 from openai import OpenAI
 import shutil
+from github import Auth, Github
 
 
 @dataclass
@@ -19,9 +20,14 @@ class FileChanged:
 
 repo = Repository(".")
 
-main_branch = repo.branches["test-main"]
+auth = Auth.Token(os.environ.get("GITHUB_TOKEN"))
 
-translate_branch = repo.branches["test-translate-branch"]  # origin/translate-branch
+g = Github(auth=auth)
+
+
+main_branch = repo.branches["main"]
+
+translate_branch = repo.branches["translate-branch"]  # origin/translate-branch
 
 load_dotenv()
 
@@ -174,6 +180,15 @@ def translate_files(file_list: list[FileChanged], new_branch: Branch) -> None:
             print(
                 f"---THIS TYPE OF CHANGE iSNT WORK || {files.type_of_changed.name}||---"
             )
+
+
+def create_pull_request(new_branch: Branch):
+
+    grepo = g.get_repo(os.environ.get("GITHUB_REPOSITORY"))
+
+    pull_request = grepo.create_pull(
+        translate_branch.branch_name, new_branch.branch_name, title="hey", body="hey"
+    )
 
 
 def main():

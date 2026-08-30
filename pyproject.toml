@@ -6,5 +6,7 @@ readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
     "openai>=2.44.0",
+    "pygit2>=1.20.0",
+    "pygithub>=2.10.0",
     "python-dotenv>=1.2.2",
 ]
