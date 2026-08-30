@@ -1,10 +1,6 @@
-from pygit2 import Repository, Commit, Branch, Blob, Signature
+from pygit2 import Repository, Commit, Branch
 from pygit2.enums import (
     DeltaStatus,
-    MergeFlag,
-    MergeFileFlag,
-    MergeFavor,
-    MergeAnalysis,
 )
 from dataclasses import dataclass
 import random
@@ -31,7 +27,7 @@ load_dotenv()
 
 client = OpenAI(base_url="http://localhost:11434/v1/", api_key="ollama")
 
-INSTRUCT = """You are a translator into French. You must remain objective and, above all, must not alter the content (the meaning) of the sentences you are translating. You must not add your own opinion. You must take the context of the translation into account. If you receive a code file, you must translate only what the user will see. You must NOT touch the technical aspects. YOU MUST ONLY RETURN THE ANSWER – NOTHING MORE THAN WHAT YOU ARE ASKED FOR. You therefore translate the raw text you receive."""
+INSTRUCT = open("translate-scripts/prompt.md").read()
 
 
 def create_new_branch() -> Branch:
@@ -84,9 +80,7 @@ def merge_branch(new_branch: Branch) -> None:
     # Write the message
     message = "Merging branches"
     # Send the message
-    new_commit = repo.create_commit(
-        "HEAD", user, user, message, tree, [their_head, our_head]
-    )
+    repo.create_commit("HEAD", user, user, message, tree, [their_head, our_head])
 
     repo.state_cleanup()
 
@@ -146,7 +140,7 @@ def translate_files(file_list: list[FileChanged], new_branch: Branch) -> None:
             if os.path.exists(delete_file):
                 os.remove(delete_file)
 
-            print(delete_file)
+            print(f"Files {delete_file} deleted")
 
             do_update_commit()
 
