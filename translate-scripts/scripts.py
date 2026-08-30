@@ -11,6 +11,8 @@ from openai import OpenAI
 import shutil
 from github import Auth, Github
 
+load_dotenv()
+
 
 @dataclass
 class FileChanged:
@@ -27,7 +29,9 @@ g = Github(auth=auth)
 
 main_branch = repo.branches["origin/test-main"]
 
-translate_branch = repo.branches["origin/translate-branch"]  # origin/translate-branch
+translate_branch = repo.branches[
+    "origin/test-translate-branch"
+]  # origin/translate-branch
 
 load_dotenv()
 
