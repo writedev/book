@@ -25,13 +25,13 @@ auth = Auth.Token(os.environ.get("GITHUB_TOKEN"))
 g = Github(auth=auth)
 
 
-main_branch = repo.branches["origin/main"]
+main_branch = repo.branches["origin/test-main"]
 
 translate_branch = repo.branches["origin/translate-branch"]  # origin/translate-branch
 
 load_dotenv()
 
-client = OpenAI(base_url="http://localhost:11434/v1/", api_key="ollama")
+# client = OpenAI(base_url="http://localhost:11434/v1/", api_key="ollama")
 
 INSTRUCT = open("translate-scripts/prompt.md").read()
 
@@ -44,6 +44,8 @@ def create_new_branch() -> Branch:
     new_branch = repo.create_branch(
         f"github-actions/{random.randrange(0, 1000)}", translate_branch.peel(Commit)
     )
+
+    print("The branch is create ! ")
 
     return new_branch
 
@@ -88,6 +90,8 @@ def merge_branch(new_branch: Branch) -> None:
     # Send the message
     repo.create_commit("HEAD", user, user, message, tree, [their_head, our_head])
 
+    print("The merge is done !")
+
     repo.state_cleanup()
 
 
@@ -128,6 +132,8 @@ def do_update_commit(message: str = "Initial commit"):
     tree = index.write_tree()
     repo.create_commit(ref, author, committer, message, tree, parents)
 
+    print("The commit is done !")
+
 
 def translate_files(file_list: list[FileChanged], new_branch: Branch) -> None:
 
@@ -162,16 +168,18 @@ def translate_files(file_list: list[FileChanged], new_branch: Branch) -> None:
 
             # Call IA api for traduct the document
 
+            output_text = "hey"
+
             print("IA Call...")
-            response = client.responses.create(
-                model="qwen2.5-coder:7b", instructions=INSTRUCT, input=content
-            )
+            # response = client.responses.create(
+            #     model="qwen2.5-coder:7b", instructions=INSTRUCT, input=content
+            # )
 
             print("---output---\n")
-            print(response.output_text)
+            print(output_text)
 
             # Write the file
-            open(new_file, mode="w+").write(response.output_text)
+            open(new_file, mode="w+").write(output_text)
 
             print(f"{files.path} translated in {new_file}.")
 
@@ -190,6 +198,8 @@ def create_pull_request(new_branch: Branch):
         translate_branch.branch_name, new_branch.branch_name, title="hey", body="hey"
     )
 
+    print("The pull request is done !")
+
 
 def main():
     repo.checkout(translate_branch)
@@ -201,6 +211,8 @@ def main():
     merge_branch(new_branch)
 
     translate_files(file_list=file_changed, new_branch=new_branch)
+
+    create_pull_request(new_branch)
 
 
 if __name__ == "__main__":
