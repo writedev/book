@@ -68,8 +68,6 @@ def create_new_branch() -> Branch:
 def get_file_changed(new_branch: Branch) -> list[FileChanged]:
     """Retrun a list of file changed between the branch in params and the main branch"""
 
-    repo.checkout(translate_branch)
-
     docs_file_changed: list[FileChanged] = []
     for diff in repo.diff(new_branch, main_branch):
         file = diff.delta.new_file
@@ -88,7 +86,6 @@ def get_file_changed(new_branch: Branch) -> list[FileChanged]:
 
 def merge_branch(new_branch: Branch) -> None:
     """Merge the main branch in the branch in the params."""
-    repo.checkout(new_branch)
 
     # Merge the branch
     repo.merge(main_branch)
@@ -230,6 +227,8 @@ def main():
     repo.checkout(translate_branch)
 
     new_branch = create_new_branch()
+
+    repo.checkout(new_branch)
 
     file_changed = get_file_changed(new_branch)
 
