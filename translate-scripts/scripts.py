@@ -20,6 +20,7 @@ from openai import OpenAI
 import shutil
 from github import Auth, Github
 import subprocess
+import time
 
 load_dotenv()
 
@@ -214,13 +215,15 @@ def create_pull_request(new_branch: Branch):
 
     print("Git push is done !")
 
-    grepo = g.get_repo(os.environ.get("GITHUB_REPOSITORY"))
+    # time.sleep(3)
 
-    pull_request = grepo.create_pull(
-        translate_branch.name, new_branch.name, title="hey", body="hey"
-    )
+    # grepo = g.get_repo(os.environ.get("GITHUB_REPOSITORY"))
 
-    print("The pull request is done !")
+    # pull_request = grepo.create_pull(
+    #     translate_branch.name, new_branch.name, title="hey", body="hey"
+    # )
+
+    # print("The pull request is done !")
 
 
 def main():
