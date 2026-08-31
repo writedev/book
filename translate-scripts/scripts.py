@@ -1,4 +1,13 @@
-from pygit2 import Repository, Commit, Branch
+from pygit2 import (
+    Repository,
+    Commit,
+    Branch,
+    RemoteCallbacks,
+    Username,
+    CredentialType,
+    UserPass,
+    Keypair,
+)
 from pygit2.enums import (
     DeltaStatus,
 )
@@ -10,6 +19,7 @@ import os
 from openai import OpenAI
 import shutil
 from github import Auth, Github
+import subprocess
 
 load_dotenv()
 
@@ -43,7 +53,7 @@ INSTRUCT = open("translate-scripts/prompt.md").read()
 def create_new_branch() -> Branch:
     """Create new random branch with the prefix "github-actions/" """
 
-    repo.checkout(translate_branch)
+    # repo.checkout(translate_branch)
 
     new_branch = repo.create_branch(
         f"github-actions/{random.randrange(0, 1000)}", translate_branch.peel(Commit)
@@ -195,6 +205,12 @@ def translate_files(file_list: list[FileChanged], new_branch: Branch) -> None:
 
 
 def create_pull_request(new_branch: Branch):
+
+    cmd = subprocess.run(
+        f"git push origin {new_branch.branch_name}", capture_output=True, shell=True
+    )
+
+    print(cmd.stdout)
 
     grepo = g.get_repo(os.environ.get("GITHUB_REPOSITORY"))
 
