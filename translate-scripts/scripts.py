@@ -33,9 +33,9 @@ class FileChanged:
 
 repo = Repository(".")
 
-# auth = Auth.Token(os.environ.get("GITHUB_TOKEN"))
+auth = Auth.Token(os.environ.get("GITHUB_TOKEN"))
 
-# g = Github(auth=auth)
+g = Github(auth=auth)
 
 
 main_branch = repo.branches["origin/test-main"]
@@ -214,15 +214,15 @@ def create_pull_request(new_branch: Branch):
 
     print("Git push is done !")
 
-    # time.sleep(3)
+    time.sleep(3)
 
-    # grepo = g.get_repo(os.environ.get("GITHUB_REPOSITORY"))
+    grepo = g.get_repo(os.environ.get("GITHUB_REPOSITORY"))
 
-    # pull_request = grepo.create_pull(
-    #     translate_branch.name, new_branch.name, title="hey", body="hey"
-    # )
+    pull_request = grepo.create_pull(
+        translate_branch.name, new_branch.name, title="hey", body="hey"
+    )
 
-    # print("The pull request is done !")
+    print("The pull request is done !")
 
 
 def main():
