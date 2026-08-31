@@ -219,7 +219,10 @@ def create_pull_request(new_branch: Branch):
     grepo = g.get_repo(os.environ.get("GITHUB_REPOSITORY"))
 
     pull_request = grepo.create_pull(
-        translate_branch.name, new_branch.name, title="hey", body="hey"
+        translate_branch.name,
+        f"github-actions[bot]:{new_branch.name}",
+        title="hey",
+        body="hey",
     )
 
     print("The pull request is done !")
