@@ -33,9 +33,9 @@ class FileChanged:
 
 repo = Repository(".")
 
-auth = Auth.Token(os.environ.get("GITHUB_TOKEN"))
+# auth = Auth.Token(os.environ.get("GITHUB_TOKEN"))
 
-g = Github(auth=auth)
+# g = Github(auth=auth)
 
 
 main_branch = repo.branches["origin/test-main"]
@@ -74,12 +74,14 @@ def get_file_changed(new_branch: Branch) -> list[FileChanged]:
         path = Path(file.path)
 
         # Display the diff with the path
-        print(f"{diff.delta.status.name} - {path}")
+        # print(f"{diff.delta.status.name} - {path}")
 
-        if str(path).startswith("src/") and "img/" in str(path):
+        if str(path).startswith("src/") and "img/" not in str(path):
             docs_file_changed.append(
                 FileChanged(type_of_changed=diff.delta.status, path=path)
             )
+
+            print(f"{diff.delta.status.name} - {path}")
 
     return docs_file_changed
 
