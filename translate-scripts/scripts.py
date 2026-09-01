@@ -219,8 +219,8 @@ def create_pull_request(new_branch: Branch):
     grepo = g.get_repo(os.environ.get("GITHUB_REPOSITORY"))
 
     pull_request = grepo.create_pull(
-        base=translate_branch.branch_name,
-        head=new_branch.branch_name,
+        base=translate_branch.branch_name.removeprefix("origin/"),
+        head=new_branch.branch_name.removeprefix("origin/"),
         title="My Test Pull Request",
         body="This pull request is a test!",
     )
