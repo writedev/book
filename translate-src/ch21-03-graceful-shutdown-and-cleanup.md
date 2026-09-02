@@ -36,8 +36,8 @@ Ainsi, nous devons mettre à jour l'implémentation de `drop` du `ThreadPool` co
 
 <Listing file-name="src/lib.rs">
 
-```rust
-{{#rustdoc_include ../listings/ch21-web-server/no-listing-04-update-drop-definition/src/lib.rs:here}}
+```rust,ignore,does_not_compile
+{{#rustdoc_include ../listings/ch21-web-server/listing-21-22/src/lib.rs:here}}
 ```
 
 </Listing>
