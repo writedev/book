@@ -7,10 +7,10 @@ from pygit2 import (
     CredentialType,
     UserPass,
     Keypair,
+    Diff,
+    DiffDelta,
 )
-from pygit2.enums import (
-    DeltaStatus,
-)
+from pygit2.enums import DeltaStatus, DiffOption, DiffFind
 from dataclasses import dataclass
 import random
 from pathlib import Path
@@ -18,9 +18,10 @@ from dotenv import load_dotenv
 import os
 from openai import OpenAI
 import shutil
-from github import Auth, Github
+from github import Auth, Github, Repository as GithubRepository
 import subprocess
 import time
+
 
 load_dotenv()
 
@@ -29,6 +30,7 @@ load_dotenv()
 class FileChanged:
     type_of_changed: DeltaStatus
     path: Path
+    delta: DiffDelta
 
 
 repo = Repository(".")
@@ -39,6 +41,10 @@ translate_branch = repo.branches[
     "origin/test-translate-branch"
 ]  # origin/translate-branch
 
+translate_branch_name = translate_branch.branch_name.removeprefix("origin/")
+
+main_branch_name = main_branch.branch_name.removeprefix("origin/")
+
 load_dotenv()
 
 # client = OpenAI(base_url="http://localhost:11434/v1/", api_key="ollama")
@@ -46,6 +52,26 @@ load_dotenv()
 INSTRUCT = open("translate-scripts/prompt.md").read()
 
 # ADD CHECK IF THERE ARE DIFF BEFORE EVERYTHING
+
+
+def check_diff() -> bool:
+    """Check if there are diff between translate branch and main branch"""
+
+    diff = repo.diff(translate_branch, main_branch)
+
+    if not diff.patch:
+        return False
+
+    return True
+
+
+def get_github_repo() -> GithubRepository.Repository:
+    """Return the repository of the github worflow."""
+    auth = Auth.Token(os.environ.get("GITHUB_TOKEN"))
+
+    g = Github(auth=auth)
+
+    return g.get_repo(os.environ.get("GITHUB_REPOSITORY"))
 
 
 def create_new_branch() -> Branch:
@@ -66,19 +92,27 @@ def get_file_changed(new_branch: Branch) -> list[FileChanged]:
     """Retrun a list of file changed between the branch in params and the main branch"""
 
     docs_file_changed: list[FileChanged] = []
-    for diff in repo.diff(new_branch, main_branch):
-        file = diff.delta.new_file
+
+    diff = repo.diff(new_branch, main_branch, flags=DiffOption.INCLUDE_TYPECHANGE)
+
+    diff.find_similar(flags=DiffFind.FIND_RENAMES, rename_threshold=100)
+
+    for patch in diff:
+        file = patch.delta.new_file
         path = Path(file.path)
 
         # Display the diff with the path
         # print(f"{diff.delta.status.name} - {path}")
-
         if str(path).startswith("src/") and "img/" not in str(path):
             docs_file_changed.append(
-                FileChanged(type_of_changed=diff.delta.status, path=path)
+                FileChanged(
+                    type_of_changed=patch.delta.status, path=path, delta=patch.delta
+                )
             )
 
-            print(f"{diff.delta.status.name} - {path}")
+            print(
+                f"{patch.delta.status.name} - {patch.delta.old_file.path} -> {patch.delta.new_file.path}"
+            )
 
     return docs_file_changed
 
@@ -166,6 +200,13 @@ def translate_files(file_list: list[FileChanged], new_branch: Branch) -> None:
             print(f"Files {delete_file} deleted")
 
             do_update_commit()
+        elif files.type_of_changed.name == "RENAMED":
+            os.rename(
+                f"translate-src/{Path(files.delta.old_file.path).name}",
+                f"translate-src/{Path(files.delta.new_file.path).name}",
+            )
+
+            print(f"Files renamed in {files.delta.new_file.path}")
 
         elif (
             files.type_of_changed.name == "MODIFIED"
@@ -203,9 +244,6 @@ def translate_files(file_list: list[FileChanged], new_branch: Branch) -> None:
 
 def create_pull_request(new_branch: Branch):
 
-    auth = Auth.Token(os.environ.get("GITHUB_TOKEN"))
-    g = Github(auth=auth)
-
     cmd = subprocess.run(
         f"git push origin {new_branch.branch_name}", capture_output=True, shell=True
     )
@@ -216,10 +254,10 @@ def create_pull_request(new_branch: Branch):
 
     time.sleep(3)
 
-    grepo = g.get_repo(os.environ.get("GITHUB_REPOSITORY"))
+    grepo = github_repo()
 
     pull_request = grepo.create_pull(
-        base=translate_branch.branch_name.removeprefix("origin/"),
+        base=translate_branch_name,
         head=new_branch.branch_name.removeprefix("origin/"),
         title="My Test Pull Request",
         body="This pull request is a test!",

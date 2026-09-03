@@ -1,4 +1,4 @@
-name: Deploy mdBook site to Pages
+name: Deploy MdBook
 
 on:
   workflow_dispatch:
