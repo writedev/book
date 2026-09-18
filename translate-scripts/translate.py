@@ -33,12 +33,16 @@ class FileChanged:
     delta: DiffDelta
 
 
+AI_MODEL = ""
+
+INSTRUCT = open("translate-scripts/prompt2.md").read()
+
 repo = Repository(".")
 
-main_branch = repo.branches["origin/test-main"]
+main_branch = repo.branches["origin/main2"]
 
 translate_branch = repo.branches[
-    "origin/test-translate-branch"
+    "origin/test-translate-branch2"
 ]  # origin/translate-branch
 
 translate_branch_name = translate_branch.branch_name.removeprefix("origin/")
@@ -47,9 +51,8 @@ main_branch_name = main_branch.branch_name.removeprefix("origin/")
 
 load_dotenv()
 
-# client = OpenAI(base_url="http://localhost:11434/v1/", api_key="ollama")
 
-INSTRUCT = open("translate-scripts/prompt.md").read()
+client = OpenAI(api_key="i")
 
 # ADD CHECK IF THERE ARE DIFF BEFORE EVERYTHING
 
@@ -220,18 +223,18 @@ def translate_files(file_list: list[FileChanged], new_branch: Branch) -> None:
 
             # Call IA api for traduct the document
 
-            output_text = "hey"
-
             print("IA Call...")
-            # response = client.responses.create(
-            #     model="qwen2.5-coder:7b", instructions=INSTRUCT, input=content
-            # )
+            response = client.responses.create(
+                model=AI_MODEL,
+                instructions=INSTRUCT,
+                input=content,
+            )
 
             print("---output---\n")
-            print(output_text)
+            print(response.output_text)
 
             # Write the file
-            open(new_file, mode="w+").write(output_text)
+            open(new_file, mode="w+").write(response.output_text)
 
             print(f"{files.path} translated in {new_file}.")
 
@@ -254,7 +257,7 @@ def create_pull_request(new_branch: Branch):
 
     time.sleep(3)
 
-    grepo = github_repo()
+    grepo = get_github_repo()
 
     pull_request = grepo.create_pull(
         base=translate_branch_name,
@@ -279,7 +282,8 @@ def main():
 
     translate_files(file_list=file_changed, new_branch=new_branch)
 
-    create_pull_request(new_branch)
+    if os.environ.get("GITHUB_TOKEN"):
+        create_pull_request(new_branch)
 
 
 if __name__ == "__main__":

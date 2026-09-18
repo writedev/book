@@ -55,11 +55,11 @@ for file in get_file_changed(translate_branch):  # for the numbered list
 
     i += 1
 
-    body += f"{i}. [{file.path}]({file_link}) is **{file.type_of_changed.name}**. This file have `{number_of_carac}` of caractere.\n"
+    body += f"{i}. [{file.path}]({file_link}) is **{file.type_of_changed.name}**. This file have `{number_of_carac}`.\n"
 
 
 body += f"\nSee the diffs on **[github]({diff_github_link})**."
 
-grepo = get_github_repo()
+# grepo = get_github_repo()
 
-grepo.create_issue("Preview for translate main branch.", body=body)
+# grepo.create_issue("Preview for translate main branch.", body=body)

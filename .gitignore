@@ -13,3 +13,5 @@ tmp
 *.env
 
 translate-scripts/french_prompt.md
+
+*.pyc
