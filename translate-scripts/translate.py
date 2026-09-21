@@ -21,19 +21,26 @@ import shutil
 from github import Auth, Github, Repository as GithubRepository
 import subprocess
 import time
+import argparse
 
 
 load_dotenv()
 
+parser = argparse.ArgumentParser()
 
-@dataclass
-class FileChanged:
-    type_of_changed: DeltaStatus
-    path: Path
-    delta: DiffDelta
+parser.add_argument("--local", action="store_true")
 
+parser.add_argument("--provider-url", type=str, default=None)
 
-AI_MODEL = ""
+parser.add_argument("--api-key", type=str, help="ONLY IN LOCAL", default=None)
+
+parser.add_argument("--ai-model", type=str)
+
+args = parser.parse_args()
+
+AI_MODEL = args.ai_model
+
+PROVIDER_API_KEY = args.api_key
 
 INSTRUCT = open("translate-scripts/prompt2.md").read()
 
@@ -52,7 +59,15 @@ main_branch_name = main_branch.branch_name.removeprefix("origin/")
 load_dotenv()
 
 
-client = OpenAI(api_key="i")
+client = OpenAI(base_url=args.provider_url, api_key=PROVIDER_API_KEY)
+
+
+@dataclass
+class FileChanged:
+    type_of_changed: DeltaStatus
+    path: Path
+    delta: DiffDelta
+
 
 # ADD CHECK IF THERE ARE DIFF BEFORE EVERYTHING
 
@@ -282,7 +297,7 @@ def main():
 
     translate_files(file_list=file_changed, new_branch=new_branch)
 
-    if os.environ.get("GITHUB_TOKEN"):
+    if not args.local:
         create_pull_request(new_branch)
 
 
