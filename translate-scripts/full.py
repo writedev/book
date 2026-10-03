@@ -3,84 +3,52 @@ from dotenv import load_dotenv
 import time
 import asyncio
 import os
+import argparse
 
 load_dotenv()
 
-client = OpenAI(
-    base_url="https://openrouter.ai/api/v1", api_key=os.environ.get("PROVIDER_API_KEY")
-)
+# Parser Part
+parser = argparse.ArgumentParser()
 
-async_client = AsyncOpenAI(
-    base_url="https://openrouter.ai/api/v1", api_key=os.environ.get("PROVIDER_API_KEY")
-)
+parser.add_argument("--provider-url", type=str, default=None)
 
-AI_MODEL = "openai/gpt-oss-120b"
+parser.add_argument("--api-key", type=str, help="ONLY IN LOCAL", default=None)
 
-# AI_MODEL = "deepseek/deepseek-v4.1-flash"
+parser.add_argument("--ai-model", type=str)
 
+parser.add_argument("--sync", action="store_true")
 
-############################################
-#                   SYNC                   #
-############################################
+args = parser.parse_args()
 
+# Constant Part
+if not args.api_key:
+    PROVIDER_API_KEY = os.environ.get("PROVIDER_API_KEY")
+else:
+    PROVIDER_API_KEY = args.api_key
 
-def translate_all():
-    """Traduct the all files in src/ directory."""
+AI_MODEL = args.ai_model
 
-    count = 0
+PROVIDER_API_KEY = args.api_key
 
-    total_duration = time.time()
+INSTRUCT = open("prompt.md").read()
 
-    for filename in os.listdir(os.getcwd() + "/src"):
-        # print(filename)
-
-        start_time = time.time()
-
-        if ".md" not in filename:
-            continue
-
-        path = os.path.join(os.getcwd() + "/translate-src", filename)
-
-        print("Traduction...")
-
-        response = client.responses.create(
-            model=AI_MODEL,
-            instructions=open("prompt.md", mode="r").read(),
-            input=open(f"src/{filename}", mode="r").read(),  # openai/gpt-oss-120b
-        )
-
-        open(path, "w+").write(response.output_text)
-
-        count += 1
-
-        print(
-            f"{count} -- {filename}-- have been translated in {round(time.time() - start_time, 2)}!"
-        )
-
-    print(
-        f"-- The translation of all the files took {round(time.time() - total_duration, 2)}s"
-    )
+client = AsyncOpenAI(base_url=args.provider_url, api_key=PROVIDER_API_KEY)
 
 
-############################################
-#                   ASYNC                   #
-############################################
-
-
-async def traduct_file(filename: str, path: str, count: str):
-    """Translate a file and write it to the translate directory"""
+async def traduct_file(filename: str, new_path: str, count: str):
+    """Translate a file and write it to the translate directory with asyncio"""
 
     print(f"Traduction of {filename}...")
 
     start_time = time.time()
 
-    response = await async_client.responses.create(
+    response = await client.responses.create(
         model=AI_MODEL,
-        instructions=open("prompt.md", mode="r").read(),
-        input=open(f"src/{filename}", mode="r").read(),  # openai/gpt-oss-120b
+        instructions=INSTRUCT,
+        input=open(f"src/{filename}", mode="r").read(),  # Return the original file
     )
 
-    open(path, "w+").write(response.output_text)
+    open(new_path, "w+").write(response.output_text)
 
     print(
         f"{count} -- {filename}-- have been translated in {round(time.time() - start_time, 2)}!"
@@ -90,7 +58,7 @@ async def traduct_file(filename: str, path: str, count: str):
 
 
 async def translate_all_async():
-    """Traduct the all files in src/ directory with asyncio"""
+    """Traduct the all files in src/ directory"""
     count = 0
 
     total_duration = time.time()
@@ -101,18 +69,22 @@ async def translate_all_async():
     tasks = []
 
     for filename in file_list:
-        if not filename.endswith(".md"):
-            continue
-
-        # Transform the path in for the translate directory
-
-        path = os.path.join(os.getcwd() + "/translate-src", filename)
-
         count += 1
 
-        tasks.append(traduct_file(filename, path, f"{count}/{len(file_list)}"))
+        # Create a readable counter in string
+        count_format = f"{count}/{len(file_list)}"
 
-    await asyncio.gather(*tasks)
+        # Transform the path in for the translate directory
+        new_path = os.path.join(os.getcwd() + "/translate-src", filename)
+
+        if args.sync:
+            await traduct_file(filename, new_path, count_format)
+        else:
+            tasks.append(traduct_file(filename, new_path, count_format))
+
+    if not args.sync:
+        # launch all functions in parrallel
+        await asyncio.gather(*tasks)
 
     print(
         f"-- The translation of all the files took {round(time.time() - total_duration, 2)}s"
