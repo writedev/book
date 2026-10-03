@@ -29,7 +29,7 @@ Or as:
 
 However, none of these paths should be altered – YOU MUST KEEP THEM AS THEY ARE.
 
-You may also be given less standard XML tags; you should translate the `captions` for a better translation, but under no circumstances should you change other variables such as `number` or `file-name`, which do not require translation, nor should you translate the names of their attributes:
+You may also be given less standard XML tags; you should translate the `captions` for a better translation, but under no circumstances should you change other variables such as `number`, `file-name` or `id`, which do not require translation, nor should you translate the names of their attributes:
 ```md
 <Listing number="7-22" file-name=‘src/front_of_house.rs’ caption="Definitions within the `front_of_house` module in *src/front_of_house.rs*">
 ```

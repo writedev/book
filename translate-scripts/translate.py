@@ -26,6 +26,7 @@ import argparse
 
 load_dotenv()
 
+# Parser Part
 parser = argparse.ArgumentParser()
 
 parser.add_argument("--local", action="store_true")
@@ -38,11 +39,19 @@ parser.add_argument("--ai-model", type=str)
 
 args = parser.parse_args()
 
+if not args.api_key:
+    PROVIDER_API_KEY = os.environ.get("PROVIDER_API_KEY")
+else:
+    PROVIDER_API_KEY = args.api_key
+
+# Constant
 AI_MODEL = args.ai_model
 
 PROVIDER_API_KEY = args.api_key
 
 INSTRUCT = open("translate-scripts/prompt2.md").read()
+
+################
 
 repo = Repository(".")
 
@@ -55,8 +64,6 @@ translate_branch = repo.branches[
 translate_branch_name = translate_branch.branch_name.removeprefix("origin/")
 
 main_branch_name = main_branch.branch_name.removeprefix("origin/")
-
-load_dotenv()
 
 
 client = OpenAI(base_url=args.provider_url, api_key=PROVIDER_API_KEY)
