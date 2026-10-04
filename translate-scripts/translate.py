@@ -49,7 +49,7 @@ AI_MODEL = args.ai_model
 
 PROVIDER_API_KEY = args.api_key
 
-INSTRUCT = open("translate-scripts/prompt2.md").read()
+INSTRUCT = open("translate-scripts/prompt.md").read()
 
 ################
 
@@ -198,7 +198,6 @@ def do_update_commit(message: str = "Initial commit"):
     index.write()
     author = repo.default_signature
     committer = repo.default_signature
-    message = "Initial commit"
     tree = index.write_tree()
     repo.create_commit(ref, author, committer, message, tree, parents)
 
@@ -224,12 +223,18 @@ def translate_files(file_list: list[FileChanged], new_branch: Branch) -> None:
 
             print(f"Files {delete_file} deleted")
 
-            do_update_commit()
+            do_update_commit(f"Delete {files.path.name}")
         elif files.type_of_changed.name == "RENAMED":
+            old_renamed_path = f"translate-src/{Path(files.delta.old_file.path).name}"
+
+            new_renamed_path = f"translate-src/{Path(files.delta.new_file.path).name}"
+
             os.rename(
-                f"translate-src/{Path(files.delta.old_file.path).name}",
-                f"translate-src/{Path(files.delta.new_file.path).name}",
+                old_renamed_path,
+                new_renamed_path,
             )
+
+            do_update_commit(f"Renamed {old_renamed_path} -> {new_renamed_path}")
 
             print(f"Files renamed in {files.delta.new_file.path}")
 
@@ -260,7 +265,7 @@ def translate_files(file_list: list[FileChanged], new_branch: Branch) -> None:
 
             print(f"{files.path} translated in {new_file}.")
 
-            do_update_commit()
+            do_update_commit(f"Translate {files.path} -> {new_file}")
         else:
             print(
                 f"---THIS TYPE OF CHANGE iSNT WORK || {files.type_of_changed.name}||---"
