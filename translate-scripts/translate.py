@@ -295,6 +295,8 @@ def create_pull_request(new_branch: Branch):
 
 
 def main():
+    return print(os.environ.get("GITHUB_WORKFLOW"))
+
     repo.checkout(translate_branch)
 
     new_branch = create_new_branch()
