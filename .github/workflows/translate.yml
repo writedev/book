@@ -30,3 +30,4 @@ jobs:
           GITHUB_TOKEN: ${{github.token}}
           GITHUB_REPOSITORY: ${{github.repository}}
           GITHUB_WORKFLOW: ${{job.workflow_ref}}
+          PROVIDER_API_KEY: ${{secrets.API_KEY}}
