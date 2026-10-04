@@ -4,6 +4,7 @@ import time
 import asyncio
 import os
 import argparse
+from pathlib import Path
 
 load_dotenv()
 
@@ -30,13 +31,15 @@ AI_MODEL = args.ai_model
 
 PROVIDER_API_KEY = args.api_key
 
-INSTRUCT = open("prompt.md").read()
+INSTRUCT = open("translate-scripts/prompt.md").read()
 
 client = AsyncOpenAI(base_url=args.provider_url, api_key=PROVIDER_API_KEY)
 
 
-async def traduct_file(filename: str, new_path: str, count: str):
+async def traduct_file(new_path: Path, count: str):
     """Translate a file and write it to the translate directory with asyncio"""
+
+    filename = new_path.name
 
     print(f"Traduction of {filename}...")
 
@@ -63,7 +66,7 @@ async def translate_all_async():
 
     total_duration = time.time()
 
-    # get only the markdown files
+    # get only the markdown files in src/ directory
     file_list = [x for x in os.listdir(os.getcwd() + "/src") if x.endswith(".md")]
 
     tasks = []
@@ -75,12 +78,12 @@ async def translate_all_async():
         count_format = f"{count}/{len(file_list)}"
 
         # Transform the path in for the translate directory
-        new_path = os.path.join(os.getcwd() + "/translate-src", filename)
+        new_path = Path(os.path.join(os.getcwd() + "/translate-src", filename))
 
         if args.sync:
-            await traduct_file(filename, new_path, count_format)
+            await traduct_file(new_path, count_format)
         else:
-            tasks.append(traduct_file(filename, new_path, count_format))
+            tasks.append(traduct_file(new_path, count_format))
 
     if not args.sync:
         # launch all functions in parrallel
