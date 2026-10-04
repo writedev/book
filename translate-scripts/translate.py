@@ -47,8 +47,6 @@ else:
 # Constant
 AI_MODEL = args.ai_model
 
-PROVIDER_API_KEY = args.api_key
-
 INSTRUCT = open("translate-scripts/prompt.md").read()
 
 ################
