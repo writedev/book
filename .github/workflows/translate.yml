@@ -25,7 +25,7 @@ jobs:
 
       - run: uv sync
 
-      - run: uv run translate-scripts/translate.py
+      - run: uv run translate-scripts/translate.py --ai-model openai/gpt-oss-120b --provider-url https://openrouter.ai/api/v1
         env:
           GITHUB_TOKEN: ${{github.token}}
           GITHUB_REPOSITORY: ${{github.repository}}
