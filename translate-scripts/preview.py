@@ -1,6 +1,5 @@
-from github import Github, Auth
+from github import Github, Auth, UnknownObjectException
 from github.Label import Label
-import github.GithubException as GithubException
 import os
 from pygit2 import Repository, Branch
 from pygit2.enums import DeltaStatus, DiffOption, DiffFind
@@ -37,7 +36,7 @@ grepo = get_github_repo()
 def check_labels() -> Label:
     try:
         return grepo.get_label("translation")
-    except GithubException.UnknownObjectException:
+    except UnknownObjectException:
         return grepo.create_label("translation", color="#FFA500")
 
 
