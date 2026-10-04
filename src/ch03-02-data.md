@@ -24,8 +24,6 @@ information from us to know which type we want to use:
 {{#include ../listings/ch03-common-programming-concepts/output-only-01-no-type-annotations/output.txt}}
 ```
 
-You’ll see different type annotations for other data types.
-
 ### Scalar Types
 
 A _scalar_ type represents a single value. Rust has four primary scalar types:
