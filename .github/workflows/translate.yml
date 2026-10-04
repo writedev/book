@@ -25,7 +25,7 @@ jobs:
 
       - run: uv sync
 
-      - run: uv run translate-scripts/scripts.py
+      - run: uv run translate-scripts/translate.py
         env:
           GITHUB_TOKEN: ${{github.token}}
           GITHUB_REPOSITORY: ${{github.repository}}
