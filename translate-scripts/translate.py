@@ -63,7 +63,7 @@ translate_branch_name = translate_branch.branch_name.removeprefix("origin/")
 
 main_branch_name = main_branch.branch_name.removeprefix("origin/")
 
-if "translate.yml" in str(os.environ.get("GITHUB_WORKFLOW")):
+if str(os.environ.get("GITHUB_WORKFLOW")) == "Translate":
     client = OpenAI(base_url=args.provider_url, api_key=PROVIDER_API_KEY)
 
 
