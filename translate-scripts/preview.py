@@ -37,7 +37,7 @@ def check_labels() -> Label:
     try:
         return grepo.get_label("translation")
     except UnknownObjectException:
-        return grepo.create_label("translation", color="#FFA500")
+        return grepo.create_label("translation", color="FFA500")
 
 
 def get_issue_body() -> str:
