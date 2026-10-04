@@ -8,6 +8,10 @@ from pathlib import Path
 
 load_dotenv()
 
+#################################
+#    DO THE COPY OF DIRECTORY  #
+################################
+
 # Parser Part
 parser = argparse.ArgumentParser()
 

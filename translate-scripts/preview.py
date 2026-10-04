@@ -1,4 +1,5 @@
 from github import Github, Auth
+from github.Label import Label
 import os
 from pygit2 import Repository, Branch
 from pygit2.enums import DeltaStatus, DiffOption, DiffFind
@@ -29,37 +30,58 @@ class FileChanged:
 
 repo = Repository(".")
 
+grepo = get_github_repo()
 
-body = "Files to be translated: \n"
 
-diff_github_link = f"https://github.com/writedev/book/compare/{translate_branch_name}...writedev:book:{main_branch_name}"
+def check_labels() -> Label:
 
-i = 1
+    label = grepo.get_label("translation")
 
-for file in get_file_changed(translate_branch):  # for the numbered list
-    if file.type_of_changed.name == "DELETED":
+    if label:
+        return label
+    return grepo.create_label("translation", color="#FFA500")
+
+
+def get_issue_body() -> str:
+    """Create the body in string for the new issue"""
+
+    body = "Files to be translated: \n"
+
+    i = 1
+
+    for file in get_file_changed(translate_branch):  # for the numbered list
+        # For see the file that is about to be deleted
+        if file.type_of_changed.name == "DELETED":
+            file_link = f"https://github.com/writedev/book/blob/{translate_branch_name}/{file.path}"
+
+            body += (
+                f"{i}. [{file.path}]({file_link}) is **{file.type_of_changed.name}**.\n"
+            )
+
+            continue
+
+        if file.type_of_changed.name == "RENAMED":
+            continue
+
         file_link = (
-            f"https://github.com/writedev/book/blob/{translate_branch_name}/{file.path}"
+            f"https://github.com/writedev/book/blob/{main_branch_name}/{file.path}"
         )
 
-        body += f"{i}. [{file.path}]({file_link}) is **{file.type_of_changed.name}**.\n"
+        number_of_carac = len(get_content_blob_main(file.path))
 
-        continue
+        i += 1
 
-    if file.type_of_changed.name == "RENAMED":
-        continue
+        body += f"{i}. [{file.path}]({file_link}) is **{file.type_of_changed.name}**. This file have `{number_of_carac}`.\n"
 
-    file_link = f"https://github.com/writedev/book/blob/{main_branch_name}/{file.path}"
+    diff_github_link = f"https://github.com/writedev/book/compare/{translate_branch_name}...writedev:book:{main_branch_name}"
 
-    number_of_carac = len(get_content_blob_main(file.path))
+    body += f"\nSee the diffs on **[github]({diff_github_link})**."
 
-    i += 1
-
-    body += f"{i}. [{file.path}]({file_link}) is **{file.type_of_changed.name}**. This file have `{number_of_carac}`.\n"
+    return body
 
 
-body += f"\nSee the diffs on **[github]({diff_github_link})**."
-
-# grepo = get_github_repo()
-
-# grepo.create_issue("Preview for translate main branch.", body=body)
+grepo.create_issue(
+    "Preview for translate main branch.",
+    body=get_issue_body(),
+    labels=[check_labels()],
+)
