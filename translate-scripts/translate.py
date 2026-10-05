@@ -19,10 +19,11 @@ import os
 from openai import OpenAI
 import shutil
 from github import Auth, Github, Repository as GithubRepository
+from github.Issue import Issue
+from github.Label import Label
 import subprocess
 import time
 import argparse
-
 
 load_dotenv()
 
@@ -270,6 +271,16 @@ def translate_files(file_list: list[FileChanged], new_branch: Branch) -> None:
             )
 
 
+def get_last_issue() -> Issue | None:
+    grepo = get_github_repo()
+
+    for issue in grepo.get_issues(state="open", labels=["translation"], sort="created"):
+        if issue.pull_request:
+            continue
+
+        return issue
+
+
 def create_pull_request(new_branch: Branch):
 
     cmd = subprocess.run(
@@ -284,12 +295,14 @@ def create_pull_request(new_branch: Branch):
 
     grepo = get_github_repo()
 
-    pull_request = grepo.create_pull(
-        base=translate_branch_name,
-        head=new_branch.branch_name.removeprefix("origin/"),
-        title="My Test Pull Request",
-        body="This pull request is a test!",
-    )
+    if grepo.open_issues:
+        pull_request = grepo.create_pull(
+            base=translate_branch_name,
+            head=new_branch.branch_name.removeprefix("origin/"),
+            #            title="My Test Pull Request",
+            #           body="This pull request is a test!",
+            issue=get_last_issue(),
+        )
 
     print("The pull request is done !")
 
