@@ -89,15 +89,6 @@ def check_diff() -> bool:
     return True
 
 
-def get_github_repo() -> GithubRepository.Repository:
-    """Return the repository of the github worflow."""
-    auth = Auth.Token(os.environ.get("GITHUB_TOKEN"))
-
-    g = Github(auth=auth)
-
-    return g.get_repo(os.environ.get("GITHUB_REPOSITORY"))
-
-
 def create_new_branch() -> Branch:
     """Create new random branch with the prefix "github-actions/" """
 
@@ -271,17 +262,35 @@ def translate_files(file_list: list[FileChanged], new_branch: Branch) -> None:
             )
 
 
-def get_last_issue() -> Issue | None:
-    grepo = get_github_repo()
+# GITHUB PART
 
-    for issue in grepo.get_issues(state="open", labels=["translation"], sort="created"):
-        if issue.pull_request:
-            continue
 
-        return issue
+def get_github_repo() -> GithubRepository.Repository:
+    """Return the repository of the github worflow."""
+    auth = Auth.Token(os.environ.get("GITHUB_TOKEN"))
+
+    g = Github(auth=auth)
+
+    return g.get_repo(os.environ.get("GITHUB_REPOSITORY"))
+
+
+def get_last_issue(grepo: GithubRepository.Repository) -> Issue | None:
+    """Get the last issue with the translation badge"""
+
+    issues_list = [
+        x
+        for x in grepo.get_issues(state="open", labels=["translation"], sort="created")
+        if not x.pull_request
+    ]
+
+    if len(issues_list) == 0:
+        return None
+
+    return issues_list[0]
 
 
 def create_pull_request(new_branch: Branch):
+    """Create the pull request on github with the news modifications"""
 
     cmd = subprocess.run(
         f"git push origin {new_branch.branch_name}", capture_output=True, shell=True
@@ -295,16 +304,20 @@ def create_pull_request(new_branch: Branch):
 
     grepo = get_github_repo()
 
-    if grepo.open_issues:
-        pull_request = grepo.create_pull(
+    preview_issue = get_last_issue(grepo)
+
+    if preview_issue:
+        grepo.create_pull(
             base=translate_branch_name,
             head=new_branch.branch_name.removeprefix("origin/"),
-            #            title="My Test Pull Request",
-            #           body="This pull request is a test!",
-            issue=get_last_issue(),
+            issue=preview_issue,
         )
-
-    print("The pull request is done !")
+    else:
+        grepo.create_pull(
+            base=translate_branch_name,
+            head=new_branch.branch_name.removeprefix("origin/"),
+            title="Update the translation",
+        )
 
 
 def main():
@@ -326,8 +339,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-# def main() -> None:
-#     new_branch = create_new_branch()
-
-#     repo.checkout(new_branch)
