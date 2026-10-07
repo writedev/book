@@ -6,10 +6,10 @@ from pygit2.enums import DeltaStatus, DiffOption, DiffFind
 from pathlib import Path
 from dataclasses import dataclass
 
-from translate import (
+from translate_with_git import (
     get_file_changed,
     get_content_blob_main,
-    main_branch,
+    LABEL_NAME,
     translate_branch,
     translate_branch_name,
     main_branch_name,
@@ -35,9 +35,9 @@ grepo = get_github_repo()
 
 def check_labels() -> Label:
     try:
-        return grepo.get_label("translation")
+        return grepo.get_label(LABEL_NAME)
     except UnknownObjectException:
-        return grepo.create_label("translation", color="FFA500")
+        return grepo.create_label(LABEL_NAME, color="FFA500")
 
 
 def get_issue_body() -> str:
@@ -78,8 +78,9 @@ def get_issue_body() -> str:
     return body
 
 
-grepo.create_issue(
-    "Preview for translate main branch.",
-    body=get_issue_body(),
-    labels=[check_labels()],
-)
+if __name__ == "__main__":
+    grepo.create_issue(
+        "Preview for translate main branch.",
+        body=get_issue_body(),
+        labels=[check_labels()],
+    )

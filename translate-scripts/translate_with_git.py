@@ -51,6 +51,10 @@ AI_MODEL = args.ai_model
 
 INSTRUCT = open("translate-scripts/prompt.md").read()
 
+LABEL_NAME = "translation :globe_with_meridians:"
+
+LABEL_COLOUR = "FFA500"  # Hex format without the #
+
 ################
 
 repo = Repository(".")
@@ -280,7 +284,7 @@ def get_last_issue(grepo: github.Repository.Repository) -> Issue | None:
 
     issues_list = [
         x
-        for x in grepo.get_issues(state="open", labels=["translation"], sort="created")
+        for x in grepo.get_issues(state="open", labels=[LABEL_NAME], sort="created")
         if not x.pull_request
     ]
 
