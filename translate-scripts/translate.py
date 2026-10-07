@@ -18,7 +18,8 @@ from dotenv import load_dotenv
 import os
 from openai import OpenAI
 import shutil
-from github import Auth, Github, Repository as GithubRepository
+from github import Auth, Github
+import github.Repository
 from github.Issue import Issue
 from github.Label import Label
 import subprocess
@@ -196,7 +197,7 @@ def do_update_commit(message: str = "Initial commit"):
 
 def translate_files(file_list: list[FileChanged], new_branch: Branch) -> None:
 
-    # Delete all IMG folder and copy the new
+    # Delete all IMG folder and copy the new (update the img folder)
 
     shutil.rmtree("translate-src/img")
 
@@ -265,7 +266,7 @@ def translate_files(file_list: list[FileChanged], new_branch: Branch) -> None:
 # GITHUB PART
 
 
-def get_github_repo() -> GithubRepository.Repository:
+def get_github_repo() -> github.Repository.Repository:
     """Return the repository of the github worflow."""
     auth = Auth.Token(os.environ.get("GITHUB_TOKEN"))
 
@@ -274,7 +275,7 @@ def get_github_repo() -> GithubRepository.Repository:
     return g.get_repo(os.environ.get("GITHUB_REPOSITORY"))
 
 
-def get_last_issue(grepo: GithubRepository.Repository) -> Issue | None:
+def get_last_issue(grepo: github.Repository.Repository) -> Issue | None:
     """Get the last issue with the translation badge"""
 
     issues_list = [
@@ -316,7 +317,7 @@ def create_pull_request(new_branch: Branch):
         grepo.create_pull(
             base=translate_branch_name,
             head=new_branch.branch_name.removeprefix("origin/"),
-            title="Update the translation",
+            title="build: update to the documentation translation",
         )
 
 

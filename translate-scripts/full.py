@@ -5,6 +5,7 @@ import asyncio
 import os
 import argparse
 from pathlib import Path
+import shutil
 
 load_dotenv()
 
@@ -22,6 +23,8 @@ parser.add_argument("--api-key", type=str, help="ONLY IN LOCAL", default=None)
 parser.add_argument("--ai-model", type=str)
 
 parser.add_argument("--sync", action="store_true")
+
+parser.add_argument("--output-directory", type=str, default="translate-src")
 
 args = parser.parse_args()
 
@@ -99,6 +102,10 @@ async def translate_all_async():
 
 
 if __name__ == "__main__":
+    os.mkdir(args.output_directory)
+
+    shutil.copytree("src/img", f"{args.output_directory}/img")
+
     asyncio.run(translate_all_async())
 
     # translate_all()
