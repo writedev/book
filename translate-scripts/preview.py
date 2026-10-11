@@ -17,9 +17,21 @@ from translate_with_git import (
     get_github_repo,
 )
 
+from argparse import ArgumentParser
+
+parser = ArgumentParser()
+
+parser.add_argument(
+    "--title-issue", type=str, default="build: update the translation of the docs"
+)
+
+args = parser.parse_args()
+
 if not check_diff():
     print("No change between main and translate branch")
     exit()
+
+#### SHOW THE NUMBER OF DIFFERENTE CARACTERE
 
 
 @dataclass
@@ -29,6 +41,8 @@ class FileChanged:
 
 
 repo = Repository(".")
+
+repo.checkout(translate_branch)
 
 grepo = get_github_repo()
 
@@ -67,9 +81,13 @@ def get_issue_body() -> str:
 
         number_of_carac = len(get_content_blob_main(file.path))
 
+        diff_of_carac = len(get_content_blob_main(file.path)) - len(
+            open(file.path).read()
+        )
+
         i += 1
 
-        body += f"{i}. [{file.path}]({file_link}) is **{file.type_of_changed.name}**. This file have `{number_of_carac}`.\n"
+        body += f"{i}. [{file.path}]({file_link}) is **{file.type_of_changed.name}**. This file has `{number_of_carac}` characters and **{'+' + str(diff_of_carac) if diff_of_carac > 0 else str(diff_of_carac)}** different characters. \n"
 
     diff_github_link = f"https://github.com/writedev/book/compare/{translate_branch_name}...writedev:book:{main_branch_name}"
 
@@ -80,7 +98,7 @@ def get_issue_body() -> str:
 
 if __name__ == "__main__":
     grepo.create_issue(
-        "Preview for translate main branch.",
+        args.title_issue,
         body=get_issue_body(),
         labels=[check_labels()],
     )
