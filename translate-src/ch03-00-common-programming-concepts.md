@@ -1,11 +1,11 @@
-# Concepts de Programmation Courants
+# Concepts de programmation courants
 
-Ce chapitre aborde des concepts qui apparaissent dans presque tous les langages de programmation et comment ils fonctionnent en Rust. De nombreux langages de programmation ont beaucoup en commun à leur cœur. Aucun des concepts présentés dans ce chapitre n'est unique à Rust, mais nous les discuterons dans le contexte de Rust et expliquerons les conventions liées à leur utilisation.
+Ce chapitre présente des concepts que l’on retrouve dans presque tous les langages de programmation et explique leur fonctionnement en Rust. De nombreux langages de programmation ont beaucoup de points communs dans leurs fondements. Aucun des concepts présentés dans ce chapitre n’est propre à Rust, mais nous les aborderons dans le contexte de Rust et expliquerons les conventions liées à leur utilisation.
 
-Plus précisément, vous apprendrez les variables, les types de base, les fonctions, les commentaires et le flux de contrôle. Ces fondations seront présentes dans chaque programme Rust, et les apprendre tôt vous donnera un solide socle de départ.
+Plus précisément, vous découvrirez les variables, les types de base, les fonctions, les commentaires et le flux de contrôle. Ces fondements seront présents dans tous les programmes Rust, et les apprendre dès le début vous donnera une base solide pour la suite.
 
 > #### Mots-clés
 >
-> Le langage Rust a un ensemble de _mots-clés_ qui sont réservés à un usage exclusif par le langage, tout comme dans d'autres langages. Gardez à l'esprit que vous ne pouvez pas utiliser ces mots comme noms de variables ou de fonctions. La plupart des mots-clés ont des significations spéciales, et vous les utiliserez pour accomplir diverses tâches dans vos programmes Rust ; quelques-uns n'ont actuellement aucune fonctionnalité associée, mais ont été réservés pour des fonctionnalités qui pourraient être ajoutées à Rust à l'avenir. Vous pouvez trouver la liste des mots-clés dans [l'Annexe A][appendix_a]<!-- ignore -->.
+> Le langage Rust possède un ensemble de _mots-clés_ réservés à l’usage exclusif du langage, comme c’est le cas dans d’autres langages. Gardez à l’esprit que vous ne pouvez pas utiliser ces mots comme noms de variables ou de fonctions. La plupart des mots-clés ont une signification particulière et vous les utiliserez pour effectuer diverses tâches dans vos programmes Rust ; quelques-uns n’ont actuellement aucune fonctionnalité associée, mais ont été réservés pour des fonctionnalités susceptibles d’être ajoutées à Rust à l’avenir. Vous trouverez la liste des mots-clés dans l’[annexe A][appendix_a]<!-- ignore -->.
 
 [appendix_a]: appendix-01-keywords.md

@@ -1,31 +1,33 @@
-## Concurrence par état partagé
+## Concurrence à état partagé
 
-Le passage de messages est un bon moyen de gérer la concurrence, mais ce n'est pas la seule méthode. Une autre méthode consisterait à permettre à plusieurs threads d'accéder aux mêmes données partagées. Considérons à nouveau cette partie du slogan de la documentation du langage Go : « Ne communiquez pas en partageant la mémoire. »
+Le passage de messages est une bonne façon de gérer la concurrence, mais ce n’est pas la seule. Une autre méthode consiste à permettre à plusieurs threads d’accéder aux mêmes données partagées. Repensons à cette partie du slogan de la documentation du langage Go : « Ne communiquez pas en partageant la mémoire. »
 
-À quoi ressemblerait la communication par partage de mémoire ? De plus, pourquoi les passionnés du passage de messages mettraient-ils en garde contre l'utilisation du partage de mémoire ?
+À quoi ressemblerait une communication par partage de mémoire ? De plus, pourquoi les adeptes du passage de messages déconseilleraient-ils le partage de mémoire ?
 
-D'une certaine manière, les canaux dans n'importe quel langage de programmation sont similaires à la propriété unique, car une fois que vous transférez une valeur à travers un canal, vous ne devez plus utiliser cette valeur. La concurrence par mémoire partagée ressemble à une propriété multiple : plusieurs threads peuvent accéder au même emplacement mémoire en même temps. Comme vous l'avez vu dans le Chapitre 15, où les pointeurs intelligents rendirent la propriété multiple possible, celle-ci peut ajouter de la complexité car ces différents propriétaires doivent être gérés. Le système de types de Rust et ses règles de propriété aident grandement à assurer cette gestion. Pour un exemple, examinons les mutex, l'une des primitives de concurrence les plus courantes pour la mémoire partagée.
+D’une certaine manière, les canaux de n’importe quel langage de programmation ressemblent à la propriété unique : une fois que vous avez transféré une valeur dans un canal, vous ne devriez plus utiliser cette valeur. La concurrence à mémoire partagée ressemble à la propriété multiple : plusieurs threads peuvent accéder au même emplacement mémoire au même moment. Comme vous l’avez vu au chapitre 15, où les pointeurs intelligents ont rendu possible la propriété multiple, celle-ci peut ajouter de la complexité, car il faut gérer ces différents propriétaires. Le système de types et les règles de propriété de Rust aident grandement à effectuer correctement cette gestion. Prenons les mutex, l’un des primitives de concurrence les plus courantes pour la mémoire partagée, à titre d’exemple.
+
+<!-- Old headings. Do not remove or links may break. -->
 
 <a id="using-mutexes-to-allow-access-to-data-from-one-thread-at-a-time"></a>
 
-### Contrôle d'accès avec des Mutex
+### Contrôler l’accès à l’aide de mutex
 
-Le _mutex_ est une abréviation de _mutual exclusion_, ce qui signifie qu'un mutex permet à un seul thread d'accéder à certaines données à tout moment. Pour accéder aux données dans un mutex, un thread doit d'abord signaler qu'il souhaite accéder en demandant à acquérir le verrou du mutex. Le _verrou_ est une structure de données qui fait partie du mutex et qui garde la trace de qui a actuellement l'accès exclusif aux données. Par conséquent, le mutex est décrit comme _gardant_ les données qu'il détient via le système de verrouillage.
+_Mutex_ est l’abréviation de _mutual exclusion_ (exclusion mutuelle) : un mutex ne permet qu’à un seul thread d’accéder à certaines données à la fois. Pour accéder aux données d’un mutex, un thread doit d’abord signaler qu’il souhaite y accéder en demandant à acquérir le verrou du mutex. Le _verrou_ est une structure de données qui fait partie du mutex et qui garde la trace du thread ayant actuellement un accès exclusif aux données. On dit donc que le mutex _protège_ les données qu’il contient au moyen de son système de verrouillage.
 
-Les mutex ont une réputation d'être difficiles à utiliser car vous devez vous souvenir de deux règles :
+Les mutex ont la réputation d’être difficiles à utiliser, car il faut se rappeler deux règles :
 
-1. Vous devez tenter d'acquérir le verrou avant d'utiliser les données.
-2. Lorsque vous avez terminé avec les données que le mutex protège, vous devez déverrouiller les données afin que d'autres threads puissent acquérir le verrou.
+1. Vous devez tenter d’acquérir le verrou avant d’utiliser les données.
+2. Lorsque vous avez terminé d’utiliser les données protégées par le mutex, vous devez déverrouiller les données afin que d’autres threads puissent acquérir le verrou.
 
-Pour une métaphore réaliste d'un mutex, imaginez une table ronde lors d'une conférence avec un seul microphone. Avant qu'un participant puisse parler, il doit demander ou signaler qu'il souhaite utiliser le microphone. Lorsqu'il obtient le microphone, il peut parler aussi longtemps qu'il le souhaite, puis le passer au prochain participant qui souhaite prendre la parole. Si un participant oublie de passer le microphone lorsqu'il a terminé, personne d'autre ne peut parler. Si la gestion du microphone partagé tourne mal, le panel ne fonctionnera pas comme prévu !
+Pour illustrer un mutex par une métaphore du monde réel, imaginez une table ronde lors d’une conférence avec un seul microphone. Avant de prendre la parole, chaque intervenant doit demander ou signaler qu’il souhaite utiliser le microphone. Une fois le microphone en main, il peut parler aussi longtemps qu’il le souhaite, puis le passer au prochain intervenant qui demande la parole. Si un intervenant oublie de passer le microphone lorsqu’il a terminé, personne d’autre ne peut parler. Si la gestion du microphone partagé se passe mal, la table ronde ne se déroulera pas comme prévu !
 
-La gestion des mutex peut être incroyablement délicate à bien faire, c'est pourquoi tant de personnes sont enthousiastes à propos des canaux. Cependant, grâce au système de types de Rust et à ses règles de propriété, vous ne pouvez pas vous tromper dans le verrouillage et le déverrouillage.
+Il peut être extrêmement délicat de bien gérer les mutex, ce qui explique l’enthousiasme de tant de personnes pour les canaux. Cependant, grâce au système de types et aux règles de propriété de Rust, vous ne pouvez pas vous tromper dans le verrouillage et le déverrouillage.
 
-#### L'API de `Mutex<T>`
+#### L’API de `Mutex<T>`
 
-Comme exemple d'utilisation d'un mutex, commençons par l'utiliser dans un contexte à thread unique, comme le montre la Liste 16-12.
+Pour voir comment utiliser un mutex, commençons par en utiliser un dans un contexte à thread unique, comme illustré dans l’exemple 16-12.
 
-<Listing number="16-12" file-name="src/main.rs" caption="Exploration de l'API de `Mutex<T>` dans un contexte à thread unique pour plus de simplicité">
+<Listing number="16-12" file-name="src/main.rs" caption="Exploration de l’API de `Mutex<T>` dans un contexte à thread unique, par souci de simplicité">
 
 ```rust
 {{#rustdoc_include ../listings/ch16-fearless-concurrency/listing-16-12/src/main.rs}}
@@ -33,23 +35,25 @@ Comme exemple d'utilisation d'un mutex, commençons par l'utiliser dans un conte
 
 </Listing>
 
-Comme avec de nombreux types, nous créons un `Mutex<T>` en utilisant la fonction associée `new`. Pour accéder aux données à l'intérieur du mutex, nous utilisons la méthode `lock` pour acquérir le verrou. Cet appel bloquera le thread courant afin qu'il ne puisse pas effectuer de travail jusqu'à ce que ce soit notre tour d'avoir le verrou.
+Comme pour de nombreux types, nous créons un `Mutex<T>` à l’aide de la fonction associée `new`. Pour accéder aux données à l’intérieur du mutex, nous utilisons la méthode `lock` afin d’acquérir le verrou. Cet appel bloque le thread courant, qui ne peut donc effectuer aucun travail avant que son tour de détenir le verrou ne soit arrivé.
 
-L'appel à `lock` échouerait si un autre thread tenant le verrou avait paniqué. Dans ce cas, personne ne pourrait jamais obtenir le verrou, nous avons donc choisi de `unwrap` et de faire paniquer ce thread si nous étions dans cette situation.
+L’appel à `lock` échouerait si un autre thread détenant le verrou paniquait. Dans ce cas, personne ne pourrait jamais obtenir le verrou ; nous avons donc choisi d’utiliser `unwrap` afin que ce thread panique si nous nous trouvons dans cette situation.
 
-Après avoir acquis le verrou, nous pouvons traiter la valeur de retour, nommée `num` dans ce cas, comme une référence mutable aux données à l'intérieur. Le système de types garantit que nous acquérons un verrou avant d'utiliser la valeur dans `m`. Le type de `m` est `Mutex<i32>`, pas `i32`, donc nous _devons_ appeler `lock` pour pouvoir utiliser la valeur `i32`. Nous ne pouvons pas l'oublier ; le système de types ne nous permettra pas d'accéder au `i32` interne autrement.
+Une fois le verrou acquis, nous pouvons traiter la valeur de retour, nommée `num` dans cet exemple, comme une référence mutable aux données à l’intérieur. Le système de types garantit que nous acquérons un verrou avant d’utiliser la valeur dans `m`. Le type de `m` est `Mutex<i32>`, et non `i32` ; nous _devons_ donc appeler `lock` pour pouvoir utiliser la valeur `i32`. Il nous est impossible de l’oublier : le système de types ne nous laissera pas accéder au `i32` interne autrement.
 
-L'appel à `lock` retourne un type appelé `MutexGuard`, enveloppé dans un `LockResult` que nous avons géré avec l'appel à `unwrap`. Le type `MutexGuard` implémente `Deref` pour pointer vers nos données internes ; ce type a également une implémentation de `Drop` qui libère automatiquement le verrou lorsqu'un `MutexGuard` sort de la portée, ce qui se produit à la fin de la portée interne. En conséquence, nous ne risquons pas d'oublier de libérer le verrou et de bloquer l'utilisation du mutex par d'autres threads, car la libération du verrou se produit automatiquement.
+L’appel à `lock` renvoie un type nommé `MutexGuard`, enveloppé dans un `LockResult`, que nous avons traité avec l’appel à `unwrap`. Le type `MutexGuard` implémente `Deref` pour pointer vers nos données internes ; il possède également une implémentation de `Drop` qui libère automatiquement le verrou lorsque le `MutexGuard` sort de portée, ce qui se produit à la fin de la portée interne. Ainsi, nous ne risquons pas d’oublier de libérer le verrou et d’empêcher les autres threads d’utiliser le mutex, car la libération du verrou se fait automatiquement.
 
-Après avoir relâché le verrou, nous pouvons imprimer la valeur du mutex et voir que nous avons pu changer le `i32` interne à `6`.
+Après avoir libéré le verrou, nous pouvons afficher la valeur du mutex et constater que nous avons pu modifier le `i32` interne en `6`.
+
+<!-- Old headings. Do not remove or links may break. -->
 
 <a id="sharing-a-mutext-between-multiple-threads"></a>
 
 #### Accès partagé à `Mutex<T>`
 
-Essayons maintenant de partager une valeur entre plusieurs threads en utilisant `Mutex<T>`. Nous allons créer 10 threads et faire en sorte qu'ils incrémentent chacun une valeur compteur de 1, afin que le compteur passe de 0 à 10. L'exemple dans la Liste 16-13 générera une erreur de compilation, et nous utiliserons cette erreur pour en apprendre davantage sur l'utilisation de `Mutex<T>` et comment Rust nous aide à l'utiliser correctement.
+Essayons maintenant de partager une valeur entre plusieurs threads à l’aide de `Mutex<T>`. Nous allons créer 10 threads et faire en sorte que chacun incrémente un compteur de 1, afin que celui-ci passe de 0 à 10. L’exemple 16-13 provoquera une erreur de compilation ; nous nous en servirons pour en apprendre davantage sur l’utilisation de `Mutex<T>` et sur la façon dont Rust nous aide à l’utiliser correctement.
 
-<Listing number="16-13" file-name="src/main.rs" caption="Dix threads, chacun incrémentant un compteur protégé par un `Mutex<T>`">
+<Listing number="16-13" file-name="src/main.rs" caption="Dix threads qui incrémentent chacun un compteur protégé par un `Mutex<T>`">
 
 ```rust,ignore,does_not_compile
 {{#rustdoc_include ../listings/ch16-fearless-concurrency/listing-16-13/src/main.rs}}
@@ -57,23 +61,23 @@ Essayons maintenant de partager une valeur entre plusieurs threads en utilisant 
 
 </Listing>
 
-Nous créons une variable `counter` pour contenir un `i32` à l'intérieur d'un `Mutex<T>`, comme nous l'avons fait dans la Liste 16-12. Ensuite, nous créons 10 threads en itérant sur une plage de nombres. Nous utilisons `thread::spawn` et donnons à tous les threads la même fermeture : une qui déplace le compteur dans le thread, acquiert un verrou sur le `Mutex<T>` en appelant la méthode `lock`, puis ajoute 1 à la valeur dans le mutex. Lorsqu'un thread termine l'exécution de sa fermeture, `num` sortira de la portée et libérera le verrou afin qu'un autre thread puisse l'acquérir.
+Nous créons une variable `counter` qui contient un `i32` dans un `Mutex<T>`, comme dans l’exemple 16-12. Ensuite, nous créons 10 threads en parcourant une plage de nombres. Nous utilisons `thread::spawn` et transmettons à tous les threads la même fermeture : elle déplace le compteur dans le thread, acquiert un verrou sur le `Mutex<T>` en appelant la méthode `lock`, puis ajoute 1 à la valeur dans le mutex. Lorsqu’un thread termine l’exécution de sa fermeture, `num` sort de portée et libère le verrou, afin qu’un autre thread puisse l’acquérir.
 
-Dans le thread principal, nous collectons tous les poignées de join. Puis, comme nous l'avons fait dans la Liste 16-2, nous appelons `join` sur chaque poignée pour nous assurer que tous les threads finissent. À ce moment-là, le thread principal acquérera le verrou et imprimera le résultat de ce programme.
+Dans le thread principal, nous recueillons tous les handles de jonction. Puis, comme dans l’exemple 16-2, nous appelons `join` sur chaque handle pour nous assurer que tous les threads se terminent. À ce stade, le thread principal acquiert le verrou et affiche le résultat du programme.
 
-Nous avions indiqué que cet exemple ne se compilerait pas. Voyons maintenant pourquoi !
+Nous avons laissé entendre que cet exemple ne compilerait pas. Voyons maintenant pourquoi !
 
 ```console
 {{#include ../listings/ch16-fearless-concurrency/listing-16-13/output.txt}}
 ```
 
-Le message d'erreur indique que la valeur de `counter` a été déplacée dans l'itération précédente de la boucle. Rust nous dit que nous ne pouvons pas transférer la propriété du verrou `counter` dans plusieurs threads. Corrigeons l'erreur de compilation avec la méthode de propriété multiple que nous avons discutée dans le Chapitre 15.
+Le message d’erreur indique que la valeur `counter` a été déplacée lors de l’itération précédente de la boucle. Rust nous signale que nous ne pouvons pas déplacer la propriété du verrou `counter` dans plusieurs threads. Corrigeons l’erreur du compilateur à l’aide de la méthode de propriété multiple présentée au chapitre 15.
 
 #### Propriété multiple avec plusieurs threads
 
-Dans le Chapitre 15, nous avons donné une valeur à plusieurs propriétaires en utilisant le pointeur intelligent `Rc<T>` pour créer une valeur comptabilisée par référence. Faisons de même ici et voyons ce qui se passe. Nous allons envelopper le `Mutex<T>` dans un `Rc<T>` dans la Liste 16-14 et cloner le `Rc<T>` avant de déplacer la propriété vers le thread.
+Au chapitre 15, nous avons donné une valeur à plusieurs propriétaires en utilisant le pointeur intelligent `Rc<T>` pour créer une valeur dont les références sont comptées. Faisons de même ici et voyons ce qui se passe. Dans l’exemple 16-14, nous allons envelopper le `Mutex<T>` dans un `Rc<T>` et cloner le `Rc<T>` avant de déplacer la propriété dans le thread.
 
-<Listing number="16-14" file-name="src/main.rs" caption="Tentative d'utilisation de `Rc<T>` pour permettre à plusieurs threads de posséder le `Mutex<T>`">
+<Listing number="16-14" file-name="src/main.rs" caption="Tentative d’utiliser `Rc<T>` pour permettre à plusieurs threads de posséder le `Mutex<T>`">
 
 ```rust,ignore,does_not_compile
 {{#rustdoc_include ../listings/ch16-fearless-concurrency/listing-16-14/src/main.rs}}
@@ -81,25 +85,25 @@ Dans le Chapitre 15, nous avons donné une valeur à plusieurs propriétaires en
 
 </Listing>
 
-Encore une fois, nous compilons et obtenons... des erreurs différentes ! Le compilateur nous enseigne beaucoup :
+Une fois de plus, nous compilons le programme et obtenons… des erreurs différentes ! Le compilateur nous apprend beaucoup de choses :
 
 ```console
 {{#include ../listings/ch16-fearless-concurrency/listing-16-14/output.txt}}
 ```
 
-Wow, ce message d'erreur est très verbeux ! Voici la partie importante à retenir : `` `Rc<Mutex<i32>>` ne peut pas être envoyé entre threads en toute sécurité ``. Le compilateur nous dit également la raison : `` le trait `Send` n'est pas implémenté pour `Rc<Mutex<i32>>` ``. Nous parlerons de `Send` dans la section suivante : c'est l'un des traits qui garantissent que les types que nous utilisons avec des threads sont destinés à être utilisés dans des situations concurrentes.
+Eh bien, ce message d’erreur est très verbeux ! Voici la partie importante à retenir : `` `Rc<Mutex<i32>>` cannot be sent between threads safely ``. Le compilateur nous indique également pourquoi : `` the trait `Send` is not implemented for `Rc<Mutex<i32>>` ``. Nous parlerons de `Send` dans la section suivante : c’est l’un des traits qui garantissent que les types utilisés avec des threads sont adaptés aux situations concurrentes.
 
-Malheureusement, `Rc<T>` n'est pas sûr à partager entre threads. Lorsque `Rc<T>` gère le comptage des références, il ajoute au compte pour chaque appel à `clone` et soustrait du compte lorsque chaque clone est supprimé. Mais il n'utilise aucun primitive de concurrence pour s'assurer que les modifications apportées au compte ne peuvent pas être interrompues par un autre thread. Cela pourrait conduire à des comptes incorrects — des bogues subtils qui pourraient à leur tour entraîner des fuites de mémoire ou une valeur étant supprimée avant que nous ayons terminé avec elle. Ce dont nous avons besoin est un type qui ressemble exactement à `Rc<T>`, mais qui modifie les changements au compte de référence de manière thread-safe.
+Malheureusement, `Rc<T>` ne peut pas être partagé en toute sécurité entre des threads. Lorsque `Rc<T>` gère le compteur de références, il l’incrémente à chaque appel à `clone` et le décrémente lorsque chaque clone est supprimé. Mais il n’utilise aucune primitive de concurrence pour garantir que les modifications du compteur ne puissent pas être interrompues par un autre thread. Cela pourrait entraîner des comptages erronés, des bogues subtils qui pourraient à leur tour provoquer des fuites de mémoire ou la suppression d’une valeur avant que nous en ayons terminé avec elle. Il nous faut un type exactement semblable à `Rc<T>`, mais qui modifie le compteur de références de manière sûre vis-à-vis des threads.
 
-#### Compte de références atomique avec `Arc<T>`
+#### Comptage atomique des références avec `Arc<T>`
 
-Heureusement, `Arc<T>` _est_ un type comme `Rc<T>` qui est sûr à utiliser dans des situations concurrentes. Le _a_ signifie _atomique_, c'est-à-dire que c'est un type _compté par référence de manière atomique_. Les atomes sont un type supplémentaire de primitive de concurrence que nous ne couvrirons pas en détail ici : consultez la documentation de la bibliothèque standard pour [`std::sync::atomic`][atomic]<!-- ignore --> pour plus de détails. À ce stade, vous devez simplement savoir que les atomiques fonctionnent comme des types primitifs, mais sont sûrs à partager entre threads.
+Heureusement, `Arc<T>` est un type semblable à `Rc<T>` qui peut être utilisé en toute sécurité dans des situations concurrentes. Le _a_ signifie _atomic_ (atomique) : il s’agit d’un type dont les références sont comptées de manière atomique. Les types atomiques constituent une autre sorte de primitive de concurrence que nous n’aborderons pas en détail ici. Pour en savoir plus, consultez la documentation de la bibliothèque standard pour [`std::sync::atomic`][atomic]<!-- ignore -->. À ce stade, il vous suffit de savoir que les types atomiques fonctionnent comme des types primitifs, mais qu’ils peuvent être partagés en toute sécurité entre des threads.
 
-Vous pourriez alors vous demander pourquoi tous les types primitifs ne sont pas atomiques et pourquoi les types de la bibliothèque standard ne sont pas implémentés pour utiliser `Arc<T>` par défaut. La raison est que la sécurité des threads entraîne une pénalité de performance que vous ne voulez payer que lorsque c'est réellement nécessaire. Si vous effectuez simplement des opérations sur des valeurs dans un seul thread, votre code peut s'exécuter plus rapidement s'il n'a pas à appliquer les garanties fournies par les atomiques.
+Vous pourriez alors vous demander pourquoi tous les types primitifs ne sont pas atomiques et pourquoi les types de la bibliothèque standard ne sont pas implémentés pour utiliser `Arc<T>` par défaut. La raison est que la sécurité entre threads a un coût en performances, que l’on ne souhaite payer que lorsque cela est vraiment nécessaire. Si vous effectuez simplement des opérations sur des valeurs au sein d’un seul thread, votre code peut s’exécuter plus rapidement s’il n’a pas à garantir les propriétés offertes par les types atomiques.
 
-Revenons à notre exemple : `Arc<T>` et `Rc<T>` ont la même API, donc nous corrigeons notre programme en changeant la ligne `use`, l'appel à `new` et l'appel à `clone`. Le code dans la Liste 16-15 se compilera enfin et s'exécutera.
+Revenons à notre exemple : `Arc<T>` et `Rc<T>` ont la même API. Nous corrigeons donc notre programme en modifiant la ligne `use`, l’appel à `new` et l’appel à `clone`. Le code de l’exemple 16-15 va enfin compiler et s’exécuter.
 
-<Listing number="16-15" file-name="src/main.rs" caption="Utilisation d'un `Arc<T>` pour envelopper le `Mutex<T>` afin de pouvoir partager la propriété entre plusieurs threads">
+<Listing number="16-15" file-name="src/main.rs" caption="Utilisation d’un `Arc<T>` pour envelopper le `Mutex<T>` et partager la propriété entre plusieurs threads">
 
 ```rust
 {{#rustdoc_include ../listings/ch16-fearless-concurrency/listing-16-15/src/main.rs}}
@@ -107,24 +111,30 @@ Revenons à notre exemple : `Arc<T>` et `Rc<T>` ont la même API, donc nous corr
 
 </Listing>
 
-Ce code affichera ce qui suit :
+Ce code affichera le résultat suivant :
+
+<!-- Not extracting output because changes to this output aren't significant;
+the changes are likely to be due to the threads running differently rather than
+changes in the compiler -->
 
 ```text
-Résultat : 10
+Result: 10
 ```
 
-Nous l'avons fait ! Nous avons compté de 0 à 10, ce qui peut ne pas sembler très impressionnant, mais cela nous a beaucoup appris sur `Mutex<T>` et la sécurité des threads. Vous pourriez également utiliser la structure de ce programme pour effectuer des opérations plus compliquées que simplement incrémenter un compteur. En utilisant cette stratégie, vous pouvez diviser un calcul en parties indépendantes, répartir ces parties entre les threads, puis utiliser un `Mutex<T>` pour permettre à chaque thread de mettre à jour le résultat final avec sa partie.
+Nous avons réussi ! Nous avons compté de 0 à 10. Cela ne semble peut-être pas très impressionnant, mais nous avons beaucoup appris sur `Mutex<T>` et la sécurité entre threads. Vous pourriez également utiliser la structure de ce programme pour effectuer des opérations plus complexes que la simple incrémentation d’un compteur. Avec cette approche, vous pouvez diviser un calcul en parties indépendantes, répartir ces parties entre plusieurs threads, puis utiliser un `Mutex<T>` pour que chaque thread mette à jour le résultat final avec sa partie.
 
-Notez que si vous effectuez des opérations numériques simples, il existe des types plus simples que les types `Mutex<T>` fournis par le [module `std::sync::atomic` de la bibliothèque standard][atomic]<!-- ignore -->. Ces types fournissent un accès atomique, sûr et concurrent aux types primitifs. Nous avons choisi d'utiliser `Mutex<T>` avec un type primitif pour cet exemple afin de pouvoir nous concentrer sur le fonctionnement de `Mutex<T>`.
+Notez que pour des opérations numériques simples, le module [`std::sync::atomic`][atomic]<!-- ignore --> de la bibliothèque standard fournit des types plus simples que `Mutex<T>`. Ces types offrent un accès sûr, concurrent et atomique aux types primitifs. Nous avons choisi d’utiliser `Mutex<T>` avec un type primitif dans cet exemple afin de pouvoir nous concentrer sur le fonctionnement de `Mutex<T>`.
+
+<!-- Old headings. Do not remove or links may break. -->
 
 <a id="similarities-between-refcelltrct-and-mutextarct"></a>
 
-### Comparaison de `RefCell<T>`/`Rc<T>` et `Mutex<T>`/`Arc<T>`
+### Comparaison de `RefCell<T>`/`Rc<T>` et de `Mutex<T>`/`Arc<T>`
 
-Vous avez peut-être remarqué que `counter` est immuable mais que nous pouvions obtenir une référence mutable à la valeur à l'intérieur ; cela signifie que `Mutex<T>` fournit une mutabilité intérieure, tout comme la famille `Cell`. De la même manière que nous avons utilisé `RefCell<T>` dans le Chapitre 15 pour nous permettre de modifier le contenu à l'intérieur d'un `Rc<T>`, nous utilisons `Mutex<T>` pour modifier le contenu à l'intérieur d'un `Arc<T>`.
+Vous avez peut-être remarqué que `counter` est immuable, mais que nous avons pu obtenir une référence mutable à la valeur qu’il contient ; cela signifie que `Mutex<T>` fournit une mutabilité intérieure, comme la famille `Cell`. De la même manière que nous avons utilisé `RefCell<T>` au chapitre 15 pour modifier le contenu d’un `Rc<T>`, nous utilisons `Mutex<T>` pour modifier le contenu d’un `Arc<T>`.
 
-Un autre détail à noter est que Rust ne peut pas vous protéger de tous les types d'erreurs logiques lorsque vous utilisez `Mutex<T>`. Rappelez-vous du Chapitre 15 que l'utilisation de `Rc<T>` comportait le risque de créer des cycles de référence, où deux valeurs `Rc<T>` se réfèrent l'une à l'autre, provoquant ainsi des fuites de mémoire. De même, `Mutex<T>` comporte le risque de créer des _interblocages_. Ceux-ci se produisent lorsqu'une opération doit verrouiller deux ressources et que deux threads ont chacun acquis l'un des verrous, les amenant à s'attendre mutuellement indéfiniment. Si vous êtes intéressé par les interblocages, essayez de créer un programme Rust qui a un interblocage ; ensuite, recherchez les stratégies d'atténuation des interblocages pour les mutex dans n'importe quel langage et essayez de les mettre en œuvre en Rust. La documentation de l'API de la bibliothèque standard pour `Mutex<T>` et `MutexGuard` offre des informations utiles.
+Il faut également noter que Rust ne peut pas vous protéger contre toutes les erreurs de logique lorsque vous utilisez `Mutex<T>`. Rappelez-vous qu’au chapitre 15, l’utilisation de `Rc<T>` comportait le risque de créer des cycles de références, où deux valeurs `Rc<T>` se référencent mutuellement, provoquant des fuites de mémoire. De même, `Mutex<T>` comporte un risque d’_interblocage_. Celui-ci se produit lorsqu’une opération doit verrouiller deux ressources et que deux threads ont chacun acquis l’un des verrous, ce qui les fait attendre indéfiniment l’un après l’autre. Si les interblocages vous intéressent, essayez de créer un programme Rust qui en provoque un ; puis, étudiez les stratégies d’atténuation des interblocages pour les mutex dans n’importe quel langage et essayez de les implémenter en Rust. La documentation de l’API de la bibliothèque standard pour `Mutex<T>` et `MutexGuard` contient des informations utiles.
 
-Nous terminerons ce chapitre en parlant des traits `Send` et `Sync` et comment nous pouvons les utiliser avec des types personnalisés.
+Nous terminerons ce chapitre en parlant des traits `Send` et `Sync` et de la façon de les utiliser avec des types personnalisés.
 
 [atomic]: ../std/sync/atomic/index.html

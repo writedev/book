@@ -1,22 +1,23 @@
-<!-- Anciennes en-têtes. Ne pas supprimer ou les liens peuvent se casser. -->
+<!-- Old headings. Do not remove or links may break. -->
 
 <a id="using-message-passing-to-transfer-data-between-threads"></a>
 
-## Transférer des données entre les threads avec le passage de messages
+## Transférer des données entre threads par passage de messages
 
-Une approche de plus en plus populaire pour garantir une concurrence sûre est le passage de messages, où les threads ou acteurs communiquent en s'envoyant des messages contenant des données. Voici l'idée dans un slogan tiré de [la documentation du langage Go](https://golang.org/doc/effective_go.html#concurrency) : « Ne communiquez pas en partageant de la mémoire ; au lieu de cela, partagez la mémoire en communiquant. »
+Une approche de plus en plus populaire pour garantir la concurrence sûre est le passage de messages, où des threads ou des acteurs communiquent en s’envoyant des messages contenant des données. Voici l’idée résumée dans un slogan tiré de [la documentation du langage Go](https://golang.org/doc/effective_go.html#concurrency) :
+« Ne communiquez pas en partageant de la mémoire ; partagez plutôt la mémoire en communiquant. »
 
-Pour réaliser une concurrence par envoi de messages, la bibliothèque standard de Rust fournit une implémentation de canaux. Un _canal_ est un concept de programmation général par lequel les données sont envoyées d'un thread à un autre.
+Pour permettre la concurrence par envoi de messages, la bibliothèque standard de Rust fournit une implémentation des canaux. Un _canal_ est un concept général de programmation qui permet d’envoyer des données d’un thread à un autre.
 
-Vous pouvez imaginer un canal en programmation comme un canal directionnel d'eau, tel qu'un ruisseau ou une rivière. Si vous mettez quelque chose comme un canard en caoutchouc dans une rivière, il voyagera en aval jusqu'à la fin du cours d'eau.
+On peut imaginer un canal en programmation comme un cours d’eau à sens unique, tel qu’un ruisseau ou une rivière. Si vous y déposez quelque chose comme un canard en plastique, il suivra le courant jusqu’à l’extrémité du cours d’eau.
 
-Un canal a deux parties : un émetteur et un récepteur. La partie émettrice est l'emplacement en amont où vous mettez le canard en caoutchouc dans la rivière, et la partie réceptrice est l'endroit où le canard en caoutchouc se retrouve en aval. Une partie de votre code appelle des méthodes sur l'émetteur avec les données que vous souhaitez envoyer, et une autre partie vérifie l'extrémité réceptrice pour les messages arrivants. Un canal est dit _fermé_ si l'émetteur ou le récepteur est abandonné.
+Un canal comporte deux parties : un émetteur et un récepteur. La partie émetteur est l’endroit en amont où vous déposez le canard en plastique dans la rivière, et la partie récepteur est l’endroit où le canard arrive en aval. Une partie de votre code appelle des méthodes sur l’émetteur avec les données que vous souhaitez envoyer, et une autre partie vérifie l’extrémité réceptrice pour voir si des messages sont arrivés. On dit qu’un canal est _fermé_ si l’une ou l’autre de ses parties, l’émetteur ou le récepteur, est abandonnée.
 
-Ici, nous allons développer un programme qui a un thread pour générer des valeurs et les envoyer par un canal, et un autre thread qui recevra les valeurs et les affichera. Nous allons envoyer des valeurs simples entre threads en utilisant un canal pour illustrer cette fonctionnalité. Une fois que vous serez familiarisé avec la technique, vous pourrez utiliser des canaux pour n'importe quel thread ayant besoin de communiquer entre eux, comme un système de chat ou un système où plusieurs threads effectuent des parties d'un calcul et envoient les parties à un thread qui agrège les résultats.
+Nous allons ici élaborer un programme dans lequel un thread génère des valeurs et les envoie par un canal, tandis qu’un autre thread les reçoit et les affiche. Nous allons envoyer des valeurs simples entre les threads au moyen d’un canal afin d’illustrer cette fonctionnalité. Une fois la technique maîtrisée, vous pourrez utiliser des canaux pour tous les threads qui doivent communiquer entre eux, par exemple dans un système de clavardage ou dans un système où plusieurs threads effectuent chacun une partie d’un calcul et envoient leurs résultats à un thread qui les regroupe.
 
-Tout d'abord, dans le Listing 16-6, nous allons créer un canal sans encore l'utiliser. Notez que cela ne compilera pas encore, car Rust ne peut pas déterminer quel type de valeurs nous souhaitons envoyer par le canal.
+Tout d’abord, dans la liste 16-6, nous allons créer un canal sans rien en faire. Notez que ce code ne compilera pas encore, car Rust ne peut pas déterminer le type des valeurs que nous voulons envoyer par le canal.
 
-<Listing number="16-6" file-name="src/main.rs" caption="Création d'un canal et attribution des deux parties à `tx` et `rx`">
+<Listing number="16-6" file-name="src/main.rs" caption="Créer un canal et affecter ses deux parties à `tx` et `rx`">
 
 ```rust,ignore,does_not_compile
 {{#rustdoc_include ../listings/ch16-fearless-concurrency/listing-16-06/src/main.rs}}
@@ -24,11 +25,11 @@ Tout d'abord, dans le Listing 16-6, nous allons créer un canal sans encore l'ut
 
 </Listing>
 
-Nous créons un nouveau canal en utilisant la fonction `mpsc::channel` ; `mpsc` signifie _multiple producer, single consumer_. En résumé, la façon dont la bibliothèque standard de Rust implémente les canaux signifie qu'un canal peut avoir plusieurs points _d'envoi_ qui produisent des valeurs mais seulement un point _de réception_ qui consomme ces valeurs. Imaginez plusieurs ruisseaux se rejoignant pour former une grande rivière : tout ce qui est envoyé dans n'importe lequel des ruisseaux se retrouvera à la fin dans cette rivière. Nous allons commencer avec un seul producteur pour l'instant, mais nous ajouterons plusieurs producteurs lorsque nous aurons fait fonctionner cet exemple.
+Nous créons un nouveau canal à l’aide de la fonction `mpsc::channel` ; `mpsc` signifie _multiple producer, single consumer_ (plusieurs producteurs, un seul consommateur). En bref, l’implémentation des canaux de la bibliothèque standard de Rust permet à un canal d’avoir plusieurs extrémités _d’envoi_ qui produisent des valeurs, mais une seule extrémité _de réception_ qui les consomme. Imaginez plusieurs ruisseaux qui se rejoignent pour former une grande rivière : tout ce qui est envoyé par l’un de ces ruisseaux finira dans la rivière en aval. Nous allons commencer par un seul producteur, mais nous en ajouterons plusieurs une fois cet exemple fonctionnel.
 
-La fonction `mpsc::channel` retourne un tuple, dont le premier élément est le point d'envoi — l'émetteur — et le deuxième élément est le point de réception — le récepteur. Les abréviations `tx` et `rx` sont traditionnellement utilisées dans de nombreux domaines pour _émetteur_ et _récepteur_, respectivement, donc nous nommons nos variables ainsi pour indiquer chaque extrémité. Nous utilisons une déclaration `let` avec un motif qui destructure les tuples ; nous discuterons de l'utilisation des motifs dans les déclarations `let` et de la destructuration au chapitre 19. Pour l'instant, sachez que l'utilisation d'une déclaration `let` de cette manière est une approche pratique pour extraire les éléments du tuple retourné par `mpsc::channel`.
+La fonction `mpsc::channel` renvoie un tuple dont le premier élément est l’extrémité d’envoi — l’émetteur — et le second, l’extrémité de réception — le récepteur. Dans de nombreux domaines, les abréviations `tx` et `rx` sont traditionnellement utilisées pour _transmitter_ (émetteur) et _receiver_ (récepteur), respectivement. Nous nommons donc nos variables ainsi pour désigner chaque extrémité. Nous utilisons une instruction `let` avec un motif qui déstructure le tuple ; nous aborderons les motifs dans les instructions `let` et la déstructuration au chapitre 19. Pour l’instant, retenez qu’utiliser une instruction `let` de cette manière est une façon pratique d’extraire les éléments du tuple renvoyé par `mpsc::channel`.
 
-Déplaçons l'extrémité émettrice dans un thread lancé et faisons-lui envoyer une chaîne afin que le thread lancé communique avec le thread principal, comme le montre le Listing 16-7. Cela ressemble à mettre un canard en caoutchouc dans la rivière en amont ou à envoyer un message de chat d'un thread à un autre.
+Déplaçons l’extrémité émettrice dans un thread lancé et faisons-lui envoyer une chaîne de caractères afin que le thread lancé communique avec le thread principal, comme l’illustre la liste 16-7. C’est comme déposer un canard en plastique dans la rivière en amont ou envoyer un message de clavardage d’un thread à un autre.
 
 <Listing number="16-7" file-name="src/main.rs" caption='Déplacer `tx` dans un thread lancé et envoyer `"hi"`'>
 
@@ -38,13 +39,13 @@ Déplaçons l'extrémité émettrice dans un thread lancé et faisons-lui envoye
 
 </Listing>
 
-Encore une fois, nous utilisons `thread::spawn` pour créer un nouveau thread et ensuite `move` pour déplacer `tx` dans la fermeture afin que le thread lancé possède `tx`. Le thread lancé doit posséder l'émetteur pour pouvoir envoyer des messages par le canal.
+Encore une fois, nous utilisons `thread::spawn` pour créer un nouveau thread, puis `move` pour déplacer `tx` dans la fermeture afin que le thread lancé en soit propriétaire. Le thread lancé doit être propriétaire de l’émetteur pour pouvoir envoyer des messages par le canal.
 
-L'émetteur dispose d'une méthode `send` qui prend la valeur que nous voulons envoyer. La méthode `send` retourne un type `Result<T, E>`, donc si le récepteur a déjà été abandonné et qu'il n'y a nulle part où envoyer une valeur, l'opération d'envoi renverra une erreur. Dans cet exemple, nous appelons `unwrap` pour provoquer une panique en cas d'erreur. Mais dans une application réelle, nous devrions le gérer correctement : Revenez au chapitre 9 pour revoir les stratégies de gestion des erreurs appropriées.
+L’émetteur possède une méthode `send` qui prend la valeur que nous voulons envoyer. La méthode `send` renvoie un type `Result<T, E>`. Ainsi, si le récepteur a déjà été abandonné et qu’il n’y a aucun destinataire auquel envoyer une valeur, l’opération d’envoi renverra une erreur. Dans cet exemple, nous appelons `unwrap` pour déclencher une panique en cas d’erreur. Dans une vraie application, nous la traiterions correctement : reportez-vous au chapitre 9 pour revoir les stratégies de gestion appropriée des erreurs.
 
-Dans le Listing 16-8, nous allons récupérer la valeur depuis le récepteur dans le thread principal. Cela ressemble à récupérer le canard en caoutchouc de l'eau à la fin de la rivière ou à recevoir un message de chat.
+Dans la liste 16-8, nous allons récupérer la valeur depuis le récepteur dans le thread principal. C’est comme récupérer le canard en plastique dans l’eau au bout de la rivière ou recevoir un message de clavardage.
 
-<Listing number="16-8" file-name="src/main.rs" caption="Recevoir la valeur `'hi'` dans le thread principal et l'afficher">
+<Listing number="16-8" file-name="src/main.rs" caption='Recevoir la valeur `"hi"` dans le thread principal et l’afficher'>
 
 ```rust
 {{#rustdoc_include ../listings/ch16-fearless-concurrency/listing-16-08/src/main.rs}}
@@ -52,15 +53,17 @@ Dans le Listing 16-8, nous allons récupérer la valeur depuis le récepteur dan
 
 </Listing>
 
-Le récepteur dispose de deux méthodes utiles : `recv` et `try_recv`. Nous utilisons `recv`, abréviation de _receive_, qui bloquera l'exécution du thread principal et attendra qu'une valeur soit envoyée par le canal. Une fois qu'une valeur est envoyée, `recv` la retournera dans un `Result<T, E>`. Lorsque l'émetteur se ferme, `recv` renverra une erreur pour signaler qu'aucune valeur ne viendra plus.
+Le récepteur possède deux méthodes utiles : `recv` et `try_recv`. Nous utilisons `recv`, abréviation de _receive_ (recevoir), qui bloque l’exécution du thread principal et attend qu’une valeur soit envoyée par le canal. Une fois qu’une valeur a été envoyée, `recv` la renvoie dans un `Result<T, E>`. Lorsque l’émetteur se ferme, `recv` renvoie une erreur pour signaler qu’aucune autre valeur ne sera envoyée.
 
-La méthode `try_recv` ne bloque pas, mais renverra immédiatement un `Result<T, E>` : une valeur `Ok` contenant un message si un message est disponible et une valeur `Err` s'il n'y a pas de messages cette fois-ci. Utiliser `try_recv` est utile si ce thread a d'autres tâches à accomplir en attendant les messages : nous pourrions écrire une boucle qui appelle `try_recv` de temps en temps, gère un message s'il est disponible, et sinon fait d'autres travaux pendant un petit moment avant de vérifier à nouveau.
+La méthode `try_recv` ne bloque pas ; elle renvoie immédiatement un `Result<T, E>` : une valeur `Ok` contenant un message si l’un d’eux est disponible, et une valeur `Err` s’il n’y a aucun message pour le moment. `try_recv` est utile si ce thread a d’autres tâches à effectuer en attendant des messages : nous pourrions écrire une boucle qui appelle `try_recv` de temps en temps, traite un message s’il y en a un, et effectue sinon une autre tâche pendant un moment avant de vérifier à nouveau.
 
-Nous avons utilisé `recv` dans cet exemple pour des raisons de simplicité ; nous n'avons pas d'autres tâches pour le thread principal à réaliser que d'attendre des messages, donc bloquer le thread principal est approprié.
+Nous avons utilisé `recv` dans cet exemple par souci de simplicité ; le thread principal n’a rien d’autre à faire que d’attendre des messages, il est donc approprié de le bloquer.
 
-Lorsque nous exécutons le code dans le Listing 16-8, nous verrons la valeur affichée depuis le thread principal :
+Lorsque nous exécutons le code de la liste 16-8, nous voyons la valeur affichée depuis le thread principal :
 
-<!-- Pas d'extraction de sortie car les modifications de cette sortie ne sont pas significatives ; les changements proviennent probablement du fait que les threads s'exécutent différemment plutôt que de changements dans le compilateur -->
+<!-- Not extracting output because changes to this output aren't significant;
+the changes are likely to be due to the threads running differently rather than
+changes in the compiler -->
 
 ```text
 Got: hi
@@ -68,15 +71,15 @@ Got: hi
 
 Parfait !
 
-<!-- Anciennes en-têtes. Ne pas supprimer ou les liens peuvent se casser. -->
+<!-- Old headings. Do not remove or links may break. -->
 
 <a id="channels-and-ownership-transference"></a>
 
-### Transfert de propriété par l'intermédiaire des canaux
+### Transférer la propriété par les canaux
 
-Les règles de propriété jouent un rôle essentiel dans l'envoi de messages car elles vous aident à écrire un code concurrent sûr. Prévenir les erreurs dans la programmation concurrente est l'avantage de penser à la propriété tout au long de vos programmes Rust. Faisons une expérience pour montrer comment les canaux et la propriété travaillent ensemble pour prévenir les problèmes : nous allons essayer d'utiliser une valeur `val` dans le thread lancé _après_ l'avoir envoyée par le canal. Essayez de compiler le code dans le Listing 16-9 pour voir pourquoi ce code n'est pas autorisé.
+Les règles de propriété jouent un rôle essentiel dans l’envoi de messages, car elles vous aident à écrire du code sûr et concurrent. Penser à la propriété dans l’ensemble de vos programmes Rust permet d’éviter les erreurs de programmation concurrente. Faisons une expérience pour montrer comment les canaux et la propriété fonctionnent ensemble afin d’éviter les problèmes : nous allons essayer d’utiliser une valeur `val` dans le thread lancé _après_ l’avoir envoyée par le canal. Essayez de compiler le code de la liste 16-9 pour comprendre pourquoi il n’est pas autorisé.
 
-<Listing number="16-9" file-name="src/main.rs" caption="Tentative d'utilisation de `val` après l'avoir envoyée par le canal">
+<Listing number="16-9" file-name="src/main.rs" caption="Tenter d’utiliser `val` après l’avoir envoyée par le canal">
 
 ```rust,ignore,does_not_compile
 {{#rustdoc_include ../listings/ch16-fearless-concurrency/listing-16-09/src/main.rs}}
@@ -84,25 +87,25 @@ Les règles de propriété jouent un rôle essentiel dans l'envoi de messages ca
 
 </Listing>
 
-Ici, nous essayons d'afficher `val` après l'avoir envoyée par le canal via `tx.send`. Autoriser cela serait une mauvaise idée : une fois que la valeur a été envoyée à un autre thread, ce thread pourrait la modifier ou l'abandonner avant que nous n'essayions à nouveau d'utiliser la valeur. Potentiellement, les modifications de l'autre thread pourraient causer des erreurs ou des résultats inattendus en raison de données incohérentes ou inexistantes. Cependant, Rust nous renvoie une erreur si nous essayons de compiler le code dans le Listing 16-9 :
+Ici, nous essayons d’afficher `val` après l’avoir envoyée par le canal au moyen de `tx.send`. Autoriser cela serait une mauvaise idée : une fois la valeur envoyée à un autre thread, celui-ci pourrait la modifier ou l’abandonner avant que nous essayions de l’utiliser à nouveau. Les modifications de l’autre thread pourraient alors provoquer des erreurs ou des résultats inattendus en raison de données incohérentes ou inexistantes. Cependant, Rust renvoie une erreur si nous essayons de compiler le code de la liste 16-9 :
 
 ```console
 {{#include ../listings/ch16-fearless-concurrency/listing-16-09/output.txt}}
 ```
 
-Notre erreur de concurrence a causé une erreur de compilation. La fonction `send` prend possession de son paramètre, et lorsque la valeur est déplacée, le récepteur en prend possession également. Cela nous empêche d'utiliser à nouveau la valeur accidentellement après l'avoir envoyée ; le système de propriété vérifie que tout est en ordre.
+Notre erreur de programmation concurrente a provoqué une erreur à la compilation. La fonction `send` prend possession de son paramètre et, lorsque la valeur est déplacée, le récepteur en devient propriétaire. Cela nous empêche de réutiliser accidentellement la valeur après l’avoir envoyée ; le système de propriété vérifie que tout est correct.
 
-<!-- Anciennes en-têtes. Ne pas supprimer ou les liens peuvent se casser. -->
+<!-- Old headings. Do not remove or links may break. -->
 
 <a id="sending-multiple-values-and-seeing-the-receiver-waiting"></a>
 
 ### Envoyer plusieurs valeurs
 
-Le code dans le Listing 16-8 a été compilé et exécuté, mais il ne nous a pas clairement montré que deux threads distincts communiquent entre eux par le canal.
+Le code de la liste 16-8 a compilé et s’est exécuté, mais il ne montrait pas clairement que deux threads distincts communiquaient par le canal.
 
-Dans le Listing 16-10, nous avons apporté quelques modifications qui prouveront que le code dans le Listing 16-8 s'exécute de manière concurrente : le thread lancé enverra désormais plusieurs messages et fera une pause d'une seconde entre chaque message.
+Dans la liste 16-10, nous avons apporté quelques modifications qui démontreront que le code de la liste 16-8 s’exécute de manière concurrente : le thread lancé va maintenant envoyer plusieurs messages et marquer une pause d’une seconde entre chacun d’eux.
 
-<Listing number="16-10" file-name="src/main.rs" caption="Envoyer plusieurs messages et faire une pause entre chacun d'eux">
+<Listing number="16-10" file-name="src/main.rs" caption="Envoyer plusieurs messages et marquer une pause entre chacun d’eux">
 
 ```rust,noplayground
 {{#rustdoc_include ../listings/ch16-fearless-concurrency/listing-16-10/src/main.rs}}
@@ -110,13 +113,15 @@ Dans le Listing 16-10, nous avons apporté quelques modifications qui prouveront
 
 </Listing>
 
-Cette fois, le thread lancé a un vecteur de chaînes que nous voulons envoyer au thread principal. Nous les parcourons, en envoyant chacune individuellement, et faisons une pause entre chaque appel à la fonction `thread::sleep` avec une valeur `Duration` d'une seconde.
+Cette fois, le thread lancé contient un vecteur de chaînes de caractères que nous voulons envoyer au thread principal. Nous parcourons ce vecteur, envoyons chaque chaîne séparément et marquons une pause entre chaque en appelant la fonction `thread::sleep` avec une valeur `Duration` d’une seconde.
 
-Dans le thread principal, nous n'appelons plus explicitement la fonction `recv` : au lieu de cela, nous traitons `rx` comme un itérateur. Pour chaque valeur reçue, nous l'affichons. Lorsque le canal est fermé, l'itération se termine.
+Dans le thread principal, nous n’appelons plus explicitement la fonction `recv` ; nous traitons plutôt `rx` comme un itérateur. Nous affichons chaque valeur reçue. Lorsque le canal est fermé, l’itération prend fin.
 
-Lorsque vous exécutez le code dans le Listing 16-10, vous devriez voir la sortie suivante avec une pause d'une seconde entre chaque ligne :
+Lorsque vous exécutez le code de la liste 16-10, vous devriez voir la sortie suivante, avec une pause d’une seconde entre chaque ligne :
 
-<!-- Pas d'extraction de sortie car les modifications de cette sortie ne sont pas significatives ; les changements proviennent probablement du fait que les threads s'exécutent différemment plutôt que de changements dans le compilateur -->
+<!-- Not extracting output because changes to this output aren't significant;
+the changes are likely to be due to the threads running differently rather than
+changes in the compiler -->
 
 ```text
 Got: hi
@@ -125,17 +130,17 @@ Got: the
 Got: thread
 ```
 
-Puisque nous n'avons pas de code qui pause ou retarde dans la boucle `for` dans le thread principal, nous pouvons affirmer que le thread principal attend de recevoir des valeurs du thread lancé.
+Comme il n’y a aucune instruction qui marque une pause ou introduit un délai dans la boucle `for` du thread principal, nous pouvons constater que le thread principal attend de recevoir des valeurs du thread lancé.
 
-<!-- Anciennes en-têtes. Ne pas supprimer ou les liens peuvent se casser. -->
+<!-- Old headings. Do not remove or links may break. -->
 
 <a id="creating-multiple-producers-by-cloning-the-transmitter"></a>
 
-### Création de plusieurs producteurs
+### Créer plusieurs producteurs
 
-Plus tôt, nous avons mentionné que `mpsc` était un acronyme pour _multiple producer, single consumer_. Mettons `mpsc` à profit et développons le code dans le Listing 16-10 pour créer plusieurs threads qui envoient tous des valeurs au même récepteur. Nous pouvons le faire en clonant l'émetteur, comme le montre le Listing 16-11.
+Nous avons indiqué précédemment que `mpsc` était l’acronyme de _multiple producer, single consumer_ (plusieurs producteurs, un seul consommateur). Utilisons `mpsc` et développons le code de la liste 16-10 pour créer plusieurs threads qui envoient tous des valeurs au même récepteur. Nous pouvons le faire en clonant l’émetteur, comme l’illustre la liste 16-11.
 
-<Listing number="16-11" file-name="src/main.rs" caption="Envoyer plusieurs messages à partir de plusieurs producteurs">
+<Listing number="16-11" file-name="src/main.rs" caption="Envoyer plusieurs messages depuis plusieurs producteurs">
 
 ```rust,noplayground
 {{#rustdoc_include ../listings/ch16-fearless-concurrency/listing-16-11/src/main.rs:here}}
@@ -143,11 +148,13 @@ Plus tôt, nous avons mentionné que `mpsc` était un acronyme pour _multiple pr
 
 </Listing>
 
-Cette fois, avant de créer le premier thread lancé, nous appelons `clone` sur l'émetteur. Cela nous donnera un nouvel émetteur que nous pourrons transmettre au premier thread lancé. Nous passons l'émetteur original à un deuxième thread lancé. Cela nous donne deux threads, chacun envoyant des messages différents au même récepteur.
+Cette fois, avant de créer le premier thread lancé, nous appelons `clone` sur l’émetteur. Cela nous fournit un nouvel émetteur que nous pouvons transmettre au premier thread lancé. Nous transmettons l’émetteur d’origine à un second thread lancé. Nous avons ainsi deux threads qui envoient chacun des messages différents au même récepteur.
 
-Lorsque vous exécutez le code, votre sortie devrait ressembler à ceci :
+Lorsque vous exécutez le code, la sortie devrait ressembler à ceci :
 
-<!-- Pas d'extraction de sortie car les modifications de cette sortie ne sont pas significatives ; les changements proviennent probablement du fait que les threads s'exécutent différemment plutôt que de changements dans le compilateur -->
+<!-- Not extracting output because changes to this output aren't significant;
+the changes are likely to be due to the threads running differently rather than
+changes in the compiler -->
 
 ```text
 Got: hi
@@ -160,6 +167,6 @@ Got: thread
 Got: you
 ```
 
-Vous pourriez voir les valeurs dans un autre ordre, en fonction de votre système. C'est ce qui rend la concurrence intéressante et difficile. Si vous expérimentez avec `thread::sleep`, en lui donnant différentes valeurs dans les différents threads, chaque exécution sera plus non déterministe et produira une sortie différente à chaque fois.
+Les valeurs peuvent apparaître dans un autre ordre, selon votre système. C’est ce qui rend la programmation concurrente intéressante, mais aussi difficile. Si vous faites des essais avec `thread::sleep` en lui donnant des durées différentes dans chaque thread, chaque exécution sera encore moins déterministe et produira une sortie différente.
 
-Maintenant que nous avons examiné le fonctionnement des canaux, examinons une autre méthode de concurrence.
+Maintenant que nous avons vu le fonctionnement des canaux, examinons une autre méthode de programmation concurrente.

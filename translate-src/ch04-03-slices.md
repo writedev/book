@@ -1,20 +1,20 @@
-## Le Type Slice
+## Le type tranche
 
-Les _slices_ vous permettent de référencer une séquence continue d'éléments dans une [collection](ch08-00-common-collections.md)<!-- ignore -->. Un slice est une sorte de référence, donc il n'a pas de propriété.
+Les _tranches_ vous permettent de faire référence à une séquence contiguë d’éléments dans une [collection](ch08-00-common-collections.md)<!-- ignore -->. Une tranche est une sorte de référence : elle n’est donc pas propriétaire des données.
 
-Voici un petit problème de programmation : Écrivez une fonction qui prend une chaîne de mots séparés par des espaces et renvoie le premier mot qu'elle trouve dans cette chaîne. Si la fonction ne trouve pas d'espace dans la chaîne, la chaîne entière doit être un mot, donc la chaîne entière doit être renvoyée.
+Voici un petit problème de programmation : écrivez une fonction qui prend une chaîne de mots séparés par des espaces et renvoie le premier mot qu’elle trouve dans cette chaîne. Si la fonction ne trouve aucun espace dans la chaîne, celle-ci doit être composée d’un seul mot ; la chaîne entière doit donc être renvoyée.
 
-> Remarque : Aux fins de l'introduction des slices, nous supposons uniquement l'ASCII dans cette section ; une discussion plus approfondie sur la gestion des UTF-8 se trouve dans la section [« Stockage de texte codé en UTF-8 avec des chaînes »][strings]<!-- ignore --> du Chapitre 8.
+> Remarque : pour présenter les tranches, nous supposons dans cette section que nous n’utilisons que des caractères ASCII ; le [chapitre 8, section « Stocker du texte encodé en UTF-8 avec des chaînes »][strings]<!-- ignore --> propose une analyse plus approfondie de la gestion de l’UTF-8.
 
-Voyons comment nous rédigerions la signature de cette fonction sans utiliser de slices, pour comprendre le problème que les slices vont résoudre :
+Voyons comment écrire la signature de cette fonction sans utiliser de tranches, afin de comprendre le problème que celles-ci vont résoudre :
 
 ```rust,ignore
-fn premier_mot(s: &String) -> ?
+fn first_word(s: &String) -> ?
 ```
 
-La fonction `premier_mot` a un paramètre de type `&String`. Nous n'avons pas besoin de propriété, donc ceci est correct. (En Rust idiomatique, les fonctions ne prennent pas possession de leurs arguments à moins qu'elles n'en aient besoin, et les raisons de cela deviendront claires au fur et à mesure que nous avancerons.) Mais que devrions-nous renvoyer ? Nous n'avons pas vraiment de moyen de parler de *partie* d'une chaîne. Cependant, nous pourrions renvoyer l'index de la fin du mot, indiqué par un espace. Essayons cela, comme montré dans le Listing 4-7.
+La fonction `first_word` a un paramètre de type `&String`. Nous n’avons pas besoin de transférer la propriété, donc cela convient. (En Rust idiomatique, les fonctions ne prennent pas possession de leurs arguments à moins d’en avoir besoin ; les raisons de ce choix deviendront plus claires au fil de notre progression.) Mais que devons-nous renvoyer ? Nous n’avons pas vraiment de moyen de désigner *une partie* d’une chaîne. Nous pourrions toutefois renvoyer l’indice de fin du mot, indiqué par un espace. Essayons cette approche, comme le montre le listing 4-7.
 
-<Listing number="4-7" file-name="src/main.rs" caption="La fonction `premier_mot` qui renvoie un index d'octet dans le paramètre `String`">
+<Listing number="4-7" file-name="src/main.rs" caption="La fonction `first_word` qui renvoie un indice d’octet dans le paramètre `String`">
 
 ```rust
 {{#rustdoc_include ../listings/ch04-understanding-ownership/listing-04-07/src/main.rs:here}}
@@ -22,31 +22,31 @@ La fonction `premier_mot` a un paramètre de type `&String`. Nous n'avons pas be
 
 </Listing>
 
-Comme nous devons parcourir l'élément `String` élément par élément et vérifier si une valeur est un espace, nous allons convertir notre `String` en un tableau d'octets en utilisant la méthode `as_bytes`.
+Comme nous devons parcourir la valeur `String` élément par élément et vérifier si une valeur est un espace, nous allons convertir notre `String` en tableau d’octets à l’aide de la méthode `as_bytes`.
 
 ```rust,ignore
 {{#rustdoc_include ../listings/ch04-understanding-ownership/listing-04-07/src/main.rs:as_bytes}}
 ```
 
-Ensuite, nous créons un itérateur sur le tableau d'octets en utilisant la méthode `iter` :
+Ensuite, nous créons un itérateur sur le tableau d’octets à l’aide de la méthode `iter` :
 
 ```rust,ignore
 {{#rustdoc_include ../listings/ch04-understanding-ownership/listing-04-07/src/main.rs:iter}}
 ```
 
-Nous discuterons des iterators plus en détail dans [le Chapitre 13][ch13]<!-- ignore -->. Pour l'instant, sachez que `iter` est une méthode qui renvoie chaque élément d'une collection et que `enumerate` enveloppe le résultat de `iter` et renvoie chaque élément comme partie d'un tuple à la place. Le premier élément du tuple renvoyé par `enumerate` est l'index, et le deuxième élément est une référence à l'élément. Cela est un peu plus pratique que de calculer l'index nous-mêmes.
+Nous aborderons les itérateurs plus en détail au [chapitre 13][ch13]<!-- ignore -->. Pour l’instant, retenez que `iter` est une méthode qui renvoie chaque élément d’une collection et que `enumerate` enveloppe le résultat de `iter` et renvoie chaque élément sous la forme d’un élément de tuple. Le premier élément du tuple renvoyé par `enumerate` est l’indice, et le second est une référence à l’élément. C’est un peu plus pratique que de calculer nous-mêmes l’indice.
 
-Parce que la méthode `enumerate` renvoie un tuple, nous pouvons utiliser des motifs pour déstructurer ce tuple. Nous aborderons les motifs plus en détail dans [le Chapitre 6][ch6]<!-- ignore -->. Dans la boucle `for`, nous spécifions un motif qui a `i` pour l'index dans le tuple et `&item` pour l'octet unique dans le tuple. Parce que nous obtenons une référence à l'élément de `.iter().enumerate()`, nous utilisons `&` dans le motif.
+Comme la méthode `enumerate` renvoie un tuple, nous pouvons utiliser des motifs pour décomposer ce tuple. Nous parlerons davantage des motifs au [chapitre 6][ch6]<!-- ignore -->. Dans la boucle `for`, nous indiquons un motif qui utilise `i` pour l’indice du tuple et `&item` pour l’octet qu’il contient. Comme `.iter().enumerate()` nous donne une référence à l’élément, nous utilisons `&` dans le motif.
 
-À l'intérieur de la boucle `for`, nous cherchons l'octet qui représente l'espace en utilisant la syntaxe littérale d'octets. Si nous trouvons un espace, nous renvoyons la position. Sinon, nous renvoyons la longueur de la chaîne en utilisant `s.len()`.
+Dans la boucle `for`, nous recherchons l’octet qui représente l’espace à l’aide de la syntaxe des littéraux d’octet. Si nous trouvons un espace, nous renvoyons sa position. Sinon, nous renvoyons la longueur de la chaîne à l’aide de `s.len()`.
 
 ```rust,ignore
 {{#rustdoc_include ../listings/ch04-understanding-ownership/listing-04-07/src/main.rs:inside_for}}
 ```
 
-Nous avons maintenant un moyen de trouver l'index de la fin du premier mot dans la chaîne, mais il y a un problème. Nous renvoyons un `usize` à part, mais c'est un nombre seulement significatif dans le contexte du `&String`. En d'autres termes, comme c'est une valeur séparée de `String`, il n'y a aucune garantie qu'elle sera toujours valide à l'avenir. Considérez le programme dans le Listing 4-8 qui utilise la fonction `premier_mot` du Listing 4-7.
+Nous savons maintenant trouver l’indice de fin du premier mot dans la chaîne, mais il y a un problème. Nous renvoyons un `usize` isolé, qui n’a de sens que dans le contexte de `&String`. Autrement dit, comme il s’agit d’une valeur distincte de `String`, rien ne garantit qu’elle sera toujours valide par la suite. Considérons le programme du listing 4-8, qui utilise la fonction `first_word` du listing 4-7.
 
-<Listing number="4-8" file-name="src/main.rs" caption="Stockage du résultat de l'appel à la fonction `premier_mot` puis changement du contenu de `String`">
+<Listing number="4-8" file-name="src/main.rs" caption="Stocker le résultat d’un appel à la fonction `first_word`, puis modifier le contenu de la `String`">
 
 ```rust
 {{#rustdoc_include ../listings/ch04-understanding-ownership/listing-04-08/src/main.rs:here}}
@@ -54,36 +54,36 @@ Nous avons maintenant un moyen de trouver l'index de la fin du premier mot dans 
 
 </Listing>
 
-Ce programme se compile sans erreur et le ferait également si nous utilisions `mot` après avoir appelé `s.clear()`. Comme `mot` n'est pas connecté à l'état de `s` du tout, `mot` contient toujours la valeur `5`. Nous pourrions utiliser cette valeur `5` avec la variable `s` pour essayer d'extraire le premier mot, mais ce serait un bug car le contenu de `s` a changé depuis que nous avons enregistré `5` dans `mot`.
+Ce programme compile sans erreur et ferait de même si nous utilisions `word` après avoir appelé `s.clear()`. Comme `word` n’est aucunement lié à l’état de `s`, il contient toujours la valeur `5`. Nous pourrions utiliser cette valeur `5` avec la variable `s` pour essayer d’en extraire le premier mot, mais ce serait une erreur, car le contenu de `s` a changé depuis que nous avons enregistré `5` dans `word`.
 
-Le fait de devoir se soucier de l'index dans `mot` se décalant par rapport aux données dans `s` est fastidieux et sujet aux erreurs ! Gérer ces indices est encore plus fragile si nous écrivons une fonction `deuxième_mot`. Sa signature devrait ressembler à ceci :
+Devoir s’inquiéter de la désynchronisation de l’indice contenu dans `word` par rapport aux données de `s` est fastidieux et source d’erreurs ! La gestion de ces indices devient encore plus fragile si nous écrivons une fonction `second_word`. Sa signature devrait ressembler à ceci :
 
 ```rust,ignore
-fn deuxieme_mot(s: &String) -> (usize, usize) {
+fn second_word(s: &String) -> (usize, usize) {
 ```
 
-Nous suivons maintenant un index de début _et_ de fin, et nous avons encore plus de valeurs qui ont été calculées à partir de données dans un état particulier mais ne sont pas liées à cet état. Nous avons trois variables non liées qui flottent et qui doivent rester synchronisées.
+Nous suivons maintenant un indice de début _et_ un indice de fin, et nous avons encore plus de valeurs calculées à partir des données dans un état donné, mais qui ne sont pas liées à cet état. Nous avons trois variables sans lien entre elles qu’il faut maintenir synchronisées.
 
-Heureusement, Rust a une solution à ce problème : les slices de chaînes.
+Heureusement, Rust a une solution à ce problème : les tranches de chaîne.
 
-### Slices de Chaînes
+### Tranches de chaîne
 
-Un _slice de chaîne_ est une référence à une séquence continue des éléments d'une `String`, et il ressemble à ceci :
+Une _tranche de chaîne_ est une référence à une séquence contiguë d’éléments d’une `String`. Elle se présente ainsi :
 
 ```rust
 {{#rustdoc_include ../listings/ch04-understanding-ownership/no-listing-17-slice/src/main.rs:here}}
 ```
 
-Plutôt qu'une référence à l'ensemble de `String`, `hello` est une référence à une portion de la `String`, spécifiée dans le morceau supplémentaire `[0..5]`. Nous créons des slices en utilisant une plage à l'intérieur de crochets en spécifiant `[index_de_début..index_de_fin]`, où _`index_de_début`_ est la première position dans le slice et _`index_de_fin`_ est un de plus que la dernière position dans le slice. En interne, la structure de données du slice stocke la position de départ et la longueur du slice, qui correspond à _`index_de_fin`_ moins _`index_de_début`_. Ainsi, dans le cas de `let monde = &s[6..11];`, `monde` serait un slice contenant un pointeur vers l'octet à l'index 6 de `s` avec une valeur de longueur de `5`.
+Au lieu de faire référence à l’intégralité de la `String`, `hello` fait référence à une partie de la `String`, indiquée par le segment supplémentaire `[0..5]`. Nous créons des tranches à l’aide d’une plage entre crochets, en indiquant `[indice_de_début..indice_de_fin]`, où _`indice_de_début`_ est la première position de la tranche et _`indice_de_fin`_ est la position qui suit la dernière position de la tranche. En interne, la structure de données d’une tranche stocke la position de début et la longueur de la tranche, qui correspond à _`indice_de_fin`_ moins _`indice_de_début`_. Ainsi, dans le cas de `let world = &s[6..11];`, `world` serait une tranche contenant un pointeur vers l’octet à l’indice 6 de `s` et une valeur de longueur de `5`.
 
-La Figure 4-7 montre cela dans un diagramme.
+La figure 4-7 l’illustre.
 
-<img alt="Trois tableaux : un tableau représentant les données sur la pile de s, qui pointe vers l'octet à l'index 0 dans un tableau des données de chaîne &quot;hello world&quot; sur le tas. Le troisième tableau représente les données sur la pile du slice monde, qui a une valeur de longueur de 5 et pointe vers l'octet 6 du tableau de données du tas."
+<img alt="Trois tableaux : un tableau représentant les données de pile de s, qui pointe vers l’octet à l’indice 0 dans un tableau de données de chaîne &quot;hello world&quot; sur le tas. Le troisième tableau représente les données de pile de la tranche world, qui a une longueur de 5 et pointe vers l’octet 6 du tableau de données sur le tas."
 src="img/trpl04-07.svg" class="center" style="width: 50%;" />
 
-<span class="caption">Figure 4-7 : Un slice de chaîne se référant à une partie d'une `String`</span>
+<span class="caption">Figure 4-7 : Une tranche de chaîne faisant référence à une partie d’une `String`</span>
 
-Avec la syntaxe de plage `..` de Rust, si vous souhaitez commencer à l'index 0, vous pouvez laisser tomber la valeur avant les deux points. En d'autres termes, ces deux expressions sont égales :
+Avec la syntaxe de plage `..` de Rust, si vous voulez commencer à l’indice 0, vous pouvez omettre la valeur qui précède les deux points. Autrement dit, ces expressions sont équivalentes :
 
 ```rust
 let s = String::from("hello");
@@ -92,7 +92,7 @@ let slice = &s[0..2];
 let slice = &s[..2];
 ```
 
-De la même manière, si votre slice comprend le dernier octet de la `String`, vous pouvez laisser tomber le nombre final. Cela signifie que ces deux expressions sont égales :
+De même, si votre tranche inclut le dernier octet de la `String`, vous pouvez omettre le nombre final. Ces expressions sont donc équivalentes :
 
 ```rust
 let s = String::from("hello");
@@ -103,7 +103,7 @@ let slice = &s[3..len];
 let slice = &s[3..];
 ```
 
-Vous pouvez également laisser tomber les deux valeurs pour obtenir un slice de l'ensemble de la chaîne. Donc, ces deux expressions sont égales :
+Vous pouvez aussi omettre les deux valeurs pour prendre une tranche de la chaîne entière. Ces expressions sont donc équivalentes :
 
 ```rust
 let s = String::from("hello");
@@ -114,9 +114,9 @@ let slice = &s[0..len];
 let slice = &s[..];
 ```
 
-> Remarque : Les indices de plage de slice de chaînes doivent se situer à des frontières de caractères UTF-8 valides. Si vous essayez de créer un slice de chaîne au milieu d'un caractère multioctet, votre programme se terminera avec une erreur.
+> Remarque : les indices des plages de tranches de chaîne doivent correspondre à des limites valides de caractères UTF-8. Si vous tentez de créer une tranche de chaîne au milieu d’un caractère multioctet, votre programme se terminera avec une erreur.
 
-Avec toutes ces informations en tête, réécrivons `premier_mot` pour renvoyer un slice. Le type qui signifie « slice de chaîne » est écrit comme `&str` :
+Avec toutes ces informations en tête, réécrivons `first_word` pour qu’elle renvoie une tranche. Le type qui désigne une « tranche de chaîne » s’écrit `&str` :
 
 <Listing file-name="src/main.rs">
 
@@ -126,17 +126,17 @@ Avec toutes ces informations en tête, réécrivons `premier_mot` pour renvoyer 
 
 </Listing>
 
-Nous obtenons l'index pour la fin du mot de la même manière que nous l'avons fait dans le Listing 4-7, en cherchant la première occurrence d'un espace. Lorsque nous trouvons un espace, nous renvoyons un slice de chaîne en utilisant le début de la chaîne et l'index de l'espace comme indices de début et de fin.
+Nous obtenons l’indice de fin du mot comme dans le listing 4-7, en recherchant la première occurrence d’un espace. Lorsque nous trouvons un espace, nous renvoyons une tranche de chaîne en utilisant le début de la chaîne et l’indice de l’espace comme indices de début et de fin.
 
-Maintenant, quand nous appelons `premier_mot`, nous obtenons une seule valeur qui est liée aux données sous-jacentes. La valeur est composée d'une référence au point de départ du slice et du nombre d'éléments dans le slice.
+Désormais, lorsque nous appelons `first_word`, nous obtenons une seule valeur liée aux données sous-jacentes. Cette valeur se compose d’une référence au point de départ de la tranche et du nombre d’éléments qu’elle contient.
 
-Renvoyer un slice fonctionnerait également pour une fonction `deuxième_mot` :
+Une fonction `second_word` pourrait elle aussi renvoyer une tranche :
 
 ```rust,ignore
-fn deuxieme_mot(s: &String) -> &str {
+fn second_word(s: &String) -> &str {
 ```
 
-Nous avons maintenant une API simple qui est beaucoup plus difficile à perturber car le compilateur s'assurera que les références dans la `String` restent valides. Rappelez-vous le bug dans le programme du Listing 4-8, lorsque nous avons obtenu l'index de la fin du premier mot mais avons ensuite vidé la chaîne afin que notre index soit invalide ? Ce code était logiquement incorrect mais n'a pas montré d'erreurs immédiates. Les problèmes apparaîtraient plus tard si nous continuions à essayer d'utiliser l'index du premier mot avec une chaîne vidée. Les slices rendent ce bug impossible et nous permettent de savoir beaucoup plus tôt que nous avons un problème avec notre code. Utiliser la version slice de `premier_mot` entraînera une erreur de compilation :
+Nous avons maintenant une API simple, bien plus difficile à utiliser de manière incorrecte, car le compilateur s’assure que les références dans la `String` restent valides. Vous souvenez-vous de l’erreur dans le programme du listing 4-8, lorsque nous avons obtenu l’indice de fin du premier mot, puis vidé la chaîne, rendant ainsi notre indice invalide ? Ce code était logiquement incorrect, mais ne provoquait aucune erreur immédiate. Les problèmes seraient apparus plus tard si nous avions continué à utiliser l’indice du premier mot avec une chaîne vide. Les tranches rendent cette erreur impossible et nous avertissent beaucoup plus tôt qu’il y a un problème dans notre code. La version de `first_word` qui utilise une tranche déclenchera une erreur de compilation :
 
 <Listing file-name="src/main.rs">
 
@@ -146,35 +146,39 @@ Nous avons maintenant une API simple qui est beaucoup plus difficile à perturbe
 
 </Listing>
 
-Voici l'erreur du compilateur :
+Voici l’erreur du compilateur :
 
 ```console
 {{#include ../listings/ch04-understanding-ownership/no-listing-19-slice-error/output.txt}}
 ```
 
-Rappelez-vous des règles d'emprunt que si nous avons une référence immutable à quelque chose, nous ne pouvons pas également prendre une référence mutable. Puisque `clear` doit tronquer la `String`, il a besoin d'obtenir une référence mutable. Le `println!` après l'appel à `clear` utilise la référence dans `mot`, donc la référence immutable doit encore être active à ce moment-là. Rust interdit la référence mutable dans `clear` et la référence immutable dans `mot` d'exister en même temps, et la compilation échoue. Non seulement Rust a rendu notre API plus facile à utiliser, mais a également éliminé toute une classe d'erreurs à la compilation !
+Rappelez-vous les règles d’emprunt : si nous avons une référence immuable vers quelque chose, nous ne pouvons pas également créer une référence mutable. Comme `clear` doit tronquer la `String`, elle a besoin d’une référence mutable. Le `println!` après l’appel à `clear` utilise la référence contenue dans `word` ; la référence immuable doit donc toujours être active à ce moment-là. Rust interdit que la référence mutable de `clear` et la référence immuable de `word` existent simultanément, et la compilation échoue. Rust a non seulement rendu notre API plus facile à utiliser, mais a aussi éliminé toute une catégorie d’erreurs au moment de la compilation !
 
-#### Les Littéraux de Chaînes comme Slices
+<!-- Anciens titres. Ne pas supprimer, car les liens pourraient ne plus fonctionner. -->
 
-Rappelez-vous que nous avons parlé des littéraux de chaînes étant stockés dans le binaire. Maintenant que nous savons ce qu'est un slice, nous pouvons comprendre correctement les littéraux de chaînes :
+<a id="string-literals-are-slices"></a>
+
+#### Les littéraux de chaîne sont des tranches
+
+Rappelez-vous que nous avons dit que les littéraux de chaîne sont stockés dans le binaire. Maintenant que nous connaissons les tranches, nous pouvons comprendre correctement les littéraux de chaîne :
 
 ```rust
 let s = "Hello, world!";
 ```
 
-Le type de `s` ici est `&str` : C'est un slice pointant vers ce point spécifique du binaire. C'est aussi pourquoi les littéraux de chaînes sont immuables ; `&str` est une référence immuable.
+Le type de `s` ici est `&str` : c’est une tranche qui pointe vers un emplacement précis du binaire. C’est aussi la raison pour laquelle les littéraux de chaîne sont immuables : `&str` est une référence immuable.
 
-#### Les Slices de Chaîne comme Paramètres
+#### Les tranches de chaîne comme paramètres
 
-Savoir que vous pouvez prendre des slices de littéraux et de valeurs `String` nous mène à une amélioration supplémentaire de `premier_mot`, et c'est sa signature :
+Savoir que l’on peut prendre des tranches de littéraux et de valeurs `String` nous amène à une autre amélioration de `first_word`, à savoir sa signature :
 
 ```rust,ignore
-fn premier_mot(s: &String) -> &str {
+fn first_word(s: &String) -> &str {
 ```
 
-Un Rustacean plus expérimenté écrirait plutôt la signature montrée dans le Listing 4-9 car cela nous permet d'utiliser la même fonction sur des valeurs `&String` et `&str`.
+Un développeur Rust plus expérimenté écrirait plutôt la signature présentée dans le listing 4-9, car elle nous permet d’utiliser la même fonction avec des valeurs `&String` et des valeurs `&str`.
 
-<Listing number="4-9" caption="Améliorer la fonction `premier_mot` en utilisant un slice de chaîne pour le type du paramètre `s`">
+<Listing number="4-9" caption="Améliorer la fonction `first_word` en utilisant une tranche de chaîne comme type du paramètre `s`">
 
 ```rust,ignore
 {{#rustdoc_include ../listings/ch04-understanding-ownership/listing-04-09/src/main.rs:here}}
@@ -182,9 +186,9 @@ Un Rustacean plus expérimenté écrirait plutôt la signature montrée dans le 
 
 </Listing>
 
-Si nous avons un slice de chaîne, nous pouvons le passer directement. Si nous avons une `String`, nous pouvons passer un slice de la `String` ou une référence à la `String`. Cette flexibilité profite des coercitions de deref, une fonctionnalité que nous aborderons dans la section [« Utilisation des coercitions de deref dans les fonctions et méthodes »][deref-coercions]<!-- ignore --> du Chapitre 15.
+Si nous avons une tranche de chaîne, nous pouvons la transmettre directement. Si nous avons une `String`, nous pouvons transmettre une tranche de cette `String` ou une référence vers la `String`. Cette souplesse tire parti des coercitions de déréférencement, une fonctionnalité que nous aborderons au [chapitre 15, section « Utiliser les coercitions de déréférencement dans les fonctions et les méthodes »][deref-coercions]<!-- ignore -->.
 
-Définir une fonction pour prendre un slice de chaîne plutôt qu'une référence à une `String` rend notre API plus générale et utile sans perdre aucune fonctionnalité :
+Définir une fonction qui prend une tranche de chaîne plutôt qu’une référence vers une `String` rend notre API plus générale et plus utile, sans perte de fonctionnalité :
 
 <Listing file-name="src/main.rs">
 
@@ -194,15 +198,15 @@ Définir une fonction pour prendre un slice de chaîne plutôt qu'une référenc
 
 </Listing>
 
-### Autres Slices
+### Autres tranches
 
-Les slices de chaînes, comme vous pouvez l'imaginer, sont spécifiques aux chaînes. Mais il existe également un type de slice plus général. Considérons ce tableau :
+Comme on peut s’y attendre, les tranches de chaîne sont propres aux chaînes. Mais il existe aussi un type de tranche plus général. Considérons ce tableau :
 
 ```rust
 let a = [1, 2, 3, 4, 5];
 ```
 
-Tout comme nous pourrions vouloir référencer une partie d'une chaîne, nous pourrions vouloir référencer une partie d'un tableau. Nous le ferions comme ceci :
+Tout comme nous pouvons vouloir faire référence à une partie d’une chaîne, nous pouvons vouloir faire référence à une partie d’un tableau. Voici comment procéder :
 
 ```rust
 let a = [1, 2, 3, 4, 5];
@@ -212,10 +216,15 @@ let slice = &a[1..3];
 assert_eq!(slice, &[2, 3]);
 ```
 
-Ce slice a le type `&[i32]`. Il fonctionne de la même manière que les slices de chaînes, en stockant une référence au premier élément et une longueur. Vous utiliserez ce type de slice pour toutes sortes d'autres collections. Nous discuterons de ces collections en détail lorsque nous aborderons les vecteurs dans le Chapitre 8.
+Cette tranche a le type `&[i32]`. Elle fonctionne comme les tranches de chaîne : elle stocke une référence au premier élément et une longueur. Vous utiliserez ce type de tranche avec toutes sortes d’autres collections. Nous aborderons ces collections en détail lorsque nous parlerons des vecteurs au chapitre 8.
 
 ## Résumé
 
-Les concepts de propriété, d'emprunt et de slices garantissent la sécurité mémoire dans les programmes Rust à la compilation. Le langage Rust vous donne un contrôle sur votre utilisation de la mémoire de la même manière que d'autres langages de programmation systèmes. Mais avoir le propriétaire des données qui nettoie automatiquement ces données lorsque le propriétaire sort du champ d'application signifie que vous n'avez pas à écrire et à déboguer du code supplémentaire pour obtenir ce contrôle.
+Les concepts de propriété, d’emprunt et de tranches garantissent la sûreté mémoire des programmes Rust au moment de la compilation. Le langage Rust vous donne le contrôle de l’utilisation de la mémoire, tout comme les autres langages de programmation système. Mais le fait que le propriétaire des données les nettoie automatiquement lorsque sa portée prend fin signifie que vous n’avez pas à écrire et à déboguer du code supplémentaire pour obtenir ce contrôle.
 
-La propriété affecte le fonctionnement de nombreuses autres parties de Rust, donc nous parlerons de ces concepts davantage tout au long du reste du livre. Passons au Chapitre 5 et voyons comment regrouper des morceaux de données ensemble dans une `struct`.
+La propriété influe sur de nombreux autres aspects du fonctionnement de Rust ; nous approfondirons donc ces concepts tout au long du reste du livre. Passons au chapitre 5 et voyons comment regrouper des éléments de données dans une `struct`.
+
+[ch13]: ch13-02-iterators.html
+[ch6]: ch06-02-match.html#patterns-that-bind-to-values
+[strings]: ch08-02-strings.html#storing-utf-8-encoded-text-with-strings
+[deref-coercions]: ch15-02-deref.html#using-deref-coercions-in-functions-and-methods

@@ -1,10 +1,15 @@
 ## Tous les endroits où les motifs peuvent être utilisés
 
-Les motifs apparaissent dans de nombreux endroits en Rust, et vous les avez utilisés souvent sans vous en rendre compte ! Cette section aborde tous les endroits où les motifs sont valides.
+Les motifs apparaissent à plusieurs endroits en Rust, et vous en avez déjà utilisé beaucoup sans vous en rendre compte ! Cette section présente tous les endroits où les motifs sont valides.
 
 ### Bras de `match`
 
-Comme discuté au Chapitre 6, nous utilisons des motifs dans les bras des expressions `match`. Formellement, les expressions `match` sont définies par le mot-clé `match`, une valeur à comparer, et un ou plusieurs bras de match qui consistent en un motif et une expression à exécuter si la valeur correspond au motif de ce bras, de cette manière :
+Comme nous l’avons vu au chapitre 6, nous utilisons des motifs dans les bras des expressions `match`. Formellement, les expressions `match` sont définies par le mot-clé `match`, une valeur à comparer et un ou plusieurs bras de correspondance, chacun constitué d’un motif et d’une expression à exécuter si la valeur correspond au motif de ce bras, comme ceci :
+
+<!--
+  Manually formatted rather than using Markdown intentionally: Markdown does not
+  support italicizing code in the body of a block like this!
+-->
 
 <pre><code>match <em>VALEUR</em> {
     <em>MOTIF</em> => <em>EXPRESSION</em>,
@@ -12,7 +17,7 @@ Comme discuté au Chapitre 6, nous utilisons des motifs dans les bras des expres
     <em>MOTIF</em> => <em>EXPRESSION</em>,
 }</code></pre>
 
-Par exemple, voici l’expression `match` de l'énoncé 6-5 qui correspond à une valeur `Option<i32>` dans la variable `x` :
+Par exemple, voici l’expression `match` de la liste 6-5, qui compare une valeur `Option<i32>` dans la variable `x` :
 
 ```rust,ignore
 match x {
@@ -21,29 +26,36 @@ match x {
 }
 ```
 
-Les motifs dans cette expression `match` sont `None` et `Some(i)` à gauche de chaque flèche.
+Les motifs de cette expression `match` sont `None` et `Some(i)`, situés à gauche de chaque flèche.
 
-Une exigence pour les expressions `match` est qu'elles doivent être exhaustives, dans le sens où toutes les possibilités pour la valeur dans l’expression `match` doivent être prises en compte. Une façon de s'assurer que vous avez couvert toutes les possibilités est d'avoir un motif de secours pour le dernier bras : par exemple, un nom de variable qui correspond à n'importe quelle valeur ne peut jamais échouer et couvre donc tous les cas restants.
+Les expressions `match` doivent être exhaustives, c’est-à-dire qu’elles doivent prendre en compte toutes les possibilités pour la valeur comparée. Pour vous assurer d’avoir couvert tous les cas, vous pouvez utiliser un motif fourre-tout dans le dernier bras : par exemple, un nom de variable qui correspond à n’importe quelle valeur ne peut jamais échouer et couvre donc tous les cas restants.
 
-Le motif particulier `_` correspondra à n'importe quoi, mais il ne se lie jamais à une variable, il est donc souvent utilisé dans le dernier bras de match. Le motif `_` peut être utile lorsque vous souhaitez ignorer toute valeur non spécifiée, par exemple. Nous aborderons le motif `_` plus en détail dans [“Ignorer des valeurs dans un motif”][ignoring-values-in-a-pattern]<!-- ignore --> plus loin dans ce chapitre.
+Le motif particulier `_` correspond à tout, mais ne lie aucune variable. Il est donc souvent utilisé dans le dernier bras d’un `match`. Par exemple, le motif `_` peut être utile lorsque vous souhaitez ignorer toute valeur qui n’est pas explicitement spécifiée. Nous verrons plus en détail le motif `_` dans la section [« Ignorer des valeurs dans un motif »][ignoring-values-in-a-pattern]<!-- ignore -->, plus loin dans ce chapitre.
 
 ### Instructions `let`
 
-Avant ce chapitre, nous avions seulement discuté de l'utilisation explicite des motifs avec `match` et `if let`, mais en réalité, nous avons également utilisé des motifs dans d'autres endroits, y compris dans les instructions `let`. Par exemple, considérez cette simple affectation de variable avec `let` :
+Avant ce chapitre, nous avions seulement parlé explicitement de l’utilisation des motifs avec `match` et `if let`, mais, en réalité, nous avons aussi utilisé des motifs à d’autres endroits, notamment dans les instructions `let`. Prenons par exemple cette simple affectation de variable avec `let` :
 
 ```rust
 let x = 5;
 ```
 
-Chaque fois que vous avez utilisé une instruction `let` comme celle-ci, vous avez utilisé des motifs, même si vous n'en étiez pas conscient ! Plus formellement, une instruction `let` ressemble à ceci :
+Chaque fois que vous avez utilisé une instruction `let` de cette manière, vous avez utilisé des motifs, même si vous ne vous en êtes peut-être pas rendu compte ! Plus formellement, une instruction `let` se présente ainsi :
 
-<pre><code>let <em>MOTIF</em> = <em>EXPRESSION</em>;</code></pre>
+<!--
+  Manually formatted rather than using Markdown intentionally: Markdown does not
+  support italicizing code in the body of a block like this!
+-->
 
-Dans des instructions comme `let x = 5;`, avec un nom de variable dans l'emplacement MOTIF, le nom de la variable est juste une forme particulièrement simple d'un motif. Rust compare l'expression avec le motif et assigne tous les noms qu'il trouve. Ainsi, dans l'exemple `let x = 5;`, `x` est un motif qui signifie "lier ce qui correspond ici à la variable `x`." Comme le nom `x` constitue le motif entier, ce motif signifie en effet "lier tout à la variable `x`, quelle que soit la valeur."
+<pre>
+<code>let <em>MOTIF</em> = <em>EXPRESSION</em>;</code>
+</pre>
 
-Pour voir plus clairement l'aspect de correspondance de motifs de `let`, considérons l'énoncé 19-1, qui utilise un motif avec `let` pour décomposer un tuple.
+Dans une instruction comme `let x = 5;`, où un nom de variable occupe la place du MOTIF, ce nom est simplement une forme particulièrement simple de motif. Rust compare l’expression au motif et affecte les noms qu’il trouve. Ainsi, dans l’exemple `let x = 5;`, `x` est un motif qui signifie « lier à la variable `x` ce qui correspond ici ». Comme le nom `x` constitue à lui seul tout le motif, celui-ci signifie en pratique « tout lier à la variable `x`, quelle que soit la valeur ».
 
-<Listing number="19-1" caption="Utiliser un motif pour décomposer un tuple et créer trois variables à la fois">
+Pour mieux comprendre l’aspect de correspondance de motifs de `let`, examinons la liste 19-1, qui utilise un motif avec `let` pour déstructurer un tuple.
+
+<Listing number="19-1" caption="Utiliser un motif pour déstructurer un tuple et créer trois variables à la fois">
 
 ```rust
 {{#rustdoc_include ../listings/ch19-patterns-and-matching/listing-19-01/src/main.rs:here}}
@@ -51,11 +63,11 @@ Pour voir plus clairement l'aspect de correspondance de motifs de `let`, consid�
 
 </Listing>
 
-Ici, nous faisons correspondre un tuple à un motif. Rust compare la valeur `(1, 2, 3)` au motif `(x, y, z)` et voit que la valeur correspond au motif, c'est-à-dire qu'il constate que le nombre d'éléments est le même dans les deux ; ainsi, Rust lie `1` à `x`, `2` à `y` et `3` à `z`. Vous pouvez penser à ce motif de tuple comme à l'imbrication de trois motifs de variables individuels à l'intérieur.
+Ici, nous comparons un tuple à un motif. Rust compare la valeur `(1, 2, 3)` au motif `(x, y, z)` et constate que la valeur correspond au motif — autrement dit, il constate que les deux ont le même nombre d’éléments — puis lie `1` à `x`, `2` à `y` et `3` à `z`. Vous pouvez considérer ce motif de tuple comme un emboîtement de trois motifs de variable individuels.
 
-Si le nombre d'éléments dans le motif ne correspond pas au nombre d'éléments dans le tuple, le type global ne correspondra pas et nous obtiendrons une erreur de compilation. Par exemple, l'énoncé 19-2 montre une tentative de décomposer un tuple avec trois éléments en deux variables, ce qui ne fonctionnera pas.
+Si le nombre d’éléments du motif ne correspond pas au nombre d’éléments du tuple, le type global ne correspondra pas et nous obtiendrons une erreur du compilateur. Par exemple, la liste 19-2 montre une tentative de déstructurer un tuple de trois éléments en deux variables, ce qui ne fonctionne pas.
 
-<Listing number="19-2" caption="Construction incorrecte d'un motif dont les variables ne correspondent pas au nombre d'éléments dans le tuple">
+<Listing number="19-2" caption="Construire incorrectement un motif dont les variables ne correspondent pas au nombre d’éléments du tuple">
 
 ```rust,ignore,does_not_compile
 {{#rustdoc_include ../listings/ch19-patterns-and-matching/listing-19-02/src/main.rs:here}}
@@ -63,23 +75,23 @@ Si le nombre d'éléments dans le motif ne correspond pas au nombre d'éléments
 
 </Listing>
 
-Essayer de compiler ce code entraîne cette erreur de type :
+La compilation de ce code produit cette erreur de type :
 
 ```console
 {{#include ../listings/ch19-patterns-and-matching/listing-19-02/output.txt}}
 ```
 
-Pour corriger l'erreur, nous pourrions ignorer une ou plusieurs valeurs dans le tuple en utilisant `_` ou `..`, comme vous le verrez dans la section [“Ignorer des valeurs dans un motif”][ignoring-values-in-a-pattern]<!-- ignore -->. Si le problème est que nous avons trop de variables dans le motif, la solution consiste à faire correspondre les types en supprimant des variables pour que le nombre de variables soit égal au nombre d'éléments dans le tuple.
+Pour corriger l’erreur, nous pourrions ignorer une ou plusieurs valeurs du tuple à l’aide de `_` ou de `..`, comme vous le verrez dans la section [« Ignorer des valeurs dans un motif »][ignoring-values-in-a-pattern]<!-- ignore -->. Si le problème vient du fait que le motif contient trop de variables, il faut faire correspondre les types en supprimant des variables, de sorte que leur nombre soit égal au nombre d’éléments du tuple.
 
 ### Expressions conditionnelles `if let`
 
-Au Chapitre 6, nous avons discuté de la façon d'utiliser des expressions `if let` principalement comme une façon plus courte d'écrire l'équivalent d'un `match` qui ne correspond qu'à un seul cas. Optionnellement, `if let` peut avoir un `else` correspondant contenant du code à exécuter si le motif dans le `if let` ne correspond pas.
+Au chapitre 6, nous avons vu comment utiliser principalement les expressions `if let` comme une manière plus concise d’écrire l’équivalent d’un `match` qui ne traite qu’un seul cas. Une expression `if let` peut également comporter un `else` correspondant, qui contient le code à exécuter si le motif de `if let` ne correspond pas.
 
-L'énoncé 19-3 montre qu'il est également possible de mélanger et d'associer des expressions `if let`, `else if`, et `else if let`. Ce faisant, nous avons plus de flexibilité qu'une expression `match` dans laquelle nous ne pouvons exprimer qu'une seule valeur à comparer avec les motifs. De plus, Rust ne nécessite pas que les conditions dans une série de bras `if let`, `else if`, et `else if let` soient liées entre elles.
+La liste 19-3 montre qu’il est également possible de combiner des expressions `if let`, `else if` et `else if let`. Cela nous donne plus de souplesse qu’une expression `match`, dans laquelle nous ne pouvons comparer les motifs qu’à une seule valeur. De plus, Rust n’exige pas que les conditions d’une série de bras `if let`, `else if` et `else if let` soient liées entre elles.
 
-Le code dans l'énoncé 19-3 détermine quelle couleur utiliser pour votre arrière-plan en fonction d'une série de vérifications pour plusieurs conditions. Pour cet exemple, nous avons créé des variables avec des valeurs codées en dur que un vrai programme pourrait recevoir par saisie utilisateur.
+Le code de la liste 19-3 détermine la couleur d’arrière-plan à utiliser en effectuant plusieurs vérifications. Pour cet exemple, nous avons créé des variables contenant des valeurs codées en dur qu’un vrai programme pourrait recevoir de l’utilisateur.
 
-<Listing number="19-3" file-name="src/main.rs" caption="Mélanger `if let`, `else if`, `else if let`, et `else`">
+<Listing number="19-3" file-name="src/main.rs" caption="Combiner `if let`, `else if`, `else if let` et `else`">
 
 ```rust
 {{#rustdoc_include ../listings/ch19-patterns-and-matching/listing-19-03/src/main.rs}}
@@ -87,19 +99,19 @@ Le code dans l'énoncé 19-3 détermine quelle couleur utiliser pour votre arri�
 
 </Listing>
 
-Si l'utilisateur spécifie une couleur préférée, cette couleur est utilisée comme arrière-plan. Si aucune couleur préférée n'est spécifiée et qu'aujourd'hui nous sommes mardi, la couleur d'arrière-plan est verte. Sinon, si l'utilisateur spécifie son âge sous forme de chaîne et que nous pouvons l'analyser avec succès en tant que nombre, la couleur est soit violette, soit orange, selon la valeur du nombre. Si aucune de ces conditions ne s'applique, la couleur d'arrière-plan est bleue.
+Si l’utilisateur indique sa couleur préférée, cette couleur est utilisée pour l’arrière-plan. Si aucune couleur préférée n’est indiquée et que nous sommes mardi, l’arrière-plan est vert. Sinon, si l’utilisateur indique son âge sous forme de chaîne et que nous parvenons à l’analyser comme un nombre, la couleur est violette ou orange selon la valeur de ce nombre. Si aucune de ces conditions ne s’applique, l’arrière-plan est bleu.
 
-Cette structure conditionnelle nous permet de prendre en charge des exigences complexes. Avec les valeurs codées en dur que nous avons ici, cet exemple affichera `Utilisation de la couleur violette comme couleur d'arrière-plan`.
+Cette structure conditionnelle nous permet de gérer des exigences complexes. Avec les valeurs codées en dur que nous avons ici, cet exemple affichera `Using purple as the background color`.
 
-Vous pouvez voir que `if let` peut également introduire de nouvelles variables qui masquent les variables existantes de la même manière que les bras de `match` peuvent : La ligne `if let Ok(age) = age` introduit une nouvelle variable `age` qui contient la valeur à l'intérieur du variant `Ok`, masquant la variable `age` existante. Cela signifie que nous devons placer la condition `if age > 30` dans ce bloc : nous ne pouvons pas combiner ces deux conditions en `if let Ok(age) = age && age > 30`. Le nouvel `age` que nous souhaitons comparer à 30 n'est pas valide jusqu'à ce que le nouveau contexte commence avec la parenthèse ouvrante.
+Vous pouvez constater que `if let` peut aussi introduire de nouvelles variables qui masquent des variables existantes, tout comme les bras de `match` : la ligne `if let Ok(age) = age` introduit une nouvelle variable `age` contenant la valeur à l’intérieur de la variante `Ok`, et masque ainsi la variable `age` existante. Nous devons donc placer la condition `if age > 30` à l’intérieur de ce bloc : nous ne pouvons pas combiner ces deux conditions dans `if let Ok(age) = age && age > 30`. La nouvelle variable `age` que nous voulons comparer à 30 n’est disponible qu’à partir du début de la nouvelle portée, délimitée par l’accolade ouvrante.
 
-L'inconvénient d'utiliser des expressions `if let` est que le compilateur ne vérifie pas l'exhaustivité, alors qu'avec des expressions `match`, il le fait. Si nous omettons le dernier bloc `else` et que nous manquons donc de traiter certains cas, le compilateur ne nous alertera pas sur le possible bogue logique.
+L’inconvénient des expressions `if let` est que le compilateur ne vérifie pas leur exhaustivité, contrairement aux expressions `match`. Si nous omettions le dernier bloc `else` et ne traitions donc pas certains cas, le compilateur ne nous avertirait pas de cette possible erreur logique.
 
 ### Boucles conditionnelles `while let`
 
-Similaire dans sa construction à `if let`, la boucle conditionnelle `while let` permet à une boucle `while` de s'exécuter tant qu'un motif continue de correspondre. Dans l'énoncé 19-4, nous montrons une boucle `while let` qui attend des messages envoyés entre des threads, mais dans ce cas en vérifiant un `Result` plutôt qu'un `Option`.
+De construction semblable à `if let`, la boucle conditionnelle `while let` permet à une boucle `while` de s’exécuter tant qu’un motif continue de correspondre. Dans la liste 19-4, nous montrons une boucle `while let` qui attend des messages envoyés entre des threads, mais qui vérifie ici un `Result` plutôt qu’un `Option`.
 
-<Listing number="19-4" caption="Utilisation d'une boucle `while let` pour imprimer des valeurs tant que `rx.recv()` renvoie `Ok`">
+<Listing number="19-4" caption="Utiliser une boucle `while let` pour afficher des valeurs tant que `rx.recv()` renvoie `Ok`">
 
 ```rust
 {{#rustdoc_include ../listings/ch19-patterns-and-matching/listing-19-04/src/main.rs:here}}
@@ -107,13 +119,13 @@ Similaire dans sa construction à `if let`, la boucle conditionnelle `while let`
 
 </Listing>
 
-Cet exemple affiche `1`, `2`, puis `3`. La méthode `recv` prend le premier message du côté récepteur du canal et renvoie un `Ok(value)`. Lorsque nous avons vu `recv` pour la première fois au Chapitre 16, nous avions extrait l'erreur directement, ou nous avons interagi avec elle en tant qu'itérateur en utilisant une boucle `for`. Cependant, comme le montre l'énoncé 19-4, nous pouvons également utiliser `while let`, car la méthode `recv` renvoie un `Ok` chaque fois qu'un message arrive, tant que l'expéditeur existe, puis produit un `Err` une fois que le côté expéditeur se déconnecte.
+Cet exemple affiche `1`, puis `2`, puis `3`. La méthode `recv` récupère le premier message du côté récepteur du canal et renvoie un `Ok(value)`. Lorsque nous avons découvert `recv` au chapitre 16, nous avons directement propagé l’erreur ou avons utilisé la méthode comme un itérateur dans une boucle `for`. Cependant, comme le montre la liste 19-4, nous pouvons aussi utiliser `while let`, car la méthode `recv` renvoie un `Ok` chaque fois qu’un message arrive, tant que l’émetteur existe, puis produit un `Err` lorsque le côté émetteur se déconnecte.
 
 ### Boucles `for`
 
-Dans une boucle `for`, la valeur qui suit directement le mot-clé `for` est un motif. Par exemple, dans `for x in y`, `x` est le motif. L'énoncé 19-5 démontre comment utiliser un motif dans une boucle `for` pour décomposer, ou séparer, un tuple dans le cadre de la boucle `for`.
+Dans une boucle `for`, la valeur qui suit directement le mot-clé `for` est un motif. Par exemple, dans `for x in y`, `x` est le motif. La liste 19-5 montre comment utiliser un motif dans une boucle `for` pour déstructurer, ou séparer, un tuple dans le cadre de la boucle.
 
-<Listing number="19-5" caption="Utiliser un motif dans une boucle `for` pour décomposer un tuple">
+<Listing number="19-5" caption="Utiliser un motif dans une boucle `for` pour déstructurer un tuple">
 
 ```rust
 {{#rustdoc_include ../listings/ch19-patterns-and-matching/listing-19-05/src/main.rs:here}}
@@ -121,19 +133,19 @@ Dans une boucle `for`, la valeur qui suit directement le mot-clé `for` est un m
 
 </Listing>
 
-Le code dans l'énoncé 19-5 imprimera ce qui suit :
+Le code de la liste 19-5 affiche :
 
 ```console
 {{#include ../listings/ch19-patterns-and-matching/listing-19-05/output.txt}}
 ```
 
-Nous adaptons un itérateur à l'aide de la méthode `enumerate`, de sorte qu'il produise une valeur et l'index pour cette valeur, placés dans un tuple. La première valeur produite est le tuple `(0, 'a')`. Lorsque cette valeur est mise en correspondance avec le motif `(index, value)`, `index` sera `0` et `value` sera `'a'`, imprimant la première ligne de la sortie.
+Nous adaptons un itérateur avec la méthode `enumerate` pour qu’il produise une valeur et l’indice correspondant, réunis dans un tuple. La première valeur produite est le tuple `(0, 'a')`. Lorsque cette valeur correspond au motif `(index, value)`, `index` vaut `0` et `value` vaut `'a'`, ce qui affiche la première ligne de la sortie.
 
 ### Paramètres de fonction
 
-Les paramètres de fonction peuvent également être des motifs. Le code dans l'énoncé 19-6, qui déclare une fonction nommée `foo` prenant un paramètre nommé `x` de type `i32`, devrait maintenant vous sembler familier.
+Les paramètres de fonction peuvent également être des motifs. Le code de la liste 19-6, qui déclare une fonction nommée `foo` prenant un paramètre nommé `x` de type `i32`, devrait maintenant vous sembler familier.
 
-<Listing number="19-6" caption="Une signature de fonction utilisant des motifs dans les paramètres">
+<Listing number="19-6" caption="Signature de fonction utilisant des motifs dans ses paramètres">
 
 ```rust
 {{#rustdoc_include ../listings/ch19-patterns-and-matching/listing-19-06/src/main.rs:here}}
@@ -141,9 +153,9 @@ Les paramètres de fonction peuvent également être des motifs. Le code dans l'
 
 </Listing>
 
-La partie `x` est un motif ! Comme nous l'avons fait avec `let`, nous pourrions également faire correspondre un tuple dans les arguments d'une fonction avec le motif. L'énoncé 19-7 divise les valeurs dans un tuple alors que nous le passons à une fonction.
+La partie `x` est un motif ! Comme avec `let`, nous pourrions comparer un tuple au motif dans les arguments d’une fonction. La liste 19-7 sépare les valeurs d’un tuple que nous passons à une fonction.
 
-<Listing number="19-7" file-name="src/main.rs" caption="Une fonction avec des paramètres qui décomposent un tuple">
+<Listing number="19-7" file-name="src/main.rs" caption="Fonction dont les paramètres déstructurent un tuple">
 
 ```rust
 {{#rustdoc_include ../listings/ch19-patterns-and-matching/listing-19-07/src/main.rs}}
@@ -151,10 +163,10 @@ La partie `x` est un motif ! Comme nous l'avons fait avec `let`, nous pourrions 
 
 </Listing>
 
-Ce code affiche `Emplacement actuel : (3, 5)`. Les valeurs `&(3, 5)` correspondent au motif `&(x, y)`, donc `x` est la valeur `3` et `y` est la valeur `5`.
+Ce code affiche `Current location: (3, 5)`. Les valeurs `&(3, 5)` correspondent au motif `&(x, y)`, donc `x` vaut `3` et `y` vaut `5`.
 
-Nous pouvons également utiliser des motifs dans les listes de paramètres de fermeture de la même manière que dans les listes de paramètres de fonction, car les fermetures sont similaires aux fonctions, comme discuté au Chapitre 13.
+Nous pouvons également utiliser des motifs dans les listes de paramètres des fermetures, comme dans celles des fonctions, car les fermetures ressemblent aux fonctions, comme nous l’avons vu au chapitre 13.
 
-À ce stade, vous avez vu plusieurs façons d'utiliser des motifs, mais les motifs ne fonctionnent pas de la même manière dans tous les endroits où nous pouvons les utiliser. Dans certains cas, les motifs doivent être irrécusables ; dans d'autres circonstances, ils peuvent être récusables. Nous discuterons de ces deux concepts ensuite.
+Vous avez maintenant vu plusieurs façons d’utiliser des motifs, mais ceux-ci ne fonctionnent pas de la même manière partout où ils peuvent être employés. À certains endroits, les motifs doivent être irréfutables ; dans d’autres circonstances, ils peuvent être réfutables. Nous allons maintenant examiner ces deux concepts.
 
 [ignoring-values-in-a-pattern]: ch19-03-pattern-syntax.html#ignoring-values-in-a-pattern

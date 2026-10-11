@@ -1,12 +1,12 @@
 ## Stocker des listes de valeurs avec des vecteurs
 
-Le premier type de collection que nous allons examiner est `Vec<T>`, également connu sous le nom de vecteur. Les vecteurs vous permettent de stocker plus d'une valeur dans une seule structure de données qui place toutes les valeurs les unes à côté des autres en mémoire. Les vecteurs ne peuvent stocker que des valeurs du même type. Ils sont utiles lorsque vous avez une liste d'éléments, comme les lignes de texte dans un fichier ou les prix des articles dans un panier.
+Le premier type de collection que nous allons examiner est `Vec<T>`, également appelé vecteur. Les vecteurs vous permettent de stocker plusieurs valeurs dans une seule structure de données qui place toutes les valeurs les unes à côté des autres en mémoire. Les vecteurs ne peuvent stocker que des valeurs du même type. Ils sont utiles lorsque vous avez une liste d’éléments, comme les lignes de texte d’un fichier ou les prix des articles dans un panier.
 
 ### Créer un nouveau vecteur
 
-Pour créer un nouveau vecteur vide, nous appelons la fonction `Vec::new`, comme illustré dans l'Listing 8-1.
+Pour créer un nouveau vecteur vide, nous appelons la fonction `Vec::new`, comme indiqué dans l’exemple 8-1.
 
-<Listing number="8-1" caption="Création d'un nouveau vecteur vide pour contenir des valeurs de type `i32`">
+<Listing number="8-1" caption="Créer un nouveau vecteur vide pour contenir des valeurs de type `i32`">
 
 ```rust
 {{#rustdoc_include ../listings/ch08-common-collections/listing-08-01/src/main.rs:here}}
@@ -14,11 +14,11 @@ Pour créer un nouveau vecteur vide, nous appelons la fonction `Vec::new`, comme
 
 </Listing>
 
-Notez que nous avons ajouté une annotation de type ici. Comme nous n'insérons aucune valeur dans ce vecteur, Rust ne sait pas quel type d'éléments nous voulons stocker. C'est un point important. Les vecteurs sont implémentés en utilisant des génériques ; nous verrons comment utiliser des génériques avec vos propres types dans le Chapitre 10. Pour l'instant, sachez que le type `Vec<T>` fourni par la bibliothèque standard peut contenir n'importe quel type. Lorsque nous créons un vecteur pour contenir un type spécifique, nous pouvons spécifier le type entre crochets angulaires. Dans l'Listing 8-1, nous avons dit à Rust que le `Vec<T>` dans `v` contiendra des éléments de type `i32`.
+Notez que nous avons ajouté une annotation de type ici. Comme nous n’insérons aucune valeur dans ce vecteur, Rust ne sait pas quel type d’éléments nous avons l’intention d’y stocker. C’est un point important. Les vecteurs sont implémentés à l’aide de génériques ; nous verrons au chapitre 10 comment utiliser les génériques avec vos propres types. Pour l’instant, sachez que le type `Vec<T>` fourni par la bibliothèque standard peut contenir n’importe quel type. Lorsque nous créons un vecteur destiné à contenir un type précis, nous pouvons spécifier ce type entre chevrons. Dans l’exemple 8-1, nous avons indiqué à Rust que `Vec<T>` dans `v` contiendra des éléments de type `i32`.
 
-Plus souvent, vous créerez un `Vec<T>` avec des valeurs initiales, et Rust inférera le type de valeur que vous souhaitez stocker, donc vous n'avez rarement besoin de faire cette annotation de type. Rust fournit de manière pratique le macro `vec!`, qui créera un nouveau vecteur contenant les valeurs que vous lui donnez. L'Listing 8-2 crée un nouveau `Vec<i32>` contenant les valeurs `1`, `2` et `3`. Le type entier est `i32` parce que c'est le type entier par défaut, comme nous l'avons discuté dans la section [“Types de données”][data-types]<!-- ignore --> du Chapitre 3.
+Le plus souvent, vous créerez un `Vec<T>` avec des valeurs initiales, et Rust déduira le type de valeur que vous souhaitez stocker. Vous aurez donc rarement besoin d’ajouter cette annotation de type. Rust fournit la macro pratique `vec!`, qui crée un nouveau vecteur contenant les valeurs que vous lui donnez. L’exemple 8-2 crée un nouveau `Vec<i32>` contenant les valeurs `1`, `2` et `3`. Le type entier est `i32`, car c’est le type entier par défaut, comme nous l’avons vu dans la section [« Types de données »][data-types]<!-- ignore --> du chapitre 3.
 
-<Listing number="8-2" caption="Création d'un nouveau vecteur contenant des valeurs">
+<Listing number="8-2" caption="Créer un nouveau vecteur contenant des valeurs">
 
 ```rust
 {{#rustdoc_include ../listings/ch08-common-collections/listing-08-02/src/main.rs:here}}
@@ -26,13 +26,13 @@ Plus souvent, vous créerez un `Vec<T>` avec des valeurs initiales, et Rust inf�
 
 </Listing>
 
-Puisque nous avons donné des valeurs initiales `i32`, Rust peut inférer que le type de `v` est `Vec<i32>`, et l'annotation de type n'est pas nécessaire. Ensuite, nous allons voir comment modifier un vecteur.
+Comme nous avons fourni des valeurs initiales de type `i32`, Rust peut déduire que le type de `v` est `Vec<i32>` ; l’annotation de type n’est donc pas nécessaire. Voyons maintenant comment modifier un vecteur.
 
 ### Mettre à jour un vecteur
 
-Pour créer un vecteur puis ajouter des éléments, nous pouvons utiliser la méthode `push`, comme montré dans l'Listing 8-3.
+Pour créer un vecteur puis y ajouter des éléments, nous pouvons utiliser la méthode `push`, comme indiqué dans l’exemple 8-3.
 
-<Listing number="8-3" caption="Utilisation de la méthode `push` pour ajouter des valeurs à un vecteur">
+<Listing number="8-3" caption="Utiliser la méthode `push` pour ajouter des valeurs à un vecteur">
 
 ```rust
 {{#rustdoc_include ../listings/ch08-common-collections/listing-08-03/src/main.rs:here}}
@@ -40,15 +40,15 @@ Pour créer un vecteur puis ajouter des éléments, nous pouvons utiliser la mé
 
 </Listing>
 
-Comme pour toute variable, si nous voulons pouvoir changer sa valeur, nous devons la rendre mutable en utilisant le mot-clé `mut`, comme discuté dans le Chapitre 3. Les nombres que nous mettons à l'intérieur sont tous de type `i32`, et Rust en infère ce type à partir des données, donc nous n'avons pas besoin de l'annotation `Vec<i32>`.
+Comme pour toute variable, si nous voulons pouvoir modifier sa valeur, nous devons la rendre mutable à l’aide du mot-clé `mut`, comme nous l’avons vu au chapitre 3. Les nombres que nous plaçons dans le vecteur sont tous de type `i32`, et Rust le déduit à partir des données ; nous n’avons donc pas besoin de l’annotation `Vec<i32>`.
 
-### Lire des éléments des vecteurs
+### Lire les éléments d’un vecteur
 
-Il existe deux façons de référencer une valeur stockée dans un vecteur : par indexation ou en utilisant la méthode `get`. Dans les exemples suivants, nous avons annoté les types des valeurs retournées par ces fonctions pour plus de clarté.
+Il existe deux façons de référencer une valeur stockée dans un vecteur : utiliser un index ou la méthode `get`. Dans les exemples suivants, nous avons annoté les types des valeurs renvoyées par ces fonctions pour plus de clarté.
 
-L'Listing 8-4 montre les deux méthodes d'accès à une valeur dans un vecteur, avec la syntaxe d'indexation et la méthode `get`.
+L’exemple 8-4 présente les deux méthodes permettant d’accéder à une valeur dans un vecteur : la syntaxe d’indexation et la méthode `get`.
 
-<Listing number="8-4" caption="Utilisation de la syntaxe d'indexation et de la méthode `get` pour accéder à un élément dans un vecteur">
+<Listing number="8-4" caption="Utiliser la syntaxe d’indexation et la méthode `get` pour accéder à un élément d’un vecteur">
 
 ```rust
 {{#rustdoc_include ../listings/ch08-common-collections/listing-08-04/src/main.rs:here}}
@@ -56,11 +56,11 @@ L'Listing 8-4 montre les deux méthodes d'accès à une valeur dans un vecteur, 
 
 </Listing>
 
-Notez quelques détails ici. Nous utilisons la valeur d'index `2` pour obtenir le troisième élément parce que les vecteurs sont indexés par numéro, en commençant à zéro. L'utilisation de `&` et `[]` nous donne une référence à l'élément à la valeur d'index. Lorsque nous utilisons la méthode `get` avec l'index passé en argument, nous obtenons un `Option<&T>` que nous pouvons utiliser avec `match`.
+Notez quelques détails. Nous utilisons l’index `2` pour obtenir le troisième élément, car les vecteurs sont indexés par des nombres à partir de zéro. L’utilisation de `&` et de `[]` nous donne une référence à l’élément situé à cet index. Lorsque nous utilisons la méthode `get` en lui passant l’index comme argument, nous obtenons un `Option<&T>` que nous pouvons utiliser avec `match`.
 
-Rust fournit ces deux façons de référencer un élément afin que vous puissiez choisir comment le programme se comporte lorsque vous essayez d'utiliser une valeur d'index en dehors de la plage des éléments existants. Par exemple, voyons ce qui se passe lorsque nous avons un vecteur de cinq éléments et que nous essayons d'accéder à un élément à l'index 100 avec chaque technique, comme montré dans l'Listing 8-5.
+Rust propose ces deux façons de référencer un élément afin que vous puissiez choisir le comportement du programme lorsque vous essayez d’utiliser un index qui se trouve en dehors de la plage des éléments existants. Voyons, par exemple, ce qui se passe lorsque nous avons un vecteur de cinq éléments et que nous essayons ensuite d’accéder à l’élément situé à l’index 100 avec chacune de ces méthodes, comme indiqué dans l’exemple 8-5.
 
-<Listing number="8-5" caption="Tentative d'accès à l'élément à l'index 100 dans un vecteur contenant cinq éléments">
+<Listing number="8-5" caption="Tenter d’accéder à l’élément situé à l’index 100 dans un vecteur contenant cinq éléments">
 
 ```rust,should_panic,panics
 {{#rustdoc_include ../listings/ch08-common-collections/listing-08-05/src/main.rs:here}}
@@ -68,13 +68,13 @@ Rust fournit ces deux façons de référencer un élément afin que vous puissie
 
 </Listing>
 
-Lorsque nous exécutons ce code, la première méthode `[]` provoquera une panique du programme car elle référence un élément inexistant. Cette méthode est mieux utilisée lorsque vous souhaitez que votre programme plante s'il y a une tentative d'accès à un élément au-delà de la fin du vecteur.
+Lorsque nous exécutons ce code, la première méthode `[]` provoque une panique du programme, car elle référence un élément inexistant. Cette méthode convient particulièrement si vous voulez que votre programme s’arrête lorsqu’on tente d’accéder à un élément situé après la fin du vecteur.
 
-Lorsque la méthode `get` reçoit un index qui est en dehors du vecteur, elle renvoie `None` sans provoquer de panique. Vous utiliseriez cette méthode si l'accès à un élément au-delà de la plage du vecteur peut se produire occasionnellement dans des circonstances normales. Votre code aura alors une logique pour gérer soit `Some(&element)`, soit `None`, comme discuté dans le Chapitre 6. Par exemple, l'index pourrait provenir d'une personne entrant un numéro. S'ils saisissent accidentellement un numéro trop grand et que le programme obtient une valeur `None`, vous pourriez dire à l'utilisateur combien d'articles se trouvent dans le vecteur actuel et lui donner une autre chance de saisir une valeur valide. Cela serait plus convivial que de faire planter le programme à cause d'une faute de frappe !
+Lorsque la méthode `get` reçoit un index situé en dehors du vecteur, elle renvoie `None` sans provoquer de panique. Vous utiliseriez cette méthode si l’accès à un élément en dehors de la plage du vecteur peut se produire occasionnellement dans des circonstances normales. Votre code devra alors gérer le cas où il reçoit `Some(&element)` ou `None`, comme nous l’avons vu au chapitre 6. Par exemple, l’index peut provenir d’un nombre saisi par une personne. Si elle saisit accidentellement un nombre trop grand et que le programme reçoit une valeur `None`, vous pouvez lui indiquer combien d’éléments contient le vecteur actuel et lui donner une nouvelle chance de saisir une valeur valide. Ce serait plus convivial que de faire planter le programme à cause d’une faute de frappe !
 
-Lorsque le programme a une référence valide, le vérificateur d'emprunt applique les règles de propriété et d'emprunt (couvries dans le Chapitre 4) pour s'assurer que cette référence et toutes les autres références au contenu du vecteur restent valides. Rappelez-vous la règle qui dit que vous ne pouvez pas avoir des références mutables et immuables dans la même portée. Cette règle s'applique dans l'Listing 8-6, où nous tenons une référence immutable au premier élément dans un vecteur et essayons d'ajouter un élément à la fin. Ce programme ne fonctionnera pas si nous essayons également de référencer cet élément plus tard dans la fonction.
+Lorsque le programme dispose d’une référence valide, l’emprunteur vérifie le respect des règles de propriété et d’emprunt (présentées au chapitre 4) afin de garantir que cette référence et toute autre référence au contenu du vecteur restent valides. Rappelez-vous la règle selon laquelle vous ne pouvez pas avoir de références mutables et immutables dans une même portée. Cette règle s’applique dans l’exemple 8-6, où nous conservons une référence immuable au premier élément d’un vecteur et essayons d’ajouter un élément à la fin. Ce programme ne fonctionnera pas si nous essayons également de référencer cet élément plus tard dans la fonction.
 
-<Listing number="8-6" caption="Tentative d'ajout d'un élément à un vecteur tout en tenant une référence à un élément">
+<Listing number="8-6" caption="Tenter d’ajouter un élément à un vecteur tout en conservant une référence à un élément">
 
 ```rust,ignore,does_not_compile
 {{#rustdoc_include ../listings/ch08-common-collections/listing-08-06/src/main.rs:here}}
@@ -82,21 +82,21 @@ Lorsque le programme a une référence valide, le vérificateur d'emprunt appliq
 
 </Listing>
 
-Compiler ce code entraînera cette erreur :
+La compilation de ce code produira l’erreur suivante :
 
 ```console
 {{#include ../listings/ch08-common-collections/listing-08-06/output.txt}}
 ```
 
-Le code de l'Listing 8-6 pourrait sembler fonctionner : pourquoi une référence au premier élément devrait-elle se soucier des changements à la fin du vecteur ? Cette erreur est due à la manière dont fonctionnent les vecteurs : parce que les vecteurs placent les valeurs les unes à côté des autres en mémoire, ajouter un nouvel élément à la fin du vecteur pourrait nécessiter d'allouer de la nouvelle mémoire et de copier les anciens éléments dans le nouvel espace, s'il n'y a pas suffisamment de place pour mettre tous les éléments les uns à côté des autres où le vecteur est actuellement stocké. Dans ce cas, la référence au premier élément pointerait vers de la mémoire désallouée. Les règles d'emprunt empêchent les programmes de se retrouver dans cette situation.
+Le code de l’exemple 8-6 peut sembler devoir fonctionner : pourquoi une référence au premier élément serait-elle affectée par des modifications à la fin du vecteur ? Cette erreur est due au fonctionnement des vecteurs : comme les vecteurs placent les valeurs les unes à côté des autres en mémoire, l’ajout d’un nouvel élément à la fin du vecteur peut nécessiter l’allocation d’une nouvelle zone mémoire et la copie des anciens éléments dans ce nouvel espace, s’il n’y a pas assez de place pour placer tous les éléments côte à côte à l’endroit où le vecteur est actuellement stocké. Dans ce cas, la référence au premier élément pointerait vers une zone mémoire désallouée. Les règles d’emprunt empêchent les programmes de se retrouver dans cette situation.
 
-> Note : Pour plus de détails sur l'implémentation du type `Vec<T>`, voir [“Le Rustonomicon”][nomicon].
+> Remarque : pour en savoir plus sur les détails d’implémentation du type `Vec<T>`, consultez [« The Rustonomicon »][nomicon].
 
-### Itérer sur les valeurs dans un vecteur
+### Parcourir les valeurs d’un vecteur
 
-Pour accéder successivement à chaque élément d'un vecteur, nous devrions itérer à travers tous les éléments plutôt que d'utiliser des indices pour accéder un par un. L'Listing 8-7 montre comment utiliser une boucle `for` pour obtenir des références immuables à chaque élément dans un vecteur de valeurs `i32` et les imprimer.
+Pour accéder successivement à chaque élément d’un vecteur, nous parcourrions tous les éléments plutôt que d’utiliser des index pour y accéder un par un. L’exemple 8-7 montre comment utiliser une boucle `for` pour obtenir des références immuables à chaque élément d’un vecteur de valeurs `i32` et les afficher.
 
-<Listing number="8-7" caption="Impression de chaque élément dans un vecteur en itérant sur les éléments avec une boucle `for`">
+<Listing number="8-7" caption="Afficher chaque élément d’un vecteur en parcourant les éléments avec une boucle `for`">
 
 ```rust
 {{#rustdoc_include ../listings/ch08-common-collections/listing-08-07/src/main.rs:here}}
@@ -104,9 +104,9 @@ Pour accéder successivement à chaque élément d'un vecteur, nous devrions it�
 
 </Listing>
 
-Nous pouvons également itérer sur des références mutables à chaque élément dans un vecteur mutable afin d'apporter des modifications à tous les éléments. La boucle `for` dans l'Listing 8-8 ajoutera `50` à chaque élément.
+Nous pouvons également parcourir les références mutables à chaque élément d’un vecteur mutable afin de modifier tous les éléments. La boucle `for` de l’exemple 8-8 ajoute `50` à chaque élément.
 
-<Listing number="8-8" caption="Itération sur des références mutables aux éléments d'un vecteur">
+<Listing number="8-8" caption="Parcourir les références mutables aux éléments d’un vecteur">
 
 ```rust
 {{#rustdoc_include ../listings/ch08-common-collections/listing-08-08/src/main.rs:here}}
@@ -114,17 +114,17 @@ Nous pouvons également itérer sur des références mutables à chaque élémen
 
 </Listing>
 
-Pour changer la valeur à laquelle la référence mutable fait référence, nous devons utiliser l'opérateur de déréférencement `*` pour accéder à la valeur dans `i` avant de pouvoir utiliser l'opérateur `+=`. Nous parlerons davantage de l'opérateur de déréférencement dans la section [“Suivre la référence jusqu'à la valeur”][deref]<!-- ignore --> du Chapitre 15.
+Pour modifier la valeur vers laquelle pointe la référence mutable, nous devons utiliser l’opérateur de déréférencement `*` afin d’accéder à la valeur de `i` avant de pouvoir utiliser l’opérateur `+=`. Nous parlerons davantage de l’opérateur de déréférencement dans la section [« Suivre le pointeur jusqu’à la valeur avec l’opérateur de déréférencement »][deref]<!-- ignore --> du chapitre 15.
 
-Itérer sur un vecteur, que ce soit de manière immuable ou mutable, est sûr grâce aux règles du vérificateur d'emprunt. Si nous essayions d'insérer ou de retirer des éléments dans les corps des boucles `for` dans l'Listing 8-7 et l'Listing 8-8, nous obtiendrions une erreur de compilation similaire à celle que nous avons obtenue avec le code de l'Listing 8-6. La référence au vecteur que la boucle `for` détient empêche la modification simultanée de l'ensemble du vecteur.
+Parcourir un vecteur, qu’il soit immuable ou mutable, est sûr grâce aux règles de l’emprunteur. Si nous essayions d’insérer ou de supprimer des éléments dans le corps des boucles `for` des exemples 8-7 et 8-8, nous obtiendrions une erreur de compilation similaire à celle produite par le code de l’exemple 8-6. La référence au vecteur détenue par la boucle `for` empêche toute modification simultanée du vecteur entier.
 
-### Utiliser un Enum pour stocker plusieurs types
+### Utiliser une énumération pour stocker plusieurs types
 
-Les vecteurs ne peuvent stocker que des valeurs du même type. Cela peut être inconfortable ; il existe définitivement des cas d'utilisation nécessitant de stocker une liste d'éléments de différents types. Heureusement, les variantes d'un enum sont définies sous le même type d'enum, donc lorsque nous avons besoin d'un type pour représenter des éléments de différents types, nous pouvons définir et utiliser un enum !
+Les vecteurs ne peuvent stocker que des valeurs d’un même type. Cela peut être gênant ; il existe bel et bien des cas où il est nécessaire de stocker une liste d’éléments de types différents. Heureusement, les variantes d’une énumération sont définies sous un même type d’énumération. Ainsi, lorsque nous avons besoin d’un type pour représenter des éléments de types différents, nous pouvons définir et utiliser une énumération !
 
-Par exemple, disons que nous voulons obtenir des valeurs d'une ligne dans une feuille de calcul où certaines colonnes de la ligne contiennent des entiers, certains nombres à virgule flottante et certaines chaînes. Nous pouvons définir un enum dont les variantes contiendront les différents types de valeur, et toutes les variantes de l'enum seront considérées comme le même type : celui de l'enum. Ensuite, nous pouvons créer un vecteur pour contenir cet enum et ainsi, finalement, contenir différents types. Nous avons démontré cela dans l'Listing 8-9.
+Par exemple, supposons que nous voulions récupérer les valeurs d’une ligne d’un tableur dont certaines colonnes contiennent des entiers, d’autres des nombres à virgule flottante et d’autres encore des chaînes de caractères. Nous pouvons définir une énumération dont les variantes contiendront les différents types de valeurs. Toutes les variantes de l’énumération seront alors considérées comme ayant le même type : celui de l’énumération. Nous pouvons ensuite créer un vecteur pour contenir cette énumération et, par conséquent, des valeurs de types différents. L’exemple 8-9 illustre cette approche.
 
-<Listing number="8-9" caption="Définir un enum pour stocker des valeurs de différents types dans un vecteur">
+<Listing number="8-9" caption="Définir une énumération pour stocker des valeurs de types différents dans un même vecteur">
 
 ```rust
 {{#rustdoc_include ../listings/ch08-common-collections/listing-08-09/src/main.rs:here}}
@@ -132,17 +132,17 @@ Par exemple, disons que nous voulons obtenir des valeurs d'une ligne dans une fe
 
 </Listing>
 
-Rust doit savoir quels types seront dans le vecteur à la compilation afin de déterminer exactement combien de mémoire sur le tas sera nécessaire pour stocker chaque élément. Nous devons également être explicites sur les types autorisés dans ce vecteur. Si Rust permettait à un vecteur de contenir n'importe quel type, il y aurait un risque que l'un ou plusieurs des types provoquent des erreurs avec les opérations effectuées sur les éléments du vecteur. Utiliser un enum plus une expression `match` signifie que Rust s'assurera à la compilation que chaque cas possible est géré, comme discuté dans le Chapitre 6.
+Rust doit connaître les types qui seront présents dans le vecteur au moment de la compilation afin de savoir exactement quelle quantité de mémoire sur le tas sera nécessaire pour stocker chaque élément. Nous devons également préciser quels types sont autorisés dans ce vecteur. Si Rust autorisait un vecteur à contenir n’importe quel type, il serait possible qu’un ou plusieurs de ces types provoquent des erreurs lors des opérations effectuées sur les éléments du vecteur. L’utilisation d’une énumération associée à une expression `match` permet à Rust de s’assurer à la compilation que tous les cas possibles sont traités, comme nous l’avons vu au chapitre 6.
 
-Si vous ne connaissez pas l'ensemble exhaustif des types qu'un programme recevra à l'exécution pour stocker dans un vecteur, la technique de l'enum ne fonctionnera pas. À la place, vous pouvez utiliser un objet de trait, que nous traiterons dans le Chapitre 18.
+Si vous ne connaissez pas l’ensemble exhaustif des types que le programme recevra à l’exécution pour les stocker dans un vecteur, la technique de l’énumération ne fonctionnera pas. Vous pouvez alors utiliser un objet de trait, que nous verrons au chapitre 18.
 
-Maintenant que nous avons discuté de certaines des méthodes les plus courantes d'utilisation des vecteurs, assurez-vous de consulter [la documentation de l'API][vec-api]<!-- ignore --> pour toutes les nombreuses méthodes utiles définies sur `Vec<T>` par la bibliothèque standard. Par exemple, en plus de `push`, une méthode `pop` supprime et renvoie le dernier élément.
+Maintenant que nous avons abordé quelques-unes des façons les plus courantes d’utiliser les vecteurs, n’oubliez pas de consulter [la documentation de l’API][vec-api]<!-- ignore --> pour découvrir les nombreuses méthodes utiles définies sur `Vec<T>` par la bibliothèque standard. Par exemple, en plus de `push`, une méthode `pop` supprime et renvoie le dernier élément.
 
-### Supprimer un vecteur supprime ses éléments
+### La suppression d’un vecteur supprime ses éléments
 
-Comme tout autre `struct`, un vecteur est libéré lorsqu'il sort de la portée, comme annoté dans l'Listing 8-10.
+Comme toute autre `struct`, un vecteur est libéré lorsqu’il sort de portée, comme indiqué dans l’exemple 8-10.
 
-<Listing number="8-10" caption="Montrer où le vecteur et ses éléments sont supprimés">
+<Listing number="8-10" caption="Montrer à quel moment le vecteur et ses éléments sont supprimés">
 
 ```rust
 {{#rustdoc_include ../listings/ch08-common-collections/listing-08-10/src/main.rs:here}}
@@ -150,9 +150,9 @@ Comme tout autre `struct`, un vecteur est libéré lorsqu'il sort de la portée,
 
 </Listing>
 
-Lorsque le vecteur est supprimé, tout son contenu est également supprimé, ce qui signifie que les entiers qu'il contient seront nettoyés. Le vérificateur d'emprunt s'assure que toutes les références aux contenus d'un vecteur ne sont utilisées que pendant que le vecteur lui-même est valide.
+Lorsque le vecteur est supprimé, tout son contenu l’est également, ce qui signifie que les entiers qu’il contient sont libérés. L’emprunteur garantit que les références au contenu d’un vecteur ne sont utilisées que tant que le vecteur lui-même est valide.
 
-Passons au prochain type de collection : `String` !
+Passons maintenant au type de collection suivant : `String` !
 
 [data-types]: ch03-02-data-types.html#data-types
 [nomicon]: ../nomicon/vec/vec.html

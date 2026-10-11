@@ -1,152 +1,281 @@
-## Implémentation d'un Modèle de Conception Orientée Objet
+## Implémenter un patron de conception orienté objet
 
-Le _modèle d'état_ est un modèle de conception orientée objet. Le principe de ce modèle est que nous définissons un ensemble d'états qu'une valeur peut avoir en interne. Les états sont représentés par un ensemble d'__objets d'état__, et le comportement de la valeur change en fonction de son état. Nous allons travailler sur un exemple d'une structure de publication de blog qui a un champ pour contenir son état, qui sera un objet d'état du groupe "brouillon", "révision" ou "publié".
+Le _patron d’état_ est un patron de conception orienté objet. Son principe est de définir un ensemble d’états qu’une valeur peut avoir en interne. Ces états sont représentés par un ensemble d’_objets d’état_, et le comportement de la valeur change en fonction de son état. Nous allons étudier l’exemple d’une structure représentant un article de blog, qui possède un champ contenant son état, lequel sera un objet d’état parmi « brouillon », « en attente de révision » ou « publié ».
 
-Les objets d'état partagent une fonctionnalité : en Rust, bien sûr, nous utilisons des structures et des traits plutôt que des objets et de l'héritage. Chaque objet d'état est responsable de son propre comportement et de la détermination des moments où il doit changer en un autre état. La valeur qui détient un objet d'état ne connaît rien des différents comportements des états ou des moments où elle doit passer d'un état à un autre.
+Les objets d’état partagent des fonctionnalités : en Rust, bien sûr, nous utilisons des structures et des traits plutôt que des objets et de l’héritage. Chaque objet d’état est responsable de son propre comportement et détermine quand il doit passer à un autre état. La valeur qui contient un objet d’état ne connaît rien des différents comportements des états ni des moments où les transitions doivent avoir lieu.
 
-L'avantage d'utiliser le modèle d'état est que lorsque les exigences métier du programme changent, nous n'aurons pas besoin de modifier le code de la valeur tenant l'état ni le code qui utilise cette valeur. Nous n'aurons qu'à mettre à jour le code à l'intérieur d'un des objets d'état pour changer ses règles ou peut-être ajouter davantage d'objets d'état.
+L’avantage du patron d’état est que, lorsque les exigences métier du programme changent, nous n’avons pas besoin de modifier le code de la valeur qui contient l’état ni celui qui utilise cette valeur. Il suffit de mettre à jour le code à l’intérieur de l’un des objets d’état pour en modifier les règles, ou éventuellement d’ajouter d’autres objets d’état.
 
-Tout d'abord, nous allons implémenter le modèle d'état de manière plus traditionnelle orientée objet. Ensuite, nous utiliserons une approche qui est un peu plus naturelle en Rust. Plongeons-nous pour implémenter de manière progressive un flux de travail de publication de blog en utilisant le modèle d'état.
+Nous allons d’abord implémenter le patron d’état de manière plus traditionnelle, orientée objet. Puis nous utiliserons une approche un peu plus naturelle en Rust. Voyons comment implémenter progressivement un flux de travail pour un article de blog à l’aide du patron d’état.
 
-La fonctionnalité finale ressemblera à ceci :
+Le résultat final aura le fonctionnement suivant :
 
-1. Une publication de blog commence comme un brouillon vide.
-2. Lorsque le brouillon est terminé, une révision de la publication est demandée.
-3. Lorsque la publication est approuvée, elle est publiée.
-4. Seules les publications de blog publiées renvoient du contenu à imprimer, de sorte que les publications non approuvées ne puissent pas être publiées accidentellement.
+1. Un article de blog commence sous la forme d’un brouillon vide.
+1. Lorsque le brouillon est terminé, une révision de l’article est demandée.
+1. Lorsque l’article est approuvé, il est publié.
+1. Seuls les articles de blog publiés renvoient leur contenu à afficher, afin que les articles non approuvés ne puissent pas être publiés par accident.
 
-Toute autre modification tentée sur une publication ne devrait avoir aucun effet. Par exemple, si nous essayons d'approuver une publication de blog en brouillon avant d'avoir demandé une révision, la publication devrait rester un brouillon non publié.
+Toute autre modification tentée sur un article devrait être sans effet. Par exemple, si nous essayons d’approuver un article de blog à l’état de brouillon avant d’en avoir demandé la révision, l’article doit rester un brouillon non publié.
 
-### Tentative de Style Orienté Objet Traditionnel
+<!-- Old headings. Do not remove or links may break. -->
 
-Il existe une infinité de manières de structurer le code pour résoudre le même problème, chacune avec des compromis différents. L'implémentation de cette section est plus dans un style orienté objet traditionnel, qui est possible à écrire en Rust, mais ne tire pas parti de certaines forces de Rust. Plus tard, nous démontrerons une solution différente qui utilise toujours le modèle de conception orientée objet mais qui est structurée d'une manière qui pourrait sembler moins familière aux programmeurs ayant de l'expérience orientée objet. Nous comparerons les deux solutions pour expérimenter les compromis de la conception du code Rust différemment de celui dans d'autres langages.
+<a id="a-traditional-object-oriented-attempt"></a>
 
-L'énumération 18-11 montre ce flux de travail sous forme de code : C'est un exemple d'utilisation de l'API que nous allons implémenter dans une bibliothèque nommée `blog`. Cela ne compilera pas encore car nous n'avons pas implémenté le crate `blog`.
+### Essayer un style traditionnel orienté objet
 
-Nous voulons permettre à l'utilisateur de créer une nouvelle publication de blog en brouillon avec `Post::new`. Nous voulons permettre d'ajouter du texte à la publication. Si nous essayons d'obtenir le contenu de la publication immédiatement, avant approbation, nous ne devrions obtenir aucun texte car la publication est toujours un brouillon. Nous avons ajouté `assert_eq!` dans le code à des fins de démonstration. Un excellent test unitaire pour cela serait d'affirmer qu'une publication de blog en brouillon renvoie une chaîne vide depuis la méthode `content`, mais nous n'allons pas écrire de tests pour cet exemple.
+Il existe une infinité de façons de structurer du code pour résoudre un même problème, chacune présentant des compromis différents. L’implémentation de cette section adopte un style plutôt traditionnel orienté objet, qu’il est possible d’écrire en Rust, mais qui ne tire pas parti de certains des atouts de Rust. Plus loin, nous présenterons une autre solution qui utilise toujours le patron de conception orienté objet, mais qui est structurée d’une manière qui semblera peut-être moins familière aux personnes ayant une expérience de la programmation orientée objet. Nous comparerons les deux solutions afin d’examiner les compromis liés à la conception de code Rust différemment du code écrit dans d’autres langages.
 
-Ensuite, nous voulons activer une demande de révision de la publication, et nous voulons que `content` renvoie une chaîne vide pendant l'attente de la révision. Lorsque la publication reçoit l'approbation, elle doit être publiée, ce qui signifie que le texte de la publication sera retourné lorsque `content` sera appelé.
+La liste 18-11 présente ce flux de travail sous forme de code : il s’agit d’un exemple d’utilisation de l’API que nous allons implémenter dans une crate de bibliothèque nommée `blog`. Ce code ne compilera pas encore, car nous n’avons pas implémenté la crate `blog`.
 
-Notez que le seul type avec lequel nous interagissons depuis le crate est le type `Post`. Ce type utilisera le modèle d'état et contiendra une valeur qui sera un des trois objets d'état représentant les divers états dans lesquels une publication peut être : brouillon, révision ou publiée. Changer d'un état à un autre sera géré en interne au sein du type `Post`. Les états changent en réponse aux méthodes appelées par les utilisateurs de notre bibliothèque sur l'instance `Post`, mais ils n'ont pas à gérer directement les changements d'état. De plus, les utilisateurs ne peuvent pas se tromper avec les états, comme publier une publication avant qu'elle ait été révisée.
+<Listing number="18-11" file-name="src/main.rs" caption="Code illustrant le comportement souhaité de notre crate `blog`">
 
-### Définition de `Post` et Création d'une Nouvelle Instance
+```rust,ignore,does_not_compile
+{{#rustdoc_include ../listings/ch18-oop/listing-18-11/src/main.rs:all}}
+```
 
-Commençons l'implémentation de la bibliothèque ! Nous savons que nous avons besoin d'une structure `Post` publique qui contienne du contenu, nous commencerons donc par la définition de la structure et une fonction publique `new` associée pour créer une instance de `Post`. Nous allons également créer un trait privé `State` qui définira le comportement que tous les objets d'état pour un `Post` doivent avoir.
+</Listing>
 
-Ensuite, `Post` contiendra un objet trait de `Box<dyn State>` à l'intérieur d'un `Option<T>` dans un champ privé nommé `state` pour contenir l'objet d'état. Vous verrez pourquoi l'`Option<T>` est nécessaire dans un instant.
+Nous voulons permettre à l’utilisateur de créer un nouvel article de blog à l’état de brouillon avec `Post::new`. Nous voulons pouvoir ajouter du texte à l’article de blog. Si nous essayons d’obtenir immédiatement le contenu de l’article, avant son approbation, nous ne devrions obtenir aucun texte, car l’article est encore à l’état de brouillon. Nous avons ajouté `assert_eq!` dans le code à des fins de démonstration. Un excellent test unitaire consisterait à vérifier qu’un article de blog à l’état de brouillon renvoie une chaîne vide depuis la méthode `content`, mais nous n’allons pas écrire de tests pour cet exemple.
 
-Le trait `State` définit le comportement partagé par différents états de publication. Les objets d'état sont `Draft`, `PendingReview` et `Published`, et tous implémenteront le trait `State`. Pour l'instant, le trait n'a pas de méthodes, et nous allons commencer par définir juste l'état `Draft` car c'est l'état dans lequel nous voulons qu'une publication commence.
+Ensuite, nous voulons permettre de demander la révision de l’article, et nous voulons que `content` renvoie une chaîne vide pendant cette révision. Lorsque l’article est approuvé, il doit être publié, c’est-à-dire que son texte sera renvoyé lors de l’appel à `content`.
 
-Lorsque nous créons un nouveau `Post`, nous définissons son champ `state` sur une valeur `Some` qui contient une `Box` pointant vers une nouvelle instance de la structure `Draft`. Cela garantit que chaque fois que nous créons une nouvelle instance de `Post`, elle commencera par un brouillon. Étant donné que le champ `state` de `Post` est privé, il n'est pas possible de créer un `Post` dans un autre état ! Dans la fonction `Post::new`, nous initialisons le champ `content` à une nouvelle `String` vide.
+Remarquez que le seul type avec lequel nous interagissons dans la crate est le type `Post`. Ce type utilisera le patron d’état et contiendra une valeur qui sera l’un des trois objets d’état représentant les différents états possibles d’un article : brouillon, en attente de révision ou publié. Le type `Post` gérera en interne le passage d’un état à l’autre. Les états changent en réponse aux méthodes appelées par les utilisateurs de notre bibliothèque sur l’instance `Post`, mais ces derniers n’ont pas à gérer directement les changements d’état. De plus, les utilisateurs ne peuvent pas commettre d’erreur concernant les états, par exemple en publiant un article avant qu’il ait été révisé.
 
-#### Stockage du Texte du Contenu du Post
+<!-- Old headings. Do not remove or links may break. -->
 
-Nous avons vu dans l'énumération 18-11 que nous voulons pouvoir appeler une méthode nommée `add_text` et y passer un `&str` qui sera ensuite ajouté en tant que texte de contenu de la publication de blog. Nous implémentons cela comme une méthode, plutôt que d'exposer le champ `content` en tant que `pub`, afin que plus tard nous puissions implémenter une méthode qui contrôlera comment les données du champ `content` sont lues. La méthode `add_text` est assez simple, ajoutons donc l'implémentation dans l'énumération 18-13 au bloc `impl Post`.
+<a id="defining-post-and-creating-a-new-instance-in-the-draft-state"></a>
 
-La méthode `add_text` prend une référence mutable sur `self` car nous modifions l'instance de `Post` sur laquelle nous appelons `add_text`. Nous appelons ensuite `push_str` sur la `String` dans `content` et passons l'argument `text` à ajouter au `content` sauvegardé. Ce comportement ne dépend pas de l'état dans lequel se trouve la publication, il ne fait donc pas partie du modèle d'état. La méthode `add_text` n'interagit pas du tout avec le champ `state`, mais elle fait partie du comportement que nous voulons prendre en charge.
+#### Définir `Post` et créer une nouvelle instance
 
-#### Garantie Que le Contenu d'une Publication de Brouillon Est Vide
+Commençons l’implémentation de la bibliothèque ! Nous savons qu’il nous faut une structure publique `Post` qui contient du contenu. Nous allons donc commencer par définir cette structure et une fonction publique associée `new` pour créer une instance de `Post`, comme illustré dans la liste 18-12. Nous allons également créer un trait privé `State` qui définira le comportement que tous les objets d’état d’un `Post` doivent avoir.
 
-Même après avoir appelé `add_text` et ajouté du contenu à notre publication, nous voulons que la méthode `content` renvoie toujours une tranche de chaîne vide car la publication est encore dans l'état de brouillon, comme le montre le premier `assert_eq!` dans l'énumération 18-11. Pour l'instant, implémentons la méthode `content` avec la chose la plus simple qui remplira cette exigence : renvoyer toujours une tranche de chaîne vide. Nous changerons cela plus tard une fois que nous aurons implémenté la possibilité de changer l'état d'une publication afin qu'elle puisse être publiée. Jusqu'à présent, les publications ne peuvent être que dans l'état de brouillon, donc le contenu de la publication doit toujours être vide. L'énumération 18-14 montre cette implémentation de substitution.
+Ensuite, `Post` contiendra un objet trait `Box<dyn State>` dans un `Option<T>`, dans un champ privé nommé `state`, afin de contenir l’objet d’état. Vous verrez bientôt pourquoi `Option<T>` est nécessaire.
 
-Avec cette méthode `content` ajoutée, tout dans l'énumération 18-11 jusqu'au premier `assert_eq!` fonctionne comme prévu.
+<Listing number="18-12" file-name="src/lib.rs" caption="Définition d’une structure `Post` et d’une fonction `new` qui crée une nouvelle instance de `Post`, d’un trait `State` et d’une structure `Draft`">
 
-#### Demande d'une Révision, Ce Qui Change l'État de la Publication
+```rust,noplayground
+{{#rustdoc_include ../listings/ch18-oop/listing-18-12/src/lib.rs}}
+```
 
-Ensuite, nous devons ajouter une fonctionnalité pour demander une révision d'une publication, ce qui devrait changer son état de `Draft` à `PendingReview`. L'énumération 18-15 montre ce code.
+</Listing>
 
-Nous donnons à `Post` une méthode publique nommée `request_review` qui prendra une référence mutable sur `self`. Ensuite, nous appelons une méthode interne `request_review` sur l'état actuel de `Post`, et cette seconde méthode `request_review` consomme l'état actuel et renvoie un nouvel état.
+Le trait `State` définit le comportement partagé par les différents états d’un article. Les objets d’état sont `Draft`, `PendingReview` et `Published`, et ils implémenteront tous le trait `State`. Pour l’instant, le trait ne contient aucune méthode, et nous allons commencer par définir uniquement l’état `Draft`, car c’est l’état dans lequel nous voulons qu’un article commence.
 
-Nous ajoutons la méthode `request_review` au trait `State` ; tous les types qui implémentent le trait devront maintenant implémenter la méthode `request_review`. Notez que plutôt que d'avoir `self`, `&self` ou `&mut self` comme premier paramètre de la méthode, nous avons `self: Box<Self>`. Cette syntaxe signifie que la méthode n'est valide que lorsqu'elle est appelée sur une `Box` détenant le type. Cette syntaxe prend possession de `Box<Self>`, invalidant l'ancien état afin que la valeur d'état de `Post` puisse se transformer en un nouvel état.
+Lorsque nous créons un nouveau `Post`, nous attribuons à son champ `state` une valeur `Some` contenant une `Box`. Cette `Box` pointe vers une nouvelle instance de la structure `Draft`. Ainsi, chaque fois que nous créons une nouvelle instance de `Post`, elle commence à l’état de brouillon. Comme le champ `state` de `Post` est privé, il est impossible de créer un `Post` dans un autre état ! Dans la fonction `Post::new`, nous définissons le champ `content` sur une nouvelle `String` vide.
 
-Pour consommer l'ancien état, la méthode `request_review` doit prendre possession de la valeur d'état. C'est ici que l'`Option` dans le champ `state` de `Post` entre en jeu : nous appelons la méthode `take` pour retirer la valeur `Some` du champ `state` et laisser un `None` à sa place, car Rust ne nous permet pas d'avoir des champs non peuplés dans les structures. Cela nous permet de déplacer la valeur `state` hors de `Post` plutôt que de l'emprunter. Ensuite, nous allons définir la valeur de `state` de la publication sur le résultat de cette opération.
+#### Stocker le texte du contenu de l’article
 
-Nous devons temporairement définir `state` sur `None` plutôt que de le définir directement avec du code comme `self.state = self.state.request_review();` pour obtenir la possession de la valeur `state`. Cela garantit que `Post` ne peut pas utiliser la valeur `state` ancienne après que nous l'ayons transformée en un nouvel état.
+Nous avons vu dans la liste 18-11 que nous voulons pouvoir appeler une méthode nommée `add_text` et lui transmettre un `&str`, qui sera ensuite ajouté au contenu textuel de l’article de blog. Nous implémentons cela sous forme de méthode, plutôt que d’exposer le champ `content` en tant que `pub`, afin de pouvoir ultérieurement implémenter une méthode qui contrôlera la lecture des données du champ `content`. La méthode `add_text` est assez simple ; ajoutons donc son implémentation au bloc `impl Post` dans la liste 18-13.
 
-La méthode `request_review` sur `Draft` renvoie une nouvelle instance, empaquetée, d'une nouvelle structure `PendingReview`, qui représente l'état lorsqu'une publication est en attente de révision. La structure `PendingReview` implémente également la méthode `request_review`, mais ne fait aucune transformation. Au contraire, elle se renvoie elle-même car lorsqu'on demande une révision sur une publication déjà dans l'état `PendingReview`, elle doit rester dans l'état `PendingReview`.
+<Listing number="18-13" file-name="src/lib.rs" caption="Implémentation de la méthode `add_text` pour ajouter du texte au champ `content` d’un article">
 
-Nous pouvons maintenant commencer à voir les avantages du modèle d'état : La méthode `request_review` sur `Post` est la même peu importe sa valeur `state`. Chaque état est responsable de ses propres règles.
+```rust,noplayground
+{{#rustdoc_include ../listings/ch18-oop/listing-18-13/src/lib.rs:here}}
+```
 
-Nous laisserons la méthode `content` sur `Post` telle quelle, revenant à une tranche de chaîne vide. Nous pouvons maintenant avoir une `Post` dans l'état `PendingReview` ainsi que dans l'état `Draft`, mais nous voulons le même comportement dans l'état `PendingReview`. L'énumération 18-11 fonctionne maintenant jusqu'au deuxième appel `assert_eq!` !
+</Listing>
 
-#### Ajout de `approve` pour Changer le Comportement de `content`
+La méthode `add_text` prend une référence mutable à `self`, car nous modifions l’instance de `Post` sur laquelle nous l’appelons. Nous appelons ensuite `push_str` sur la `String` de `content` et lui transmettons l’argument `text` à ajouter au contenu enregistré. Ce comportement ne dépend pas de l’état de l’article : il ne fait donc pas partie du patron d’état. La méthode `add_text` n’interagit pas du tout avec le champ `state`, mais elle fait partie du comportement que nous voulons prendre en charge.
 
-La méthode `approve` sera similaire à la méthode `request_review` : elle définira `state` à la valeur que l'état actuel indique qu'il devrait avoir lorsque cet état est approuvé, comme illustré dans l'énumération 18-16.
+<!-- Old headings. Do not remove or links may break. -->
 
-Nous ajoutons la méthode `approve` au trait `State` et ajoutons une nouvelle structure qui implémente `State`, l'état `Published`.
+<a id="ensuring-the-content-of-a-draft-post-is-empty"></a>
 
-De manière similaire à la façon dont la méthode `request_review` fonctionne sur `PendingReview`, si nous appelons la méthode `approve` sur un `Draft`, cela n'aura aucun effet car `approve` renverra `self`. Lorsque nous appelons `approve` sur `PendingReview`, elle renvoie une nouvelle instance, empaquetée, de la structure `Published`. La structure `Published` implémente le trait `State`, et pour les méthodes `request_review` et `approve`, elle renvoie elle-même car la publication doit rester dans l'état `Published` dans ces cas.
+#### Garantir que le contenu d’un article à l’état de brouillon est vide
 
-Maintenant, nous devons mettre à jour la méthode `content` sur `Post`. Nous voulons que la valeur renvoyée par `content` dépende de l'état actuel du `Post`, nous allons donc faire en sorte que le `Post` délègue à une méthode `content` définie sur son `state`, comme montré dans l'énumération 18-17.
+Même après avoir appelé `add_text` et ajouté du contenu à notre article, nous voulons que la méthode `content` renvoie une tranche de chaîne vide, car l’article est toujours à l’état de brouillon, comme le montre le premier `assert_eq!` de la liste 18-11. Pour l’instant, implémentons la méthode `content` de la manière la plus simple qui réponde à cette exigence : elle renverra toujours une tranche de chaîne vide. Nous modifierons cela plus tard, lorsque nous implémenterons la possibilité de changer l’état d’un article afin de pouvoir le publier. Jusqu’ici, les articles ne peuvent être qu’à l’état de brouillon ; leur contenu doit donc toujours être vide. La liste 18-14 présente cette implémentation provisoire.
 
-Parce que l'objectif est de garder toutes ces règles à l'intérieur des structures qui implémentent `State`, nous appelons une méthode `content` sur la valeur dans `state` et passons l'instance de publication (c'est-à-dire `self`) comme argument. Ensuite, nous retournons la valeur renvoyée par l'utilisation de la méthode `content` sur la valeur `state`.
+<Listing number="18-14" file-name="src/lib.rs" caption="Ajout d’une implémentation provisoire de la méthode `content` sur `Post`, qui renvoie toujours une tranche de chaîne vide">
 
-Nous appelons la méthode `as_ref` sur l'`Option` car nous voulons une référence à la valeur à l'intérieur de l'`Option` plutôt qu'à la possession de la valeur. Étant donné que `state` est un `Option<Box<dyn State>>`, lorsque nous appelons `as_ref`, un `Option<&Box<dyn State>>` est renvoyé. Si nous n'appelions pas `as_ref`, nous obtiendrions une erreur car nous ne pouvons pas déplacer `state` hors du `&self` emprunté du paramètre de fonction.
+```rust,noplayground
+{{#rustdoc_include ../listings/ch18-oop/listing-18-14/src/lib.rs:here}}
+```
 
-Nous appelons ensuite la méthode `unwrap`, que nous savons ne panique jamais car nous savons que les méthodes sur `Post` garantissent que `state` contiendra toujours une valeur `Some` lorsque ces méthodes sont terminées. C'est l'un des cas dont nous avons parlé dans la section [« Lorsque vous avez plus d'informations que le compilateur »](ch09-03-to-panic-or-not-to-panic.html#cases-in-which-you-have-more-information-than-the-compiler) du chapitre 9 lorsque nous savons qu'une valeur `None` n'est jamais possible, même si le compilateur n'est pas en mesure de comprendre cela.
+</Listing>
 
-À ce stade, lorsque nous appelons `content` sur le `&Box<dyn State>`, la coercition deref prendra effet sur le `&` et le `Box` de sorte que la méthode `content` sera finalement appelée sur le type qui implémente le trait `State`. Cela signifie que nous devons ajouter `content` à la définition du trait `State`, et c'est là que nous allons mettre la logique pour quel contenu retourner selon quel état nous avons, comme montré dans l'énumération 18-18.
+Avec cette méthode `content`, tout fonctionne comme prévu dans la liste 18-11 jusqu’au premier `assert_eq!` inclus.
 
-Nous ajoutons une implémentation par défaut pour la méthode `content` qui renvoie une tranche de chaîne vide. Cela signifie que nous n'avons pas besoin d'implémenter `content` sur les structures `Draft` et `PendingReview`. La structure `Published` remplacera la méthode `content` et renverra la valeur dans `post.content`. Bien que pratique, avoir la méthode `content` sur `State` déterminant le contenu du `Post` brouille les frontières entre la responsabilité de `State` et celle de `Post`.
+<!-- Old headings. Do not remove or links may break. -->
 
-Notez que nous avons besoin d'annotations de durée de vie sur cette méthode, comme nous en avons discuté dans le chapitre 10. Nous prenons une référence à un `post` comme argument et retournons une référence à une partie de ce `post`, donc la durée de vie de la référence retour est liée à la durée de vie de l'argument `post`.
+<a id="requesting-a-review-of-the-post-changes-its-state"></a>
+<a id="requesting-a-review-changes-the-posts-state"></a>
 
-Et nous avons terminé : tout dans l'énumération 18-11 fonctionne maintenant ! Nous avons implémenté le modèle d'état avec les règles du flux de travail des publications de blog. La logique liée aux règles vit dans les objets d'état plutôt que d'être éparpillée dans `Post`.
+#### Demander une révision, ce qui change l’état de l’article
 
-> ### Pourquoi Pas Un Enum ?
+Ensuite, nous devons ajouter la fonctionnalité permettant de demander la révision d’un article, ce qui doit faire passer son état de `Draft` à `PendingReview`. La liste 18-15 présente ce code.
+
+<Listing number="18-15" file-name="src/lib.rs" caption="Implémentation des méthodes `request_review` sur `Post` et sur le trait `State`">
+
+```rust,noplayground
+{{#rustdoc_include ../listings/ch18-oop/listing-18-15/src/lib.rs:here}}
+```
+
+</Listing>
+
+Nous ajoutons à `Post` une méthode publique nommée `request_review`, qui prend une référence mutable à `self`. Nous appelons ensuite une méthode interne `request_review` sur l’état actuel de `Post`. Cette seconde méthode `request_review` consomme l’état actuel et renvoie un nouvel état.
+
+Nous ajoutons la méthode `request_review` au trait `State` ; tous les types qui implémentent ce trait devront désormais implémenter cette méthode. Remarquez qu’au lieu d’utiliser `self`, `&self` ou `&mut self` comme premier paramètre de la méthode, nous utilisons `self: Box<Self>`. Cette syntaxe signifie que la méthode ne peut être appelée que sur une `Box` contenant le type. Elle prend possession de `Box<Self>`, invalidant l’ancien état afin que la valeur d’état de `Post` puisse être transformée en un nouvel état.
+
+Pour consommer l’ancien état, la méthode `request_review` doit prendre possession de la valeur d’état. C’est là qu’intervient le `Option` du champ `state` de `Post` : nous appelons la méthode `take` pour extraire la valeur `Some` du champ `state` et la remplacer par `None`, car Rust ne nous permet pas d’avoir des champs non initialisés dans les structures. Cela nous permet de déplacer la valeur `state` hors de `Post` plutôt que de l’emprunter. Nous attribuerons ensuite au champ `state` de l’article le résultat de cette opération.
+
+Nous devons temporairement définir `state` sur `None`, plutôt que de lui attribuer directement une valeur avec du code comme `self.state = self.state.request_review();`, afin de prendre possession de la valeur `state`. Cela garantit que `Post` ne peut pas utiliser l’ancienne valeur `state` après l’avoir transformée en un nouvel état.
+
+La méthode `request_review` sur `Draft` renvoie une nouvelle instance encadrée dans une `Box` de la structure `PendingReview`, qui représente l’état d’un article en attente de révision. La structure `PendingReview` implémente également la méthode `request_review`, mais celle-ci ne transforme rien. Elle renvoie plutôt l’objet lui-même, car lorsqu’on demande la révision d’un article déjà à l’état `PendingReview`, celui-ci doit y rester.
+
+Nous commençons maintenant à voir les avantages du patron d’état : la méthode `request_review` sur `Post` est la même quelle que soit la valeur de son état `state`. Chaque état est responsable de ses propres règles.
+
+Nous allons laisser la méthode `content` sur `Post` telle quelle, c’est-à-dire qu’elle renverra une tranche de chaîne vide. Nous pouvons désormais avoir un `Post` à l’état `PendingReview` aussi bien qu’à l’état `Draft`, mais nous voulons que le comportement reste le même à l’état `PendingReview`. La liste 18-11 fonctionne maintenant jusqu’au deuxième appel à `assert_eq!` !
+
+<!-- Old headings. Do not remove or links may break. -->
+
+<a id="adding-the-approve-method-that-changes-the-behavior-of-content"></a>
+<a id="adding-approve-to-change-the-behavior-of-content"></a>
+
+#### Ajouter `approve` pour modifier le comportement de `content`
+
+La méthode `approve` sera similaire à la méthode `request_review` : elle définira `state` sur la valeur que l’état actuel indique qu’il doit prendre lorsqu’il est approuvé, comme le montre la liste 18-16.
+
+<Listing number="18-16" file-name="src/lib.rs" caption="Implémentation de la méthode `approve` sur `Post` et sur le trait `State`">
+
+```rust,noplayground
+{{#rustdoc_include ../listings/ch18-oop/listing-18-16/src/lib.rs:here}}
+```
+
+</Listing>
+
+Nous ajoutons la méthode `approve` au trait `State` et une nouvelle structure qui implémente `State` : l’état `Published`.
+
+Comme pour le fonctionnement de `request_review` sur `PendingReview`, si nous appelons la méthode `approve` sur un `Draft`, elle n’aura aucun effet, car `approve` renverra `self`. Lorsque nous appelons `approve` sur `PendingReview`, la méthode renvoie une nouvelle instance de la structure `Published` encadrée dans une `Box`. La structure `Published` implémente le trait `State` et renvoie l’objet lui-même pour les méthodes `request_review` et `approve`, car l’article doit rester à l’état `Published` dans ces cas.
+
+Nous devons maintenant mettre à jour la méthode `content` sur `Post`. Nous voulons que la valeur renvoyée par `content` dépende de l’état actuel de `Post`. Nous allons donc déléguer à une méthode `content` définie sur son état, comme le montre la liste 18-17.
+
+<Listing number="18-17" file-name="src/lib.rs" caption="Mise à jour de la méthode `content` sur `Post` pour déléguer à une méthode `content` sur `State`">
+
+```rust,ignore,does_not_compile
+{{#rustdoc_include ../listings/ch18-oop/listing-18-17/src/lib.rs:here}}
+```
+
+</Listing>
+
+Comme l’objectif est de conserver toutes ces règles à l’intérieur des structures qui implémentent `State`, nous appelons une méthode `content` sur la valeur contenue dans `state` et lui transmettons l’instance de l’article (c’est-à-dire `self`) comme argument. Nous renvoyons ensuite la valeur obtenue en utilisant la méthode `content` sur la valeur `state`.
+
+Nous appelons la méthode `as_ref` sur `Option`, car nous voulons une référence à la valeur contenue dans `Option`, plutôt que de prendre possession de cette valeur. Comme `state` est un `Option<Box<dyn State>>`, l’appel à `as_ref` renvoie un `Option<&Box<dyn State>>`. Sans cet appel à `as_ref`, nous obtiendrions une erreur, car nous ne pouvons pas déplacer `state` hors du `&self` emprunté du paramètre de la fonction.
+
+Nous appelons ensuite la méthode `unwrap`, qui ne pourra jamais provoquer de panique, car nous savons que les méthodes sur `Post` garantissent que `state` contiendra toujours une valeur `Some` une fois leur exécution terminée. C’est l’un des cas évoqués dans la section [« Quand vous en savez plus que le compilateur »][more-info-than-rustc]<!-- ignore --> du chapitre 9 : nous savons qu’une valeur `None` est impossible, même si le compilateur n’est pas en mesure de le comprendre.
+
+À ce stade, lorsque nous appelons `content` sur le `&Box<dyn State>`, la coercition de déréférencement s’applique au `&` et à la `Box`, de sorte que la méthode `content` est finalement appelée sur le type qui implémente le trait `State`. Cela signifie que nous devons ajouter `content` à la définition du trait `State`, et c’est là que nous placerons la logique déterminant le contenu à renvoyer en fonction de l’état, comme le montre la liste 18-18.
+
+<Listing number="18-18" file-name="src/lib.rs" caption="Ajout de la méthode `content` au trait `State`">
+
+```rust,noplayground
+{{#rustdoc_include ../listings/ch18-oop/listing-18-18/src/lib.rs:here}}
+```
+
+</Listing>
+
+Nous ajoutons une implémentation par défaut de la méthode `content` qui renvoie une tranche de chaîne vide. Cela signifie que nous n’avons pas besoin d’implémenter `content` sur les structures `Draft` et `PendingReview`. La structure `Published` remplacera l’implémentation de `content` et renverra la valeur de `post.content`. C’est pratique, mais confier à la méthode `content` de `State` la détermination du contenu de `Post` brouille la distinction entre les responsabilités de `State` et celles de `Post`.
+
+Remarquez que nous avons besoin d’annotations de durée de vie pour cette méthode, comme nous l’avons vu au chapitre 10. Nous prenons une référence à un `post` comme argument et renvoyons une référence à une partie de ce `post` ; la durée de vie de la référence renvoyée est donc liée à celle de l’argument `post`.
+
+Et voilà : toute la liste 18-11 fonctionne maintenant ! Nous avons implémenté le patron d’état en respectant les règles du flux de travail d’un article de blog. La logique relative à ces règles se trouve dans les objets d’état plutôt que d’être dispersée dans `Post`.
+
+> ### Pourquoi ne pas utiliser une énumération ?
 >
-> Vous vous êtes peut-être demandé pourquoi nous n'avons pas utilisé un enum avec les différents états de publication possibles comme variantes. C'est certainement une solution possible ; essayez-la et comparez les résultats finaux pour voir ce que vous préférez ! Un inconvénient de l'utilisation d'un enum est que chaque endroit qui vérifie la valeur de l'enum aura besoin d'une expression `match` ou similaire pour gérer chaque variante possible. Cela pourrait devenir plus répétitif que cette solution d'objet trait.
+> Vous vous êtes peut-être demandé pourquoi nous n’avons pas utilisé une énumération dont les variantes représenteraient les différents états possibles d’un article. C’est tout à fait une solution possible ; essayez-la et comparez les résultats pour voir laquelle vous préférez ! L’inconvénient des énumérations est que chaque endroit où l’on vérifie la valeur de l’énumération doit utiliser une expression `match`, ou un mécanisme similaire, pour gérer toutes les variantes possibles. Cette solution pourrait être plus répétitive que celle utilisant un objet trait.
 
-#### Évaluation du Modèle d'État
+<!-- Old headings. Do not remove or links may break. -->
 
-Nous avons montré que Rust est capable de mettre en œuvre le modèle d'état orienté objet pour encapsuler les différents types de comportement qu'une publication devrait avoir dans chaque état. Les méthodes sur `Post` ne connaissent rien des divers comportements. Grâce à la façon dont nous avons organisé le code, nous devons regarder en seulement un endroit pour connaître les différentes manières dont une publication publiée peut se comporter : l'implémentation du trait `State` sur la structure `Published`.
+<a id="trade-offs-of-the-state-pattern"></a>
 
-Si nous devions créer une implémentation alternative qui n'utiliserait pas le modèle d'état, nous pourrions plutôt utiliser des expressions `match` dans les méthodes sur `Post` ou même dans le code `main` qui vérifie l'état de la publication et change le comportement en ces endroits. Cela signifierait que nous devrions regarder à plusieurs endroits pour comprendre toutes les implications d'une publication étant dans l'état publié.
+#### Évaluer le patron d’état
 
-Avec le modèle d'état, les méthodes de `Post` et les endroits où nous utilisons `Post` n'ont pas besoin d'expressions `match`, et pour ajouter un nouvel état, nous n'aurions qu'à ajouter une nouvelle structure et implémenter les méthodes de trait sur cette structure unique à un endroit.
+Nous avons montré que Rust est capable d’implémenter le patron d’état orienté objet pour encapsuler les différents comportements qu’un article doit adopter dans chaque état. Les méthodes sur `Post` ne connaissent rien des divers comportements. Grâce à l’organisation du code, il suffit de consulter un seul endroit pour connaître les différents comportements possibles d’un article publié : l’implémentation du trait `State` sur la structure `Published`.
 
-L'implémentation utilisant le modèle d'état est facile à étendre pour ajouter plus de fonctionnalités. Pour constater la simplicité de la maintenance du code qui utilise le modèle d'état, essayez certaines de ces suggestions :
+Si nous créions une autre implémentation sans utiliser le patron d’état, nous pourrions utiliser des expressions `match` dans les méthodes sur `Post`, voire dans le code de `main`, pour vérifier l’état de l’article et modifier son comportement à ces endroits. Nous devrions alors consulter plusieurs endroits pour comprendre toutes les implications de l’état publié d’un article.
 
-- Ajoutez une méthode `reject` qui change l'état de la publication de `PendingReview` à `Draft`.
-- Exigez deux appels à `approve` avant que l'état puisse être changé en `Published`.
-- Autorisez les utilisateurs à ajouter du contenu de texte uniquement lorsqu'une publication est dans l'état `Draft`. Indice : laissez l'objet d'état responsable de ce qui pourrait changer concernant le contenu, mais pas responsable de la modification du `Post`.
+Avec le patron d’état, les méthodes sur `Post` et les endroits où nous utilisons `Post` n’ont pas besoin d’expressions `match`. Pour ajouter un nouvel état, il suffirait d’ajouter une nouvelle structure et d’implémenter les méthodes du trait sur cette structure, à un seul endroit.
 
-Un inconvénient du modèle d'état est qu'en raison des transitions d'état, certains des états sont couplés entre eux. Si nous ajoutons un autre état entre `PendingReview` et `Published`, tel que `Scheduled`, nous devrions modifier le code dans `PendingReview` pour passer à `Scheduled` à la place. Cela coûterait moins cher si `PendingReview` n'avait pas besoin de changer avec l'ajout d'un nouvel état, mais cela signifierait passer à un autre modèle de conception.
+L’implémentation qui utilise le patron d’état peut facilement être étendue pour ajouter des fonctionnalités. Pour constater à quel point il est facile de maintenir du code qui utilise le patron d’état, essayez quelques-unes des suggestions suivantes :
 
-Un autre inconvénient est que nous avons dupliqué une certaine logique. Pour éliminer une partie de la duplication, nous pourrions essayer de créer des implémentations par défaut pour les méthodes `request_review` et `approve` sur le trait `State` qui renvoient `self`. Cependant, cela ne fonctionnerait pas : en utilisant `State` comme un objet trait, le trait ne sait pas quel sera exactement le `self` concret, donc le type de retour n'est pas connu à la compilation. (C'est l'une des règles de compatibilité dynamiques mentionnées précédemment.)
+- Ajoutez une méthode `reject` qui fait repasser l’article de l’état `PendingReview` à l’état `Draft`.
+- Exigez deux appels à `approve` avant que l’état puisse passer à `Published`.
+- Autorisez les utilisateurs à ajouter du texte au contenu uniquement lorsque l’article est à l’état `Draft`. Indice : confiez à l’objet d’état la responsabilité de déterminer ce qui peut changer dans le contenu, mais pas celle de modifier `Post`.
 
-D'autres duplications incluent les implémentations similaires des méthodes `request_review` et `approve` sur `Post`. Les deux méthodes utilisent `Option::take` avec le champ `state` de `Post`, et si `state` est `Some`, elles délèguent à l'implémentation de la même méthode de la valeur enveloppée et définissent la nouvelle valeur du champ `state` sur le résultat. Si nous avions beaucoup de méthodes sur `Post` qui suivaient ce modèle, nous pourrions envisager de définir une macro pour éliminer la répétition (voir la section [« Macros »](ch20-05-macros.html#macros) dans le chapitre 20).
+L’un des inconvénients du patron d’état est que, comme les états implémentent les transitions entre eux, certains états sont couplés les uns aux autres. Si nous ajoutons un état entre `PendingReview` et `Published`, par exemple `Scheduled`, nous devrons modifier le code de `PendingReview` pour que la transition mène à `Scheduled`. Il y aurait moins de travail si l’ajout d’un nouvel état ne nécessitait pas de modifier `PendingReview`, mais cela impliquerait de passer à un autre patron de conception.
 
-En implémentant le modèle d'état exactement comme il est défini pour les langages orientés objet, nous ne tirons pas autant parti des forces de Rust que nous pourrions. Regardons quelques changements que nous pouvons apporter au crate `blog` pour transformer des états et des transitions invalides en erreurs de compilation.
+Un autre inconvénient est que nous avons dupliqué une partie de la logique. Pour éliminer une partie de cette duplication, nous pourrions essayer de définir des implémentations par défaut des méthodes `request_review` et `approve` sur le trait `State` qui renvoient `self`. Cependant, cela ne fonctionnerait pas : lorsque `State` est utilisé comme objet trait, le trait ne connaît pas précisément le type concret de `self`, et le type de retour n’est donc pas connu à la compilation. (C’est l’une des règles de compatibilité avec `dyn` évoquées précédemment.)
 
-### Encodage des États et Comportement comme Types
+Il y a également une duplication entre les implémentations des méthodes `request_review` et `approve` sur `Post`, qui se ressemblent. Les deux méthodes utilisent `Option::take` avec le champ `state` de `Post` et, si `state` vaut `Some`, délèguent à la méthode du même nom implémentée par la valeur qu’elle contient, puis définissent la nouvelle valeur du champ `state` avec le résultat. Si nous avions beaucoup de méthodes sur `Post` suivant ce schéma, nous pourrions envisager de définir une macro pour éviter cette répétition (voir la section [« Macros »][macros]<!-- ignore --> du chapitre 20).
 
-Nous allons vous montrer comment repenser le modèle d'état pour obtenir un ensemble différent de compromis. Plutôt que d'encapsuler complètement les états et les transitions afin qu'un code externe n'en ait pas connaissance, nous allons encoder les états dans différents types. Par conséquent, le système de vérification de types de Rust empêchera toute tentative d'utiliser des publications en brouillon là où seules des publications publiées sont autorisées en émettant une erreur de compilateur.
+En implémentant le patron d’état exactement tel qu’il est défini pour les langages orientés objet, nous ne tirons pas pleinement parti des atouts de Rust. Voyons quelques modifications que nous pouvons apporter à la crate `blog` pour que les états et les transitions invalides deviennent des erreurs de compilation.
 
-Considérons la première partie de `main` dans l'énumération 18-11 :
+### Encoder les états et le comportement dans les types
 
-Nous habilitons toujours la création de nouvelles publications en brouillon en utilisant `Post::new` et la possibilité d'ajouter du texte au contenu de la publication. Mais au lieu d'avoir une méthode `content` sur une publication en brouillon qui renvoie une chaîne vide, nous allons faire en sorte que les publications en brouillon n'aient pas du tout la méthode `content`. De cette façon, si nous essayons d'obtenir le contenu d'une publication en brouillon, nous obtiendrons une erreur de compilation nous indiquant que la méthode n'existe pas. Ainsi, il sera impossible pour nous d'afficher accidentellement le contenu d'une publication en brouillon en production.
+Nous allons vous montrer comment repenser le patron d’état pour obtenir un ensemble différent de compromis. Au lieu d’encapsuler complètement les états et les transitions de sorte que le code externe n’en ait aucune connaissance, nous allons encoder les états dans différents types. Le système de vérification des types de Rust empêchera donc les tentatives d’utiliser des articles à l’état de brouillon là où seuls les articles publiés sont autorisés, en émettant une erreur de compilation.
 
-Les publications en brouillon n'ont donc pas leur contenu disponible pour affichage. Toute tentative de contourner ces contraintes aboutira à une erreur de compilation.
+Examinons la première partie de `main` dans la liste 18-11 :
 
-### Implémentation des Transitions en Transformations en Différents Types
+<Listing file-name="src/main.rs">
 
-Alors, comment obtenir une publication publiée ? Nous voulons faire respecter la règle qu'une publication en brouillon doit être révisée et approuvée avant de pouvoir être publiée. Une publication en attente de révision ne devrait toujours pas afficher de contenu. Implémentons ces contraintes en ajoutant une autre structure, `PendingReviewPost`, en définissant la méthode `request_review` sur `DraftPost` pour renvoyer un `PendingReviewPost` et en définissant une méthode `approve` sur `PendingReviewPost` pour renvoyer un `Post`.
+```rust,ignore
+{{#rustdoc_include ../listings/ch18-oop/listing-18-11/src/main.rs:here}}
+```
 
-La méthode `request_review` et la méthode `approve` prennent possession de `self`, consommant ainsi les instances de `DraftPost` et de `PendingReviewPost` et les transformant en `PendingReviewPost` et en une publication `Post`, respectivement. De cette façon, nous n'aurons pas d'anciennes instances de `DraftPost` après avoir appelé `request_review` sur elles, et vice versa. La structure `PendingReviewPost` n'a pas de méthode `content` définie, donc tenter de lire son contenu entraîne une erreur de compilation, tout comme pour `DraftPost`. Étant donné que la seule façon d'obtenir une instance de `Post` publiée, qui a une méthode `content` définie, est d'appeler la méthode `approve` sur un `PendingReviewPost`, et la seule façon d'obtenir un `PendingReviewPost` est d'appeler la méthode `request_review` sur un `DraftPost`, nous avons maintenant encodé le flux de travail des publications de blog dans le système de types.
+</Listing>
 
-Mais nous devons également apporter quelques petites modifications à `main`. Les méthodes `request_review` et `approve` renvoient de nouvelles instances au lieu de modifier la structure sur laquelle elles sont appelées, donc nous devons ajouter plus d'assignations de masquerade `let post =` pour sauvegarder les instances retournées. Nous ne pouvons également pas avoir les assertions concernant le contenu des publications en brouillon et en attente de révision comme étant des chaînes vides, ni nous n'en avons besoin : nous ne pouvons plus compiler de code qui essaie d'utiliser le contenu de publications dans ces états.
+Nous permettons toujours de créer de nouveaux articles à l’état de brouillon avec `Post::new` et d’ajouter du texte à leur contenu. Mais au lieu d’avoir une méthode `content` sur un article à l’état de brouillon qui renvoie une chaîne vide, nous allons faire en sorte que les articles à l’état de brouillon n’aient pas du tout de méthode `content`. Ainsi, si nous essayons d’obtenir le contenu d’un article à l’état de brouillon, nous obtiendrons une erreur de compilation indiquant que cette méthode n’existe pas. Il nous sera donc impossible d’afficher accidentellement le contenu d’un article à l’état de brouillon en production, car ce code ne compilera même pas. La liste 18-19 présente la définition des structures `Post` et `DraftPost`, ainsi que les méthodes associées.
 
-Le code mis à jour dans `main` est montré dans l'énumération 18-21.
+<Listing number="18-19" file-name="src/lib.rs" caption="Un `Post` doté d’une méthode `content` et un `DraftPost` sans méthode `content`">
 
-Les changements que nous avons dû apporter à `main` pour réaffecter `post` signifient que cette implémentation ne suit plus tout à fait le modèle d'état orienté objet : Les transformations entre les états ne sont plus entièrement encapsulées au sein de l'implémentation `Post`. Cependant, notre gain est que les états invalides sont maintenant impossibles grâce au système de types et à la vérification des types qui se produit à la compilation ! Cela garantit que certains bugs, tels que l'affichage du contenu d'une publication non publiée, seront découverts avant qu'ils ne parviennent à la production.
+```rust,noplayground
+{{#rustdoc_include ../listings/ch18-oop/listing-18-19/src/lib.rs}}
+```
 
-Essayez les tâches suggérées au début de cette section sur le crate `blog` tel qu'il est après l'énumération 18-21 pour voir ce que vous pensez de la conception de cette version du code. Notez que certaines des tâches peuvent déjà être complétées dans ce design.
+</Listing>
 
-Nous avons vu que même si Rust est capable d'implémenter des modèles de conception orientés objet, d'autres modèles, comme l'encodage de l'état dans le système de types, sont également disponibles en Rust. Ces modèles présentent différents compromis. Bien que vous soyez peut-être très familier avec les modèles orientés objet, repenser le problème pour tirer parti des fonctionnalités de Rust peut offrir des avantages, tels que la prévention de certains bugs à la compilation. Les modèles orientés objet ne seront pas toujours la meilleure solution en Rust en raison de certaines caractéristiques, comme la propriété, que les langages orientés objet n'ont pas.
+Les structures `Post` et `DraftPost` possèdent toutes deux un champ privé `content` qui stocke le texte de l’article de blog. Les structures n’ont plus de champ `state`, car nous encodons désormais l’état dans les types des structures. La structure `Post` représentera un article publié et possédera une méthode `content` qui renvoie le contenu.
+
+Nous avons toujours une fonction `Post::new`, mais au lieu de renvoyer une instance de `Post`, elle renvoie une instance de `DraftPost`. Comme `content` est privé et qu’aucune fonction ne renvoie de `Post`, il est actuellement impossible de créer une instance de `Post`.
+
+La structure `DraftPost` possède une méthode `add_text`, qui nous permet d’ajouter du texte à `content` comme avant. Remarquez cependant que `DraftPost` ne possède pas de méthode `content` ! Le programme garantit désormais que tous les articles commencent à l’état de brouillon et que leur contenu n’est pas accessible pour affichage tant qu’ils sont dans cet état. Toute tentative de contourner ces contraintes entraînera une erreur de compilation.
+
+<!-- Old headings. Do not remove or links may break. -->
+
+<a id="implementing-transitions-as-transformations-into-different-types"></a>
+
+Comment obtenir un article publié ? Nous voulons imposer la règle selon laquelle un article à l’état de brouillon doit être révisé et approuvé avant de pouvoir être publié. Un article en attente de révision ne doit toujours pas afficher son contenu. Implémentons ces contraintes en ajoutant une autre structure, `PendingReviewPost`, en définissant la méthode `request_review` sur `DraftPost` afin qu’elle renvoie un `PendingReviewPost`, et en définissant une méthode `approve` sur `PendingReviewPost` afin qu’elle renvoie un `Post`, comme le montre la liste 18-20.
+
+<Listing number="18-20" file-name="src/lib.rs" caption="Un `PendingReviewPost` créé en appelant `request_review` sur `DraftPost`, et une méthode `approve` qui transforme un `PendingReviewPost` en `Post` publié">
+
+```rust,noplayground
+{{#rustdoc_include ../listings/ch18-oop/listing-18-20/src/lib.rs:here}}
+```
+
+</Listing>
+
+Les méthodes `request_review` et `approve` prennent possession de `self` et consomment donc les instances de `DraftPost` et de `PendingReviewPost` pour les transformer respectivement en `PendingReviewPost` et en `Post` publié. Ainsi, après avoir appelé `request_review` sur une instance de `DraftPost`, il ne nous en restera aucune, et ainsi de suite. La structure `PendingReviewPost` ne possède pas de méthode `content` ; toute tentative de lire son contenu entraînera donc une erreur de compilation, comme avec `DraftPost`. Comme le seul moyen d’obtenir une instance de `Post` publié dotée d’une méthode `content` est d’appeler la méthode `approve` sur un `PendingReviewPost`, et que le seul moyen d’obtenir un `PendingReviewPost` est d’appeler la méthode `request_review` sur un `DraftPost`, nous avons désormais encodé le flux de travail des articles de blog dans le système de types.
+
+Nous devons toutefois apporter quelques petites modifications à `main`. Les méthodes `request_review` et `approve` renvoient de nouvelles instances au lieu de modifier la structure sur laquelle elles sont appelées. Nous devons donc ajouter des affectations avec masquage de variable, sous la forme `let post =`, pour enregistrer les instances renvoyées. Nous ne pouvons pas non plus conserver les assertions selon lesquelles le contenu des articles à l’état de brouillon ou en attente de révision est une chaîne vide, et nous n’en avons pas besoin : le code qui essaie d’utiliser le contenu d’articles dans ces états ne peut plus compiler. Le code mis à jour dans `main` est présenté dans la liste 18-21.
+
+<Listing number="18-21" file-name="src/main.rs" caption="Modifications de `main` pour utiliser la nouvelle implémentation du flux de travail des articles de blog">
+
+```rust,ignore
+{{#rustdoc_include ../listings/ch18-oop/listing-18-21/src/main.rs}}
+```
+
+</Listing>
+
+Les modifications apportées à `main` pour réaffecter `post` signifient que cette implémentation ne suit plus tout à fait le patron d’état orienté objet : les transformations entre les états ne sont plus entièrement encapsulées dans l’implémentation de `Post`. En revanche, grâce au système de types et à la vérification des types effectuée à la compilation, les états invalides sont désormais impossibles ! Ainsi, certains bogues, comme l’affichage du contenu d’un article non publié, seront détectés avant la mise en production.
+
+Essayez les tâches proposées au début de cette section sur la crate `blog` telle qu’elle se présente après la liste 18-21, pour voir ce que vous pensez de la conception de cette version du code. Certaines tâches sont peut-être déjà réalisées dans cette conception.
+
+Nous avons vu que, même si Rust est capable d’implémenter des patrons de conception orientés objet, d’autres patrons, comme l’encodage de l’état dans le système de types, sont également disponibles en Rust. Ces patrons présentent différents compromis. Même si les patrons orientés objet vous sont très familiers, repenser le problème pour tirer parti des fonctionnalités de Rust peut présenter des avantages, notamment celui d’éviter certains bogues à la compilation. Les patrons orientés objet ne seront pas toujours la meilleure solution en Rust, en raison de certaines fonctionnalités comme la propriété, absentes des langages orientés objet.
 
 ## Résumé
 
-Peu importe que vous pensiez que Rust est un langage orienté objet après avoir lu ce chapitre, vous savez maintenant que vous pouvez utiliser des objets trait pour obtenir certaines fonctionnalités orientées objet en Rust. Le dispatch dynamique peut donner à votre code une certaine flexibilité en échange d'une légère perte de performance à l'exécution. Vous pouvez utiliser cette flexibilité pour implémenter des modèles orientés objet qui peuvent aider à la maintenabilité de votre code. Rust a également d'autres fonctionnalités, comme la propriété, qui ne sont pas présentes dans les langages orientés objet. Un modèle orienté objet ne sera pas toujours le meilleur moyen de tirer parti des forces de Rust, mais c'est une option disponible.
+Que vous considériez ou non Rust comme un langage orienté objet après avoir lu ce chapitre, vous savez maintenant que vous pouvez utiliser des objets trait pour bénéficier de certaines fonctionnalités orientées objet en Rust. La répartition dynamique peut apporter de la souplesse à votre code, au prix d’une légère baisse des performances à l’exécution. Vous pouvez utiliser cette souplesse pour implémenter des patrons orientés objet qui favorisent la maintenabilité de votre code. Rust possède également d’autres fonctionnalités, comme la propriété, absentes des langages orientés objet. Un patron orienté objet ne sera pas toujours la meilleure façon de tirer parti des atouts de Rust, mais il reste une option possible.
 
-Ensuite, nous examinerons les modèles, qui sont une autre des fonctionnalités de Rust permettant une grande flexibilité. Nous les avons examinés brièvement tout au long du livre mais nous n'avons pas encore vu leur pleine capacité. Allons-y !
+Nous allons maintenant examiner les motifs, une autre fonctionnalité de Rust qui permet une grande souplesse. Nous les avons brièvement abordés tout au long du livre, mais nous n’avons pas encore vu tout ce qu’ils permettent. Allons-y !
+
+[more-info-than-rustc]: ch09-03-to-panic-or-not-to-panic.html#cases-in-which-you-have-more-information-than-the-compiler
+[macros]: ch20-05-macros.html#macros

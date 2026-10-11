@@ -1,3 +1,11 @@
-# Énumérations et Correspondance de Modèles
+# Énumérations et filtrage par motif
 
-Dans ce chapitre, nous allons examiner les énumérations, également appelées _énums_. Les énums vous permettent de définir un type en énumérant ses variantes possibles. Tout d'abord, nous définirons et utiliserons un enum pour montrer comment un enum peut encoder du sens avec des données. Ensuite, nous explorerons un enum particulièrement utile, appelé `Option`, qui exprime qu'une valeur peut être soit quelque chose, soit rien. Puis, nous verrons comment la correspondance de modèles dans l'expression `match` facilite l'exécution de différentes parties de code pour différentes valeurs d'un enum. Enfin, nous aborderons comment la construction `if let` est un autre idiome pratique et concis disponible pour gérer les énums dans votre code.
+Dans ce chapitre, nous allons étudier les énumérations, également appelées _enums_.
+Les enums vous permettent de définir un type en énumérant ses variantes possibles. Nous
+commencerons par définir et utiliser une enum afin de montrer comment une enum peut
+associer une signification à des données. Ensuite, nous étudierons une enum
+particulièrement utile, appelée `Option`, qui exprime qu’une valeur peut être soit
+quelque chose, soit rien. Puis, nous verrons comment le filtrage par motif dans
+l’expression `match` permet facilement d’exécuter un code différent selon les
+valeurs d’une enum. Enfin, nous aborderons la construction `if let`, une autre
+syntaxe pratique et concise pour gérer les enums dans votre code.

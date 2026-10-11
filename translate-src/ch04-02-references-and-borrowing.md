@@ -1,8 +1,8 @@
-## Références et Emprunt
+## Références et emprunts
 
-Le problème avec le code de tuple dans la liste 4-5 est que nous devons renvoyer le `String` à la fonction appelante afin que nous puissions toujours utiliser le `String` après l'appel à `calculate_length`, car le `String` a été déplacé dans `calculate_length`. Au lieu de cela, nous pouvons fournir une référence à la valeur `String`. Une référence est comme un pointeur en ce sens qu'elle représente une adresse que nous pouvons suivre pour accéder aux données stockées à cette adresse ; ces données appartiennent à une autre variable. Contrairement à un pointeur, une référence est garantie de pointer vers une valeur valide d'un type particulier pendant toute la durée de cette référence.
+Le problème avec le code utilisant un tuple dans l’exemple 4-5 est que nous devons renvoyer la `String` à la fonction appelante afin de pouvoir encore utiliser la `String` après l’appel à `calculate_length`, car la `String` a été déplacée dans `calculate_length`. À la place, nous pouvons fournir une référence à la valeur `String`. Une référence est comme un pointeur, en ce sens qu’il s’agit d’une adresse que nous pouvons suivre pour accéder aux données stockées à cette adresse ; ces données appartiennent à une autre variable. Contrairement à un pointeur, une référence garantit de pointer vers une valeur valide d’un type particulier pendant toute la durée de vie de cette référence.
 
-Voici comment vous définiriez et utiliseriez une fonction `calculate_length` qui prend une référence à un objet comme paramètre au lieu de prendre la propriété de la valeur :
+Voici comment définir et utiliser une fonction `calculate_length` qui prend une référence à un objet comme paramètre au lieu de prendre possession de la valeur :
 
 <Listing file-name="src/main.rs">
 
@@ -12,21 +12,21 @@ Voici comment vous définiriez et utiliseriez une fonction `calculate_length` qu
 
 </Listing>
 
-Tout d'abord, remarquez que tout le code du tuple dans la déclaration de variable et la valeur de retour de fonction a disparu. Deuxièmement, notez que nous passons `&s1` dans `calculate_length` et, dans sa définition, nous prenons `&String` au lieu de `String`. Ces esperluettes représentent des références et elles vous permettent de vous référer à une valeur sans en prendre possession. La figure 4-6 illustre ce concept.
+Tout d’abord, remarquez que tout le code utilisant un tuple dans la déclaration de variable et la valeur de retour de la fonction a disparu. Ensuite, notez que nous passons `&s1` à `calculate_length` et que, dans sa définition, nous prenons `&String` plutôt que `String`. Ces esperluettes représentent des références et vous permettent de faire référence à une valeur sans en prendre possession. La figure 4-6 illustre ce concept.
 
-<img alt="Trois tables : la table pour s contient uniquement un pointeur vers la table pour s1. La table pour s1 contient les données de la pile pour s1 et pointe vers les données de chaîne sur le tas." src="img/trpl04-06.svg" class="center" />
+<img alt="Trois tableaux : le tableau de s ne contient qu’un pointeur vers le tableau de s1. Le tableau de s1 contient les données de s1 sur la pile et pointe vers les données de la chaîne sur le tas." src="img/trpl04-06.svg" class="center" />
 
-<span class="caption">Figure 4-6 : Un diagramme de `&String` `s` pointant vers `String` `s1`</span>
+<span class="caption">Figure 4-6 : Schéma de `&String` `s` pointant vers `String` `s1`</span>
 
-> Remarque : L'opposé de la référence utilisant `&` est le _déséquipement_, qui s'effectue avec l'opérateur de déséquipement, `*`. Nous verrons quelques utilisations de l'opérateur de déséquipement dans le chapitre 8 et discuterons des détails du déséquipement dans le chapitre 15.
+> Remarque : L’opposé du référencement à l’aide de `&` est le _déréférencement_, qui s’effectue avec l’opérateur de déréférencement, `*`. Nous verrons quelques utilisations de l’opérateur de déréférencement au chapitre 8 et aborderons le déréférencement en détail au chapitre 15.
 
-Prenons un regard plus attentif à l'appel de fonction ici :
+Examinons de plus près l’appel de fonction ici :
 
 ```rust
 {{#rustdoc_include ../listings/ch04-understanding-ownership/no-listing-07-reference/src/main.rs:here}}
 ```
 
-La syntaxe `&s1` nous permet de créer une référence qui _se réfère_ à la valeur de `s1` mais ne possède pas celle-ci. Étant donné que la référence ne possède pas celle-ci, la valeur à laquelle elle pointe ne sera pas supprimée lorsque la référence cessera d'être utilisée.
+La syntaxe `&s1` nous permet de créer une référence qui _fait référence_ à la valeur de `s1` sans en être propriétaire. Comme la référence n’en est pas propriétaire, la valeur vers laquelle elle pointe ne sera pas supprimée lorsque la référence cessera d’être utilisée.
 
 De même, la signature de la fonction utilise `&` pour indiquer que le type du paramètre `s` est une référence. Ajoutons quelques annotations explicatives :
 
@@ -34,13 +34,13 @@ De même, la signature de la fonction utilise `&` pour indiquer que le type du p
 {{#rustdoc_include ../listings/ch04-understanding-ownership/no-listing-08-reference-with-annotations/src/main.rs:here}}
 ```
 
-La portée dans laquelle la variable `s` est valide est la même que celle de tout paramètre de fonction, mais la valeur à laquelle la référence pointe n'est pas supprimée lorsque `s` cesse d'être utilisée, car `s` n'a pas la propriété. Lorsque les fonctions ont des références en tant que paramètres au lieu des valeurs réelles, nous n'avons pas besoin de renvoyer les valeurs afin de rendre la propriété, car nous n'avons jamais eu la propriété.
+La portée dans laquelle la variable `s` est valide est la même que celle de n’importe quel paramètre de fonction, mais la valeur pointée par la référence n’est pas supprimée lorsque `s` cesse d’être utilisée, car `s` n’en est pas propriétaire. Lorsque les fonctions prennent des références comme paramètres plutôt que les valeurs elles-mêmes, nous n’avons pas besoin de renvoyer les valeurs pour en restituer la propriété, puisque nous n’en avons jamais été propriétaires.
 
-Nous appelons l'action de créer une référence _emprunt_. Comme dans la vie réelle, si une personne possède quelque chose, vous pouvez l'emprunter. Une fois que vous avez terminé, vous devez le rendre. Vous ne le possédez pas.
+Nous appelons _emprunt_ l’action de créer une référence. Comme dans la vie réelle, si une personne possède quelque chose, vous pouvez le lui emprunter. Lorsque vous avez terminé, vous devez le lui rendre. Vous n’en êtes pas propriétaire.
 
-Alors, que se passe-t-il si nous essayons de modifier quelque chose que nous empruntons ? Essayez le code dans la liste 4-6. Alerte spoiler : ça ne fonctionne pas !
+Alors, que se passe-t-il si nous essayons de modifier quelque chose que nous empruntons ? Essayez le code de l’exemple 4-6. Attention : ça ne fonctionne pas !
 
-<Listing number="4-6" file-name="src/main.rs" caption="Tentative de modification d'une valeur empruntée">
+<Listing number="4-6" file-name="src/main.rs" caption="Tentative de modification d’une valeur empruntée">
 
 ```rust,ignore,does_not_compile
 {{#rustdoc_include ../listings/ch04-understanding-ownership/listing-04-06/src/main.rs}}
@@ -48,17 +48,17 @@ Alors, que se passe-t-il si nous essayons de modifier quelque chose que nous emp
 
 </Listing>
 
-Voici l'erreur :
+Voici l’erreur :
 
 ```console
 {{#include ../listings/ch04-understanding-ownership/listing-04-06/output.txt}}
 ```
 
-Tout comme les variables sont immuables par défaut, les références le sont aussi. Nous ne sommes pas autorisés à modifier quelque chose auquel nous avons une référence.
+Tout comme les variables sont immuables par défaut, les références le sont aussi. Nous n’avons pas le droit de modifier quelque chose auquel nous faisons référence.
 
-### Références Mutables
+### Références mutables
 
-Nous pouvons corriger le code de la liste 4-6 pour nous permettre de modifier une valeur empruntée avec juste quelques petites modifications qui utilisent, à la place, une _référence mutable_ :
+Nous pouvons corriger le code de l’exemple 4-6 pour nous permettre de modifier une valeur empruntée grâce à quelques petits ajustements qui utilisent plutôt une _référence mutable_ :
 
 <Listing file-name="src/main.rs">
 
@@ -68,9 +68,9 @@ Nous pouvons corriger le code de la liste 4-6 pour nous permettre de modifier un
 
 </Listing>
 
-Tout d'abord, nous changeons `s` pour qu'il soit `mut`. Ensuite, nous créons une référence mutable avec `&mut s` où nous appelons la fonction `change` et mettons à jour la signature de la fonction pour accepter une référence mutable avec `some_string: &mut String`. Cela rend très clair que la fonction `change` va muter la valeur qu'elle emprunte.
+Tout d’abord, nous modifions `s` pour la rendre `mut`. Ensuite, nous créons une référence mutable avec `&mut s` à l’endroit où nous appelons la fonction `change`, puis nous mettons à jour la signature de la fonction pour qu’elle accepte une référence mutable avec `some_string: &mut String`. Cela indique très clairement que la fonction `change` va modifier la valeur qu’elle emprunte.
 
-Les références mutables ont une grande restriction : si vous avez une référence mutable à une valeur, vous ne pouvez avoir aucune autre référence à cette valeur. Ce code qui tente de créer deux références mutables à `s` échouera :
+Les références mutables ont une restriction importante : si vous avez une référence mutable à une valeur, vous ne pouvez avoir aucune autre référence à cette valeur. Ce code, qui tente de créer deux références mutables à `s`, échouera :
 
 <Listing file-name="src/main.rs">
 
@@ -80,59 +80,59 @@ Les références mutables ont une grande restriction : si vous avez une référe
 
 </Listing>
 
-Voici l'erreur :
+Voici l’erreur :
 
 ```console
 {{#include ../listings/ch04-understanding-ownership/no-listing-10-multiple-mut-not-allowed/output.txt}}
 ```
 
-Cette erreur indique que ce code est invalide car nous ne pouvons pas emprunter `s` comme mutable plus d'une fois à la fois. Le premier emprunt mutable est dans `r1` et doit durer jusqu'à son utilisation dans le `println!`, mais entre la création de cette référence mutable et son utilisation, nous avons essayé de créer une autre référence mutable dans `r2` qui emprunte les mêmes données que `r1`.
+Cette erreur indique que ce code est invalide, car nous ne pouvons pas emprunter `s` de manière mutable plus d’une fois à la fois. Le premier emprunt mutable se trouve dans `r1` et doit durer jusqu’à son utilisation dans le `println!`, mais entre la création de cette référence mutable et son utilisation, nous avons essayé de créer dans `r2` une autre référence mutable qui emprunte les mêmes données que `r1`.
 
-La restriction empêchant plusieurs références mutables aux mêmes données en même temps permet la mutation mais de manière très contrôlée. C'est quelque chose avec lequel les nouveaux utilisateurs de Rust ont du mal, car la plupart des langages vous permettent de muter quand vous le souhaitez. Le bénéfice d'avoir cette restriction est que Rust peut prévenir les courses de données à la compilation. Une _course de données_ est similaire à une condition de course et se produit lorsque ces trois comportements se produisent :
+La restriction qui empêche d’avoir plusieurs références mutables aux mêmes données en même temps autorise la mutation, mais de façon très contrôlée. C’est un aspect avec lequel les nouveaux Rustacés ont du mal, car la plupart des langages vous permettent de modifier les valeurs quand vous le souhaitez. Cette restriction a l’avantage de permettre à Rust d’éviter les courses de données à la compilation. Une _course de données_ ressemble à une condition de concurrence et se produit lorsque les trois comportements suivants sont réunis :
 
-- Deux ou plusieurs pointeurs accèdent aux mêmes données en même temps.
-- Au moins un des pointeurs est utilisé pour écrire sur les données.
-- Aucun mécanisme n'est utilisé pour synchroniser l'accès aux données.
+- Deux pointeurs ou plus accèdent aux mêmes données au même moment.
+- Au moins l’un de ces pointeurs est utilisé pour écrire dans les données.
+- Aucun mécanisme n’est utilisé pour synchroniser l’accès aux données.
 
-Les courses de données provoquent des comportements indéfinis et peuvent être difficiles à diagnostiquer et à réparer lorsque vous essayez de les traquer à l'exécution ; Rust prévient ce problème en refusant de compiler du code avec des courses de données !
+Les courses de données entraînent un comportement indéfini et peuvent être difficiles à diagnostiquer et à corriger lorsque vous essayez de les repérer à l’exécution ; Rust évite ce problème en refusant de compiler le code qui contient des courses de données !
 
-Comme toujours, nous pouvons utiliser des accolades pour créer une nouvelle portée, permettant plusieurs références mutables, juste pas _simultanées_ :
+Comme toujours, nous pouvons utiliser des accolades pour créer une nouvelle portée et ainsi autoriser plusieurs références mutables, à condition qu’elles ne soient pas _simultanées_ :
 
 ```rust
 {{#rustdoc_include ../listings/ch04-understanding-ownership/no-listing-11-muts-in-separate-scopes/src/main.rs:here}}
 ```
 
-Rust applique une règle similaire pour la combinaison des références mutables et immuables. Ce code génère une erreur :
+Rust applique une règle similaire lorsqu’on combine des références mutables et immuables. Ce code provoque une erreur :
 
 ```rust,ignore,does_not_compile
 {{#rustdoc_include ../listings/ch04-understanding-ownership/no-listing-12-immutable-and-mutable-not-allowed/src/main.rs:here}}
 ```
 
-Voici l'erreur :
+Voici l’erreur :
 
 ```console
 {{#include ../listings/ch04-understanding-ownership/no-listing-12-immutable-and-mutable-not-allowed/output.txt}}
 ```
 
-Ouf ! Nous _ne pouvons_ également pas avoir une référence mutable pendant que nous avons une référence immuable à la même valeur.
+Ouf ! Nous ne pouvons _pas non plus_ avoir de référence mutable à une valeur tant qu’il existe une référence immuable vers cette même valeur.
 
-Les utilisateurs d'une référence immuable ne s'attendent pas à ce que la valeur change soudainement sans avertir ! Cependant, plusieurs références immuables sont autorisées car personne qui lit simplement les données n'a la capacité d'affecter la lecture des données par autrui.
+Les utilisateurs d’une référence immuable ne s’attendent pas à ce que la valeur change soudainement sans qu’ils le sachent ! Cependant, plusieurs références immuables sont autorisées, car personne qui se contente de lire les données ne peut affecter la lecture des données par les autres.
 
-Notez qu'une portée de référence commence à partir du moment où elle est introduite et continue jusqu'à la dernière fois que cette référence est utilisée. Par exemple, ce code va compiler car la dernière utilisation des références immuables est dans le `println!`, avant que la référence mutable soit introduite :
+Notez que la portée d’une référence commence à l’endroit où elle est introduite et se poursuit jusqu’à sa dernière utilisation. Par exemple, ce code compile, car la dernière utilisation des références immuables se trouve dans le `println!`, avant l’introduction de la référence mutable :
 
 ```rust
 {{#rustdoc_include ../listings/ch04-understanding-ownership/no-listing-13-reference-scope-ends/src/main.rs:here}}
 ```
 
-Les portées des références immuables `r1` et `r2` se terminent après le `println!` où elles sont last utilisées, ce qui est avant la création de la référence mutable `r3`. Ces portées ne se chevauchent pas, donc ce code est autorisé : le compilateur peut dire que la référence n'est plus utilisée à un moment donné avant la fin de la portée.
+Les portées des références immuables `r1` et `r2` prennent fin après le `println!` où elles sont utilisées pour la dernière fois, c’est-à-dire avant la création de la référence mutable `r3`. Ces portées ne se chevauchent pas, ce qui rend ce code valide : le compilateur peut déterminer que la référence n’est plus utilisée avant la fin de sa portée.
 
-Bien que les erreurs d'emprunt puissent parfois être frustrantes, rappelez-vous que c'est le compilateur Rust qui signale un bug potentiel tôt (à la compilation plutôt qu'à l'exécution) et vous montre exactement où se trouve le problème. Ainsi, vous n'avez pas à chercher pourquoi vos données ne sont pas ce que vous pensiez qu'elles étaient.
+Même si les erreurs d’emprunt peuvent parfois être frustrantes, rappelez-vous que le compilateur Rust signale un bogue potentiel dès le début (à la compilation plutôt qu’à l’exécution) et vous montre précisément où se trouve le problème. Vous n’avez donc pas à chercher pourquoi vos données ne correspondent pas à ce que vous pensiez.
 
-### Références Danglantes
+### Références pendantes
 
-Dans les langages avec des pointeurs, il est facile de créer par erreur un _pointeur dangleant_ - un pointeur qui fait référence à un emplacement en mémoire qui a peut-être été attribué à quelqu'un d'autre - en libérant de la mémoire tout en conservant un pointeur vers cette mémoire. En Rust, en revanche, le compilateur garantit que les références ne seront jamais des références danglantes : si vous avez une référence à des données, le compilateur s'assurera que les données ne sortiront pas de la portée avant la référence vers les données.
+Dans les langages qui utilisent des pointeurs, il est facile de créer par erreur un _pointeur pendant_ — un pointeur qui fait référence à un emplacement mémoire qui a peut-être été attribué à quelqu’un d’autre — en libérant de la mémoire tout en conservant un pointeur vers cette mémoire. En Rust, à l’inverse, le compilateur garantit que les références ne seront jamais pendantes : si vous avez une référence à des données, le compilateur veille à ce que ces données ne sortent pas de portée avant la référence qui y donne accès.
 
-Essayons de créer une référence danglante pour voir comment Rust les empêche avec une erreur de compilation :
+Essayons de créer une référence pendante pour voir comment Rust les empêche en produisant une erreur à la compilation :
 
 <Listing file-name="src/main.rs">
 
@@ -142,19 +142,19 @@ Essayons de créer une référence danglante pour voir comment Rust les empêche
 
 </Listing>
 
-Voici l'erreur :
+Voici l’erreur :
 
 ```console
 {{#include ../listings/ch04-understanding-ownership/no-listing-14-dangling-reference/output.txt}}
 ```
 
-Ce message d'erreur fait référence à une fonctionnalité que nous n'avons pas encore abordée : les durées de vie. Nous discuterons des durées de vie en détail dans le chapitre 10. Mais, si vous ignorez les parties concernant les durées de vie, le message contient la clé de pourquoi ce code pose problème :
+Ce message d’erreur fait référence à une fonctionnalité que nous n’avons pas encore abordée : les durées de vie. Nous parlerons des durées de vie en détail au chapitre 10. Mais, si vous faites abstraction des passages portant sur les durées de vie, le message contient bien la clé permettant de comprendre pourquoi ce code pose problème :
 
 ```text
-le type de retour de cette fonction contient une valeur empruntée, mais il n'y a aucune valeur à partir de laquelle elle puisse être empruntée
+le type de retour de cette fonction contient une valeur empruntée, mais aucune valeur à laquelle elle pourrait être empruntée
 ```
 
-Examinons de plus près ce qui se passe à chaque étape de notre code `dangle` :
+Examinons de plus près ce qui se passe exactement à chaque étape de notre code `dangle` :
 
 <Listing file-name="src/main.rs">
 
@@ -164,21 +164,21 @@ Examinons de plus près ce qui se passe à chaque étape de notre code `dangle` 
 
 </Listing>
 
-Parce que `s` est créé à l'intérieur de `dangle`, lorsque le code de `dangle` est terminé, `s` sera désalloué. Mais nous avons essayé de renvoyer une référence à celle-ci. Cela signifie que cette référence pointerait vers un `String` invalide. Ce n'est pas bon ! Rust ne nous laissera pas faire cela.
+Comme `s` est créée à l’intérieur de `dangle`, elle sera désallouée à la fin de l’exécution du code de `dangle`. Or, nous avons essayé de renvoyer une référence vers elle. Cette référence pointerait donc vers une `String` invalide. Ce n’est pas acceptable ! Rust ne nous laissera pas faire cela.
 
-La solution ici est de renvoyer le `String` directement :
+La solution consiste ici à renvoyer directement la `String` :
 
 ```rust
 {{#rustdoc_include ../listings/ch04-understanding-ownership/no-listing-16-no-dangle/src/main.rs:here}}
 ```
 
-Cela fonctionne sans aucun problème. La propriété est transférée, et rien n'est désalloué.
+Cela fonctionne sans aucun problème. La propriété est transférée et rien n’est désalloué.
 
-### Les Règles des Références
+### Les règles des références
 
-Récapitulons ce dont nous avons discuté au sujet des références :
+Récapitulons ce que nous avons vu à propos des références :
 
-- À tout moment, vous pouvez avoir _soit_ une référence mutable _soit_ un nombre quelconque de références immuables.
+- À tout moment, vous pouvez avoir _soit_ une référence mutable, _soit_ un nombre quelconque de références immuables.
 - Les références doivent toujours être valides.
 
-Ensuite, nous allons examiner un autre type de référence : les tranches.
+Nous allons maintenant examiner un autre type de référence : les tranches.

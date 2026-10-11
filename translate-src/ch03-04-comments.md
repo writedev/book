@@ -1,22 +1,22 @@
 ## Commentaires
 
-Tous les programmeurs s'efforcent de rendre leur code facile à comprendre, mais parfois une explication supplémentaire est justifiée. Dans ces cas, les programmeurs laissent des _commentaires_ dans leur code source que le compilateur ignorera, mais que les personnes lisant le code source pourraient trouver utiles.
+Tous les programmeurs s’efforcent de rendre leur code facile à comprendre, mais il est parfois nécessaire d’ajouter des explications. Dans ces cas-là, les programmeurs laissent des _commentaires_ dans leur code source, que le compilateur ignore, mais qui peuvent être utiles aux personnes qui lisent le code source.
 
-Voici un simple commentaire :
-
-```rust
-// bonjour, le monde
-```
-
-En Rust, le style de commentaire idiomatique commence un commentaire par deux barres obliques, et le commentaire continue jusqu'à la fin de la ligne. Pour les commentaires qui s'étendent au-delà d'une seule ligne, vous devez inclure `//` sur chaque ligne, comme ceci :
+Voici un commentaire simple :
 
 ```rust
-// Donc, nous faisons quelque chose de compliqué ici, assez long pour que nous 
-// ayons besoin de plusieurs lignes de commentaires pour le faire ! Ouf ! 
-// J'espère que ce commentaire expliquera ce qui se passe.
+// hello, world
 ```
 
-Les commentaires peuvent également être placés à la fin des lignes contenant du code :
+En Rust, la convention consiste à commencer un commentaire par deux barres obliques, et le commentaire se poursuit jusqu’à la fin de la ligne. Pour les commentaires qui s’étendent sur plusieurs lignes, vous devez inclure `//` sur chaque ligne, comme ceci :
+
+```rust
+// So we're doing something complicated here, long enough that we need
+// multiple lines of comments to do it! Whew! Hopefully, this comment will
+// explain what's going on.
+```
+
+Les commentaires peuvent aussi être placés à la fin des lignes qui contiennent du code :
 
 <span class="filename">Nom du fichier : src/main.rs</span>
 
@@ -24,7 +24,7 @@ Les commentaires peuvent également être placés à la fin des lignes contenant
 {{#rustdoc_include ../listings/ch03-common-programming-concepts/no-listing-24-comments-end-of-line/src/main.rs}}
 ```
 
-Mais vous les verrez plus souvent utilisés dans ce format, avec le commentaire sur une ligne séparée au-dessus du code qu'il annotent :
+Mais vous les verrez plus souvent sous cette forme, avec le commentaire sur une ligne distincte au-dessus du code qu’il annote :
 
 <span class="filename">Nom du fichier : src/main.rs</span>
 
@@ -32,7 +32,6 @@ Mais vous les verrez plus souvent utilisés dans ce format, avec le commentaire 
 {{#rustdoc_include ../listings/ch03-common-programming-concepts/no-listing-25-comments-above-line/src/main.rs}}
 ```
 
-Rust a également un autre type de commentaire, les commentaires de documentation, que nous aborderons dans la section [« Publier un Crate sur Crates.io »][publishing]<!-- ignore -->
-du Chapitre 14.
+Rust possède également un autre type de commentaire, les commentaires de documentation, dont nous parlerons dans la section [« Publier une crate sur Crates.io »][publishing]<!-- ignore --> du chapitre 14.
 
 [publishing]: ch14-02-publishing-to-crates-io.html
