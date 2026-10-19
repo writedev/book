@@ -15,3 +15,5 @@ tmp
 translate-scripts/french_prompt.md
 
 *.pyc
+__pycache__/
+__pycache__

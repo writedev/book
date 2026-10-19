@@ -40,9 +40,15 @@ AI_MODEL = args.ai_model
 
 PROVIDER_API_KEY = args.api_key
 
-INSTRUCT = (
-    open("translate-scripts/prompt.md").read().replace("[NEW_LANGUAGE]", args.language)
-)
+prompt_file = Path("translate-scripts/prompt.md")
+
+INSTRUCT = open(prompt_file).read().replace("[NEW_LANGUAGE]", args.language)
+
+prompt_file.copy(f"{prompt_file.parent}/old_prompt.md")
+
+prompt_file.open(mode="w+").write(INSTRUCT)
+
+exit()
 
 client = AsyncOpenAI(base_url=args.provider_url, api_key=PROVIDER_API_KEY)
 
